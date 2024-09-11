@@ -8,7 +8,7 @@ int main() {
     std::ifstream conf(filename);
     std::string dbname,user,password;
     conf>>dbname>>user>>password;
-    std::string cstring="dbname="+dbname+" user="+user+" password="+password+" host=localhost port=5432";
+    std::string cstring="dbname="+dbname+" user="+user+" password="+password+" host=localhost port=5501";
     try {
         pqxx::connection C(cstring);
         if (C.is_open()) {
