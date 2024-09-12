@@ -1,4 +1,5 @@
 # Сервис дедупликации данных
+
 Цель работы состоит в реализации системы оптимального хранения
 данных за счет использования подхода дедупликации данных и проведении
 тестирования для измерения производительности созданного прототипа.
@@ -6,21 +7,29 @@
 ## Задачи
 
 - [x] решить проблему с подключением к бд
-- [ ] создать простую схему для дедупликации
+- [x] создать простую схему для дедупликации
+- [ ] Доработать данную схему
+  - [ ] Добавить методы для сбора метрик(процент сжатия, распределение по числу блоков)
+  - [ ] Убрать ненужные/избыточные колонки, нормализовать/уточнить взаимосвязи между таблицами
+- [ ] реализовать создание схемы выше в разных вариантах(размер сегмента, функция хэширования) при помощи динамических sql запросов
 - [ ] добавить источник данных
 - [ ] определить стек тенологий
 - [ ] ввести набор критериев и метрик, зависимости между которыми будут подлежать исследованию
 
-
 ## Wsl firewall set-up
+
 [source](https://stackoverflow.com/questions/56824788/how-to-connect-to-windows-postgres-database-from-wsl)
 
-WSL2 assigns IP address to the Windows host dynamically and the IP addresses can change without even rebooting Windows (see Notes below). So to reliably connect we'll need to:
+WSL2 assigns IP address to the Windows host dynamically and the IP addresses can change without even rebooting Windows (
+see Notes below). So to reliably connect we'll need to:
 
 1. Allow Windows and Postgres to accept connections from the WSL2 IP address range (not allowed by default)
-2. From WSL2, determine the Windows/Postgresql host's IP address (which is dynamic) when connecting via `psql`. We'll make this convenient via `.bashrc` and `alias`.
+2. From WSL2, determine the Windows/Postgresql host's IP address (which is dynamic) when connecting via`psql`. We'll
+   make this convenient via`.bashrc`and`alias`.
 
-Unfortunately I couldn't find the exact specification for the WSL2 IP address range. From several tests/reboots it appears that WSL2 is assigning IP addresses primarily in range of `172.*.*.*` but I have occasionally been assigned `192.*.*.*` so we'll use these when configuring the firewall and Postgres.
+Unfortunately I couldn't find the exact specification for the WSL2 IP address range. From several tests/reboots it
+appears that WSL2 is assigning IP addresses primarily in range of`172.*.*.*`but I have occasionally been
+assigned`192.*.*.*`so we'll use these when configuring the firewall and Postgres.
 
 **Add Windows Firewall Inbound Port Rule for WSL2 IP Addresses:**
 

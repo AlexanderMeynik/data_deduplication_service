@@ -2,13 +2,15 @@
 #include <pqxx/pqxx>
 #include <ostream>
 #include <fstream>
+
 std::string res_dir_path = "../res/";
 std::string filename = res_dir_path.append("config.txt");
+
 int main() {
     std::ifstream conf(filename);
-    std::string dbname,user,password;
-    conf>>dbname>>user>>password;
-    std::string cstring="dbname="+dbname+" user="+user+" password="+password+" host=localhost port=5501";
+    std::string dbname, user, password;
+    conf >> dbname >> user >> password;
+    std::string cstring = "dbname=" + dbname + " user=" + user + " password=" + password + " host=localhost port=5501";
     try {
         pqxx::connection C(cstring);
         if (C.is_open()) {
