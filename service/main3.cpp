@@ -9,14 +9,18 @@
 #include <assert.h>
 
 
-std::string getC();
+
 
 int main() {
-    std::string cstring = getC();
 
-    pqxx::connection C(cstring);
-    if (C.is_open()) {
-        std::cout << "Opened database successfully: " << C.dbname() << std::endl;
+    std::string res_dir_path = "../res/";
+    std::string filename = res_dir_path.append("config.txt");
+    auto cstring = getSc(filename,"deduplication");
+
+    auto C= connect_if_possible(getSc(filename,"deduplication"));
+
+    if (C->is_open()) {
+        std::cout << "Opened database successfully: " << C->dbname() << std::endl;
     } else {
         std::cerr << "Connection failed" << std::endl;
         return -1;
@@ -161,10 +165,15 @@ int main() {
                           "2222222222222222"
                           "3333333333333333"
                           "4444444444444444"};
+    std::stringstream ss3{"1111111111111111"
+                          "2222222222222222"
+                          "3333333333333333"
+                          "4444444444444444"};
 
+    std::stringstream& sss=ss;
     buf64 buf;
-    ss >> buf;
-    std::string ffname = "test2";
+    sss >> buf;
+    std::string ffname = "test3";
     insert_bulk_segments(C,buf,ffname);
 
 
@@ -174,21 +183,13 @@ int main() {
     std::stringstream os;
     os<<out;
 
-    assert(os.str()==ss.str());
+    assert(os.str()==sss.str());
 
     auto str= get_file_contents(C, ffname);
 
     assert(os.str()==str);
+    std::cout<<ss.str();
     return 0;
 }
 
-std::string getC() {
-    std::string res_dir_path = "../res/";
-    std::string filename = res_dir_path.append("config.txt");
-    std::ifstream conf(filename);
-    std::string dbname, user, password;
 
-    conf >> dbname >> user >> password;
-    std::string cstring = "dbname=" + dbname + " user=" + user + " password=" + password + " host=localhost port=5501";
-    return cstring;
-}

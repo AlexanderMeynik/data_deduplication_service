@@ -29,8 +29,8 @@ add_library(FileUtilsLib ${FileUtils_files})
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary)
 
 
-add_executable(data_deduplication_service main.cpp)
-target_link_libraries(data_deduplication_service -lpqxx -lpq)
+add_executable(create_db_test main.cpp)
+target_link_libraries(create_db_test dbUtilsLib)
 
 add_executable(SegmentTest main2.cpp)
 target_link_libraries(SegmentTest FileUtilsLib)
