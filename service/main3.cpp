@@ -4,27 +4,10 @@
 #include "./FileUtils/ServiceFileInterface.h"
 #include <sstream>
 #include "./dbUtils/lib.h"
-#include <iostream>
-#include <fstream>
-#include <assert.h>
-
-
+#include <cassert>
 
 
 int main() {
-
-    std::string res_dir_path = "../res/";
-    std::string filename = res_dir_path.append("config.txt");
-    auto cstring = getSc(filename,"deduplication");
-
-    auto C= connect_if_possible(getSc(filename,"deduplication"));
-
-    if (C->is_open()) {
-        std::cout << "Opened database successfully: " << C->dbname() << std::endl;
-    } else {
-        std::cerr << "Connection failed" << std::endl;
-        return -1;
-    }
 
 
     std::stringstream ss{"1111111111111111"
@@ -173,11 +156,19 @@ int main() {
     std::stringstream& sss=ss;
     buf64 buf;
     sss >> buf;
-    std::string ffname = "test3";
-    insert_bulk_segments(C,buf,ffname);
+    std::string ffname = "test";
+
+    auto cString =db_services::basic_configuration();
+    cString.dbname="deduplication640";
+    cString.update_format();//todo wrapper to update it automatically
+    db_services::dbManager dd(cString);
+    dd.connectToDb();
+
+    dd.insert_bulk_segments(buf,ffname);
 
 
-    buf64 out = get_file_segmented<64>(C, ffname);
+
+    buf64 out = dd.get_file_segmented(ffname);
 
 
     std::stringstream os;
@@ -185,7 +176,7 @@ int main() {
 
     assert(os.str()==sss.str());
 
-    auto str= get_file_contents(C, ffname);
+    auto str= dd.get_file_contents(ffname);
 
     assert(os.str()==str);
     std::cout<<ss.str();

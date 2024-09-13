@@ -1,11 +1,11 @@
 #ifndef SERVICE_MYCONCEPTS_H
 #define SERVICE_MYCONCEPTS_H
-
 #include <concepts>
 #include <array>
 #include <vector>
 #include <cstdarg>
 #include <string>
+#include <type_traits>
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 
 
@@ -17,10 +17,22 @@ using segment = std::array<char, segment_size>;
 template<unsigned long segment_size> requires IsDiv<segment_size, SHA256size>
 using segvec = std::vector<segment<segment_size>>;
 
+template<typename str>
+//has c_str()->const char* method
+concept has_c_srt = requires (str &s) {
+    { s.c_str() }->std::same_as<const char*>;
+};
+
+template<typename str>
+//can be imlicitly converted to std::string and has c_str()->const char* method
+concept is_twice_string_convertible = requires (str &s) {
+    std::is_convertible<str,std::string>::value&&has_c_srt<str>;
+};
+
+
 
 
 //from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-//todo update gcc after 13 to use std::format
 std::string vformat(const char * const zcFormat, ...) {
 
     // initialize use of the variable argument array
