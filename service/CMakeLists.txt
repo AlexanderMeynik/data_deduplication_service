@@ -1,6 +1,8 @@
 
-
+list(APPEND CMAKE_PREFIX_PATH "/home/login/build/glog")#glog installation directory
 find_package(OpenSSL REQUIRED)
+find_package(glog  0.7.1 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 file(GLOB resourse CONFIGURE_DEPENDS
         "res/*.*"
@@ -21,9 +23,10 @@ file(GLOB dbUtils_files CONFIGURE_DEPENDS
 )
 
 add_library(commonLibrary ${common_files})
+target_link_libraries(commonLibrary glog::glog)
 
 add_library(dbUtilsLib ${dbUtils_files})
-target_link_libraries(dbUtilsLib -lpqxx -lpq commonLibrary)
+target_link_libraries(dbUtilsLib -lpqxx -lpq commonLibrary )
 
 add_library(FileUtilsLib ${FileUtils_files})
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary)
@@ -37,3 +40,10 @@ target_link_libraries(SegmentTest FileUtilsLib)
 
 add_executable(Segment_dataTest main3.cpp)
 target_link_libraries(Segment_dataTest FileUtilsLib dbUtilsLib)
+
+add_executable(create_insert_retrieve db_create_data_write_test.cpp)
+target_link_libraries(create_insert_retrieve FileUtilsLib dbUtilsLib)
+
+#[[
+add_executable(pcv opcvtest.cpp)
+target_link_libraries(pcv ${OpenCV_LIBS})]]

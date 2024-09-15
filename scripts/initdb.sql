@@ -7,13 +7,13 @@ create table public.segments
 
 create table public.files
 (
-    file_id bigserial primary key NOT NULL,
-    file_name text
+    file_id serial primary key NOT NULL,
+    file_name text NOT NULL
 );
 
 create table public.data
 (
-    file_id bigint REFERENCES public.files(file_id),
+    file_id int REFERENCES public.files(file_id) NOT NULL,
     segment_num bigint NOT NULL,
     segment_hash bytea REFERENCES public.segments(segment_hash) NOT NULL
 );

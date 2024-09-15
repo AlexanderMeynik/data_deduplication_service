@@ -156,19 +156,19 @@ int main() {
     std::stringstream& sss=ss;
     buf64 buf;
     sss >> buf;
-    std::string ffname = "test";
+    std::string ffname = "test1";
 
     auto cString =db_services::basic_configuration();
-    cString.dbname="deduplication640";
+    cString.dbname="deduplication";
     cString.update_format();//todo wrapper to update it automatically
     db_services::dbManager dd(cString);
     dd.connectToDb();
 
-    dd.insert_bulk_segments(buf,ffname);
+    dd.insert_bulk_segments<2>(buf,ffname);
 
 
 
-    buf64 out = dd.get_file_segmented(ffname);
+    buf64 out = dd.get_file_segmented<2>(ffname);
 
 
     std::stringstream os;
