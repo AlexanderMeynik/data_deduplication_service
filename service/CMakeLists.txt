@@ -29,7 +29,7 @@ add_library(dbUtilsLib ${dbUtils_files})
 target_link_libraries(dbUtilsLib -lpqxx -lpq commonLibrary )
 
 add_library(FileUtilsLib ${FileUtils_files})
-target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary)
+target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)
 
 
 add_executable(create_db_test main.cpp)
@@ -44,6 +44,7 @@ target_link_libraries(Segment_dataTest FileUtilsLib dbUtilsLib)
 add_executable(create_insert_retrieve db_create_data_write_test.cpp)
 target_link_libraries(create_insert_retrieve FileUtilsLib dbUtilsLib)
 
-#[[
+add_executable(file_hierarhy_create pathing.cpp)
+
 add_executable(pcv opcvtest.cpp)
-target_link_libraries(pcv ${OpenCV_LIBS})]]
+target_link_libraries(pcv ${OpenCV_LIBS})

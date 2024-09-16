@@ -148,7 +148,7 @@ std::stringstream ss3{"1111111111111111"
                       "2222222222222222"
                       "3333333333333333"
                       "4444444444444444"};
-
+constexpr unsigned short int verboselevel=0;
 int main() {
     using namespace db_services;
 
@@ -156,8 +156,8 @@ int main() {
     Cstring.dbname="deduplication642";
     Cstring.update_format();
     dbManager dd(Cstring);
-    dd.create<2>();
-    dd.fill_schemas<2>();
+    dd.create<verboselevel>();
+    dd.fill_schemas<verboselevel>();
 
 
 
@@ -168,11 +168,11 @@ int main() {
 
 
 
-    dd.insert_bulk_segments<2>(buf,ffname);
+    dd.insert_bulk_segments<verboselevel>(buf,ffname);
 
 
 
-    buf64 out = dd.get_file_segmented<2>(ffname);
+    buf64 out = dd.get_file_segmented<verboselevel>(ffname);
 
 
     std::stringstream os;

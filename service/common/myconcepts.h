@@ -16,7 +16,8 @@ template<unsigned long segment_size> requires IsDiv<segment_size, SHA256size>
 using segment = std::array<char, segment_size>;
 template<unsigned long segment_size> requires IsDiv<segment_size, SHA256size>
 using segvec = std::vector<segment<segment_size>>;
-
+template<unsigned long segment_size,unsigned long segment_count>
+using block = std::array<segment<segment_size>,segment_count>;
 template<typename str>
 //has c_str()->const char* method
 concept has_c_srt = requires (str &s) {

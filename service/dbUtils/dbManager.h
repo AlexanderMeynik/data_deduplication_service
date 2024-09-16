@@ -93,8 +93,22 @@ namespace db_services {
         template<unsigned short verbose = 0>
         segvec<segment_size> get_file_segmented(std::string &filename);
 
+
+        template<unsigned short verbose = 0>//todo implement(for block)
+        void process_file_block(const segvec<segment_size> &segments, std::string &filename);
+
+        template<unsigned short verbose = 0>//todo implement
+        segvec<segment_size> get_file_block(std::string &filename);
+
+
         template<unsigned short verbose = 0>
         std::string get_file_contents(std::string &filename);
+
+        bool checkConnection()
+        {
+            return conn_->is_open();
+        }
+
 
 
     private:
