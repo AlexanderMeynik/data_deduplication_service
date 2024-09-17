@@ -14,10 +14,10 @@
 
 
 template<unsigned long segment_size,char fill=23>
-requires IsDiv<segment_size, SHA256size>
+requires is_divisible<segment_size, SHA256size>
 std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf);
 template<unsigned long segment_size,char fill=23>
-requires IsDiv<segment_size, SHA256size>
+requires is_divisible<segment_size, SHA256size>
 std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf);
 enum segmenting_strategy
 {
@@ -33,32 +33,32 @@ enum db_usage_strategy
 };
 using db_services::dbManager;
 template<unsigned long segment_size, char fileEndDelim=23>
-requires IsDiv<segment_size, SHA256size> &&IsDiv<blockXsegment,segment_size>
+requires is_divisible<segment_size, SHA256size> && is_divisible<total_block_size,segment_size>
 class FileParsingService
 {
 public:
-    static constexpr unsigned long long block_size=blockXsegment/segment_size;
+    static constexpr unsigned long long block_size= total_block_size / segment_size;
     FileParsingService()
-    {};
+    = default;
 
     using CurrBlock = block<segment_size,block_size>;
-    template<unsigned short verbose = 0,db_usage_strategy str=use>
+    template<verbose_level verbose = 0,db_usage_strategy str=use>
     int db_load (std::string &dbName);
 
 
-    template<unsigned short verbose = 0,segmenting_strategy ss=use_blocks>
+    template<verbose_level verbose = 0,segmenting_strategy ss=use_blocks>
     int process_directory(std::string& trainDir);
 
-    template<unsigned short verbose = 0,segmenting_strategy ss=use_blocks>
+    template<verbose_level verbose = 0,segmenting_strategy ss=use_blocks>
     int load_directory(std::string& trainDir,std::string &to_dir);
 private:
     dbManager<segment_size> manager_;
 };
 
 template<unsigned long segment_size, char fileEndDelim>
-requires IsDiv<segment_size, SHA256size>
-         &&IsDiv<blockXsegment,segment_size>
-template<unsigned short verbose,segmenting_strategy ss>
+requires is_divisible<segment_size, SHA256size>
+         && is_divisible<total_block_size,segment_size>
+template<verbose_level verbose,segmenting_strategy ss>
 int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &trainDir,std::string &to_dir) {
     namespace fs = std::filesystem;
     fs::path new_abs;
@@ -123,13 +123,12 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
 }
 
 template<unsigned long segment_size, char fileEndDelim>
-requires IsDiv<segment_size, SHA256size>
-         &&IsDiv<blockXsegment,segment_size>
-template<unsigned short verbose, db_usage_strategy str>
+requires is_divisible<segment_size, SHA256size>
+         && is_divisible<total_block_size,segment_size>
+template<verbose_level verbose, db_usage_strategy str>
 int FileParsingService<segment_size, fileEndDelim>::db_load(std::string &dbName) {
-    auto CString=db_services::basic_configuration();
-    CString.dbname=dbName;
-    CString.update_format();
+    auto CString=db_services::default_configuration();
+    CString.set_dbname(dbName);
 
     manager_=dbManager<segment_size>(CString);
 
@@ -148,9 +147,9 @@ int FileParsingService<segment_size, fileEndDelim>::db_load(std::string &dbName)
 
 
 template<unsigned long segment_size, char fileEndDelim>
-requires IsDiv<segment_size, SHA256size>
-         &&IsDiv<blockXsegment,segment_size>
-template<unsigned short verbose,segmenting_strategy ss>
+requires is_divisible<segment_size, SHA256size>
+         && is_divisible<total_block_size,segment_size>
+template<verbose_level verbose,segmenting_strategy ss>
 int FileParsingService<segment_size, fileEndDelim>::process_directory(std::string& trainDir) {
     namespace fs = std::filesystem;
     fs::path pp;
@@ -245,7 +244,7 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
 using buf64 = segvec<64>;
 
 template<unsigned long segment_size,char fill>
-requires IsDiv<segment_size, SHA256size>
+requires is_divisible<segment_size, SHA256size>
 std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {
     while (!source_.eof()) {
         auto curr_s = segment<segment_size>();
@@ -267,7 +266,7 @@ std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {
 }
 
 template<unsigned long segment_size,char fill>
-requires IsDiv<segment_size, SHA256size>
+requires is_divisible<segment_size, SHA256size>
 std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf) {
     for (auto &elem: buf) {
         for (auto &symbol: elem) {

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <ostream>
-#include "dbUtils/lib.h"
+#include "dbUtils/dbManager.h"
 #include "cassert"
 #include "FileUtils/ServiceFileInterface.h"
 
@@ -152,9 +152,9 @@ constexpr unsigned short int verboselevel=0;
 int main() {
     using namespace db_services;
 
-    auto Cstring=basic_configuration();
-    Cstring.dbname="deduplication64232";
-    Cstring.update_format();
+    auto Cstring=default_configuration();
+    std::string dddnmae="deduplication64232";
+    Cstring.set_dbname(dddnmae);
     dbManager dd(Cstring);
     dd.create<verboselevel>();
     dd.fill_schemas<verboselevel>();

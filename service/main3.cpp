@@ -140,9 +140,9 @@ int main() {
     };
 
     std::stringstream ss2{"1111111111111111"
-                         "2222222222222222"
-                         "3333333333333333"
-                         "4444444444444444"
+                          "2222222222222222"
+                          "3333333333333333"
+                          "4444444444444444"
                           "1111111111111111"
                           "2222222222222222"
                           "3333333333333333"
@@ -152,33 +152,32 @@ int main() {
                           "3333333333333333"
                           "4444444444444444"};
 
-    std::stringstream& sss=ss;
+    std::stringstream &sss = ss;
     buf64 buf;
     sss >> buf;
     std::string ffname = "test1";
 
-    auto cString =db_services::basic_configuration();
-    cString.dbname="deduplication";
-    cString.update_format();//todo wrapper to update it automatically
+    auto cString = db_services::default_configuration();
+    std::string dbnn="deduplication";
+    cString.set_dbname(dbnn);
     db_services::dbManager dd(cString);
     dd.connectToDb();
 
-    dd.insert_bulk_segments<2>(buf,ffname);
-
+    dd.insert_bulk_segments<2>(buf, ffname);
 
 
     buf64 out = dd.get_file_segmented<2>(ffname);
 
 
     std::stringstream os;
-    os<<out;
+    os << out;
 
-    assert(os.str()==sss.str());
+    assert(os.str() == sss.str());
 
-    auto str= dd.get_file_contents(ffname);
+    auto str = dd.get_file_contents(ffname);
 
-    assert(os.str()==str);
-    std::cout<<ss.str();
+    assert(os.str() == str);
+    std::cout << ss.str();
     return 0;
 }
 

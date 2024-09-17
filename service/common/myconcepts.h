@@ -8,16 +8,17 @@
 #include <type_traits>
 #include <glog/logging.h>
 
+using verbose_level=unsigned short;//todo enum
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 //constexpr int block_size=2;
-constexpr int blockXsegment=128;
+constexpr int total_block_size=128;
 template<unsigned short seg, unsigned short div>
-concept IsDiv = seg % div == 0;
+concept is_divisible = seg % div == 0;
 
-template<unsigned long segment_size> requires IsDiv<segment_size, SHA256size>
+template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size>
 using segment = std::array<char, segment_size>;
-template<unsigned long segment_size> requires IsDiv<segment_size, SHA256size>
+template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size>
 using segvec = std::vector<segment<segment_size>>;
 template<unsigned long segment_size,unsigned long segment_count>
 using block = std::array<segment<segment_size>,segment_count>;
@@ -29,7 +30,7 @@ concept has_c_srt = requires (str &s) {
 
 template<typename str>
 //can be imlicitly converted to std::string and has c_str()->const char* method
-concept is_twice_string_convertible = requires (str &s) {
+concept to_str_to_c_str = requires (str &s) {
     std::is_convertible<str,std::string>::value&&has_c_srt<str>;
 };
 

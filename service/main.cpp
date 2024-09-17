@@ -2,15 +2,14 @@
 #include <pqxx/pqxx>
 #include <ostream>
 #include <fstream>
-#include "dbUtils/lib.h"
+#include "dbUtils/dbManager.h"
 
 
 int main() {
     using namespace db_services;
 
-    auto Cstring=basic_configuration();
-    Cstring.dbname="deduplication640";
-    Cstring.update_format();
+    auto Cstring=default_configuration();
+    Cstring.set_dbname("deduplication640");
     dbManager dd(Cstring);
     dd.create();
     dd.fill_schemas();
