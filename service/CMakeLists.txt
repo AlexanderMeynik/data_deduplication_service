@@ -1,8 +1,16 @@
 
-list(APPEND CMAKE_PREFIX_PATH "/home/login/build/glog")#glog installation directory
+
 find_package(OpenSSL REQUIRED)
+list(APPEND CMAKE_PREFIX_PATH "/home/login/glog/build")
+list(APPEND CMAKE_PREFIX_PATH "/home/login/libpqxx/build")
+
 find_package(glog  0.7.1 REQUIRED)
+
+find_package(libpqxx REQUIRED)
 find_package(OpenCV REQUIRED)
+
+include_directories(/home/login/libpqxx/include)
+link_directories(/home/login/libpqxx/src)
 
 file(GLOB resourse CONFIGURE_DEPENDS
         "res/*.*"
@@ -26,7 +34,7 @@ add_library(commonLibrary ${common_files})
 target_link_libraries(commonLibrary glog::glog)
 
 add_library(dbUtilsLib ${dbUtils_files})
-target_link_libraries(dbUtilsLib -lpqxx -lpq commonLibrary)
+target_link_libraries(dbUtilsLib libpqxx::pqxx pq commonLibrary)
 
 add_library(FileUtilsLib ${FileUtils_files})
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)

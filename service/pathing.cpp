@@ -29,9 +29,10 @@ void create_and_write_file(const std::string& root_dir, const std::string& relat
 }
 
 int main() {
-    std::string root_dir = "/mnt/c/projects/data_deduplication_service/train";
-    std::string relative_path = "service/res1/config.txt";
+    std::string root_dir = "/mnt/c/projects/data_deduplication_service/res";
+    std::string relative_path = "/mnt/c/projects/data_deduplication_service/res/config.txt";
     std::string file_contents = "This is the content of config.txt";
+    auto rel =std::filesystem::path(relative_path).lexically_relative(root_dir).string();
 
     // Call the function to create directories and write the file
     create_and_write_file(root_dir, relative_path, file_contents);

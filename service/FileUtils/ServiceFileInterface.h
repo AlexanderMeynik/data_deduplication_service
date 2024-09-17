@@ -33,12 +33,14 @@ enum db_usage_strategy
 };
 using db_services::dbManager;
 template<unsigned long segment_size, char fileEndDelim=23>
-requires IsDiv<segment_size, SHA256size>
+requires IsDiv<segment_size, SHA256size> &&IsDiv<blockXsegment,segment_size>
 class FileParsingService
 {
 public:
+    static constexpr unsigned long long block_size=blockXsegment/segment_size;
     FileParsingService()
     {};
+
     using CurrBlock = block<segment_size,block_size>;
     template<unsigned short verbose = 0,db_usage_strategy str=use>
     int db_load (std::string &dbName);
@@ -55,9 +57,29 @@ private:
 
 template<unsigned long segment_size, char fileEndDelim>
 requires IsDiv<segment_size, SHA256size>
+         &&IsDiv<blockXsegment,segment_size>
 template<unsigned short verbose,segmenting_strategy ss>
 int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &trainDir,std::string &to_dir) {
     namespace fs = std::filesystem;
+    fs::path new_abs;
+    fs::path curr_abs=fs::canonical(trainDir);
+    try {
+        new_abs=fs::canonical(to_dir);
+
+        if(!fs::exists(new_abs)) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" no such file or directory\n", new_abs.string().c_str());
+            return -1;
+        }
+
+        if(!fs::is_directory(new_abs)) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" is not a directory use procesFile for files\n", new_abs.string().c_str());
+            return -2;
+        }
+
+    } catch (const fs::filesystem_error& e) {
+        LOG_IF(ERROR, verbose >= 1) <<vformat("Filesystem error : %s , error code %d\n",e.what(),e.code());
+        return -3;
+    }
 
     /*
      * fs::path parent_dir = full_path.parent_path();
@@ -68,17 +90,41 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
         fs::create_directories(parent_dir);
     }
      */
-    fs::path curr_abs=fs::canonical(trainDir);
+
     auto files=manager_.template get_all_files<verbose>(curr_abs.string());
-    //todo создать метод для построения файловой иерархии(за счёт fs::create_directories можно все папки потсроить заранее)
-    //todo метод(в бд) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
-    auto rel=curr_abs.lexically_relative(files[0]);//todo get file rel path
-    std::cout<<rel<<'\n';
+    //todo проверить на сложных иерархиях
+    //todo метод(в бд?) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
+    for (const auto & e:files) {
+        auto p_t_s=new_abs/fs::path(e).lexically_relative(curr_abs);
+
+        fs::path parent_dir = p_t_s.parent_path();
+        if (!fs::exists(parent_dir)) {
+            fs::create_directories(parent_dir);
+            LOG_IF(INFO, verbose >= 2) <<vformat("Creating directories:  %s \n",parent_dir.string().c_str());
+
+        }
+        std::ofstream out(p_t_s);
+
+        if constexpr (ss==segmenting_strategy::use_blocks)
+        {
+            CurrBlock block;
+            manager_.template get_file_streamed<verbose>(e, out);
+        }
+        else
+        {
+            segvec<segment_size> buff=manager_.get_file_segmented(e);//todo test
+            out<<buff;
+
+
+        }
+        out.close();
+    }
     return 0;
 }
 
 template<unsigned long segment_size, char fileEndDelim>
 requires IsDiv<segment_size, SHA256size>
+         &&IsDiv<blockXsegment,segment_size>
 template<unsigned short verbose, db_usage_strategy str>
 int FileParsingService<segment_size, fileEndDelim>::db_load(std::string &dbName) {
     auto CString=db_services::basic_configuration();
@@ -103,6 +149,7 @@ int FileParsingService<segment_size, fileEndDelim>::db_load(std::string &dbName)
 
 template<unsigned long segment_size, char fileEndDelim>
 requires IsDiv<segment_size, SHA256size>
+         &&IsDiv<blockXsegment,segment_size>
 template<unsigned short verbose,segmenting_strategy ss>
 int FileParsingService<segment_size, fileEndDelim>::process_directory(std::string& trainDir) {
     namespace fs = std::filesystem;

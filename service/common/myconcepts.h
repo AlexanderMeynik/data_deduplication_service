@@ -10,8 +10,8 @@
 
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
-constexpr int block_size=2;
-
+//constexpr int block_size=2;
+constexpr int blockXsegment=128;
 template<unsigned short seg, unsigned short div>
 concept IsDiv = seg % div == 0;
 
