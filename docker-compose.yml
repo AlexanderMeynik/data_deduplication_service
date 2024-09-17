@@ -8,7 +8,7 @@ services:
       - POSTGRES_DB=deduplication
     volumes:
       - stored-data:/var/lib/postgresql/data
-      - ./scripts:/docker-entrypoint-initdb.d/
+      #- ./scripts:/docker-entrypoint-initdb.d/
     ports:
       - "5501:5432"
     healthcheck:

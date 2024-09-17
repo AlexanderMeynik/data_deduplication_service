@@ -103,6 +103,8 @@ int main() {
     //pp=fs::canonical(pp);
     std::ifstream in(vector.first[vector.first.size()-1]);
     std::cout<<absolute(pp)<<'\t'<<fs::relative(vector.first[vector.first.size()-1])<<'\n';
+
+    std::cout<<fs::file_size(pp)<<'\n';
     std::cout<<in.rdbuf();
     in.close();
 

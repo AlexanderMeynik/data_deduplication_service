@@ -4,11 +4,18 @@ create table public.segments
     segment_data char(64) NOT NULL,
     segment_count bigint NOT NULL
 );
+create table public.directories
+(
+    dir_id serial primary key NOT NULL,
+    dir_path tsvector NOT NULL
+);
 
 create table public.files
 (
     file_id serial primary key NOT NULL,
-    file_name text NOT NULL
+    file_name tsvector NOT NULL,
+    dir_id int REFERENCES public.directories(dir_id) NULL,
+    size_in_bytes bigint NULL
 );
 
 create table public.data
@@ -22,8 +29,14 @@ create table public.data
 CREATE INDEX hash_segment_hash on segments using Hash(segment_hash);
 CREATE INDEX hash_segment_data on segments using Hash(segment_data);
 
-ALTER TABLE segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data);
+CREATE INDEX dir_id_hash on files using Hash(dir_id);
 
+CREATE INDEX dir_gin_index on directories using gin(dir_path);
+CREATE INDEX files_gin_index on files using gin(file_name);
+
+
+ALTER TABLE segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data);
+ALTER TABLE files ADD CONSTRAINT unique_file_constr UNIQUE(file_name);
 
 CREATE OR REPLACE FUNCTION process_file_data(file_name text)
     RETURNS int
@@ -40,7 +53,7 @@ BEGIN
         return -1;
     end if;
 
-    insert into public.files (file_name) values (file_name) returning file_id into file_id_;
+    insert into public.files (file_name) values (file_name::tsvector) returning file_id into file_id_;
     query := 'CREATE TABLE ' || quote_ident(aggregation_table_name) ||
              ' AS SELECT DISTINCT t.data, COUNT(t.data) AS count
              FROM '||quote_ident(table_name) ||' t ' ||
@@ -70,9 +83,6 @@ BEGIN
     return 0;
 END $$;
 
-
-
-
 CREATE OR REPLACE FUNCTION get_file_data(fileName text)
     returns table
             (
@@ -85,7 +95,7 @@ BEGIN
         select s.segment_data
         from data
                  inner join public.segments s on s.segment_hash = data.segment_hash
-        where data.file_id=(select files.file_id from files where files.file_name=fileName)
+        where data.file_id=(select files.file_id from files where files.file_name=fileName::tsvector)
         order by segment_num;
 
 END $$;

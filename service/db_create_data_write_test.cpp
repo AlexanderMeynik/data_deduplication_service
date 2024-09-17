@@ -153,7 +153,7 @@ int main() {
     using namespace db_services;
 
     auto Cstring=basic_configuration();
-    Cstring.dbname="deduplication642";
+    Cstring.dbname="deduplication64232";
     Cstring.update_format();
     dbManager dd(Cstring);
     dd.create<verboselevel>();

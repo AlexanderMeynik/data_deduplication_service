@@ -26,7 +26,7 @@ add_library(commonLibrary ${common_files})
 target_link_libraries(commonLibrary glog::glog)
 
 add_library(dbUtilsLib ${dbUtils_files})
-target_link_libraries(dbUtilsLib -lpqxx -lpq commonLibrary )
+target_link_libraries(dbUtilsLib -lpqxx -lpq commonLibrary)
 
 add_library(FileUtilsLib ${FileUtils_files})
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)
@@ -45,6 +45,11 @@ add_executable(create_insert_retrieve db_create_data_write_test.cpp)
 target_link_libraries(create_insert_retrieve FileUtilsLib dbUtilsLib)
 
 add_executable(file_hierarhy_create pathing.cpp)
-
+target_link_libraries(file_hierarhy_create glog::glog)
 add_executable(pcv opcvtest.cpp)
 target_link_libraries(pcv ${OpenCV_LIBS})
+
+
+add_executable(file_service fileServiceTest.cpp)
+target_link_libraries(file_service FileUtilsLib )
+

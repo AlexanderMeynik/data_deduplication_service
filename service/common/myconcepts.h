@@ -6,8 +6,11 @@
 #include <cstdarg>
 #include <string>
 #include <type_traits>
-static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
+#include <glog/logging.h>
 
+
+static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
+constexpr int block_size=2;
 
 template<unsigned short seg, unsigned short div>
 concept IsDiv = seg % div == 0;
@@ -29,6 +32,16 @@ template<typename str>
 concept is_twice_string_convertible = requires (str &s) {
     std::is_convertible<str,std::string>::value&&has_c_srt<str>;
 };
+
+template<typename Col>
+concept Index_size=requires(Col&c,size_t index)
+                   {
+                       {c[index]}->std::same_as<typename Col::value_type &>;
+                   }&&
+                   requires(Col&c)
+                   {
+                       {c.size()}->std::same_as<size_t>;
+                   };
 
 
 

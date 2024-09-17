@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
+#include <glog/logging.h>
 namespace fs = std::filesystem;
 
 void create_and_write_file(const std::string& root_dir, const std::string& relative_path, const std::string& file_contents) {

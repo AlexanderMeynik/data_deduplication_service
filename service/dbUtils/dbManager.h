@@ -3,12 +3,13 @@
 #include <fstream>
 #include "../common/myconcepts.h"
 #include <functional>
-#include <glog/logging.h>
-
+#include <filesystem>
 #ifndef SERVICE_DBMANAGER_H
 #define SERVICE_DBMANAGER_H
 
 namespace db_services {
+
+    using index_type= long long;
 
 
     static const char *const sample_temp_db = "template1";
@@ -60,14 +61,16 @@ namespace db_services {
 
 
     auto basic_configuration = [](unsigned int port = 5501) {
-        return getConConf(filename, std::forward<decltype(port)>(port));
+        return getConConf(filename, std::forward<decltype(port)>(port));//todo fina all shadow variables
     };
 
 
     template<unsigned long segment_size = 64> requires IsDiv<segment_size, SHA256size>
     class dbManager {
     public:
+        dbManager(){
 
+        }
 
         template<typename ss>
         requires is_twice_string_convertible<ss>
@@ -94,11 +97,174 @@ namespace db_services {
         segvec<segment_size> get_file_segmented(std::string &filename);
 
 
-        template<unsigned short verbose = 0>//todo implement(for block)
-        void process_file_block(const segvec<segment_size> &segments, std::string &filename);
+        template<unsigned short verbose = 0,is_twice_string_convertible str>
+        index_type create_directory(str&&dir_path)
+        {
+            pqxx::work txn(*conn_);
+            std::string query = "insert into public.directories (dir_path) values ($1) returning dir_id;";
+            pqxx::result res = txn.exec_params(query, dir_path);
 
-        template<unsigned short verbose = 0>//todo implement
-        segvec<segment_size> get_file_block(std::string &filename);
+            LOG_IF(INFO,verbose >= 2)<< res.query() << '\n';
+
+            txn.commit();
+            return res[0][0].as<index_type>();
+        }
+
+        template<unsigned short verbose = 0,is_twice_string_convertible str>
+        std::vector<std::string> get_all_files(str&&dirpath)
+        {
+            //todo как лучше по пути или по имени
+            std::vector<std::string> result;
+            pqxx::work txn(*conn_);
+
+            std::string query ="select file_name from files\n"
+                                "    inner join public.directories d\n"
+                                "        on d.dir_id = files.dir_id\n"
+                                "where dir_path=$1;";
+            pqxx::result res=txn.exec_params(query,dirpath);
+            LOG_IF(INFO,verbose >= 2)<< res.query() << '\n';
+            for (const auto & re : res) {
+                result.push_back(re[0].as<std::string>());
+            }
+
+            txn.commit();
+            return result;
+        }
+        template<unsigned short verbose = 0,is_twice_string_convertible str>
+        index_type create_file(str &&path,int dir_id,int file_size=0)
+        {
+            pqxx::work txn(*conn_);
+
+            std::string query = "insert into public.files (file_name,dir_id,size_in_bytes)"
+                                " values ($1,$2,$3) returning file_id;";
+
+
+            pqxx::result res = txn.exec_params(query, path,dir_id,file_size);
+
+            LOG_IF(INFO,verbose >= 2)<< res.query() << '\n';
+
+
+            std::string table_name = "temp_file_" + path;
+            std::string q1 = vformat("CREATE TABLE \"%s\" (pos bigint, data char(%d));", txn.esc(table_name).c_str(),
+                                     segment_size);
+            pqxx::result r2 = txn.exec(q1);
+
+            LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
+
+
+            txn.commit();
+            return res[0][0].as<index_type>();
+        }
+
+
+         template<unsigned short verbose = 0,is_twice_string_convertible str>
+         void finish_file_processing(str && name,index_type file_id)
+         {
+             try {
+                 pqxx::work txn(*conn_);
+                 std::string table_name = "\"temp_file_" + name+"\"";
+                 std::string table_name_ = "\'temp_file_" + name+"\'";
+
+
+                     std::string aggregation_table_name= "\"new_segments_" + name+"\"";
+
+                     std::string q= vformat("SELECT * FROM pg_tables WHERE tablename = %s",table_name_.c_str());
+                     auto r=txn.exec(q);
+                     if(r.empty())
+                     {
+                         LOG_IF(WARNING,verbose>=1)<<vformat("No saved data found for file %s \n",name.c_str());
+                         return ;
+                     }
+
+                     q=vformat("CREATE TABLE  %s AS SELECT DISTINCT t.data, COUNT(t.data) AS count"
+                               " FROM %s t "
+                               "GROUP BY t.data;",aggregation_table_name.c_str(),table_name.c_str());
+                     r=txn.exec(q);
+                     LOG_IF(INFO,verbose>=2)<<r.query()<<'\n';
+
+
+                     q=vformat("INSERT INTO public.segments (segment_data, segment_count) "
+                               "SELECT ns.data, ns.count "
+                               "FROM %s ns "
+                               "ON CONFLICT ON CONSTRAINT unique_data_constr "
+                               "DO UPDATE"
+                               " SET segment_count = public.segments.segment_count +  excluded.segment_count;",aggregation_table_name.c_str());
+                     r=txn.exec(q);
+                     LOG_IF(INFO,verbose>=2)<<r.query()<<'\n';
+
+                     q=vformat("drop table %s;",aggregation_table_name.c_str());
+                     r=txn.exec(q);
+                     LOG_IF(INFO,verbose>=2)<<r.query()<<'\n';
+
+                     q=vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
+                               "SELECT pos, se.segment_hash,  %d "
+                               "FROM  %s tt "
+                               "INNER JOIN public.segments se "
+                               "ON tt.data = se.segment_data;",
+                               file_id,
+                               table_name.c_str()
+                     );
+                     r=txn.exec(q);
+                     LOG_IF(INFO,verbose>=2)<<r.query()<<'\n';
+
+
+                     q=vformat("DROP TABLE IF EXISTS  %s;",table_name.c_str());
+                     r=txn.exec(q);
+                     LOG_IF(INFO,verbose>=2)<<r.query()<<'\n';
+
+                 txn.commit();
+             } catch (const pqxx::sql_error &e) {
+                 LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                             << "Query: " << e.query() << "\n"
+                                             << "SQL State: " << e.sqlstate() << '\n';
+             } catch (const std::exception &e) {
+                 LOG_IF(ERROR, verbose >= 1) << "Error processing file data:" << e.what() << '\n';
+             }
+         }
+
+
+        template<unsigned short verbose = 0,index_type block_sz=block_size,Index_size T,is_twice_string_convertible str>
+        void stream_segment_array(T &segmentBlock, str && fileName, size_t block_index)
+        {
+            try {
+                pqxx::work txn(*conn_);
+                std::string table_name = "\"temp_file_" + fileName + "\"";
+
+
+                pqxx::stream_to copy_stream(txn, table_name);
+                size_t index_start=block_index*block_sz;
+                for (size_t i = 0; i < segmentBlock.size(); ++i) {
+                    copy_stream
+                            << std::make_tuple(static_cast<int64_t>(index_start+i + 1), std::string(segmentBlock[i].data(), segment_size));
+                }
+
+                copy_stream.complete();
+                txn.commit();
+            } catch (const pqxx::sql_error &e) {
+                LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                            << "Query: " << e.query() << "\n"
+                                            << "SQL State: " << e.sqlstate() << '\n';
+            } catch (const std::exception &e) {
+                LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+            }
+        }
+
+        template<unsigned short verbose = 0,index_type block_sz=block_size,Index_size T,is_twice_string_convertible str>//todo implement
+        T get_file_block(std::string &fileName)
+        {
+            try {
+                pqxx::work txn(*conn_);
+                //std::string table_name = "\"temp_file_" + fileName + "\"";
+
+                txn.commit();
+            } catch (const pqxx::sql_error &e) {
+                LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                            << "Query: " << e.query() << "\n"
+                                            << "SQL State: " << e.sqlstate() << '\n';
+            } catch (const std::exception &e) {
+                LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+            }
+        };
 
 
         template<unsigned short verbose = 0>
@@ -209,10 +375,18 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2) << "Create segments table " << r1.query() << '\n';
 
 
-            query = "create table public.files\n"
+            query = "create table public.directories\n"
+                    "(\n"
+                    "    dir_id serial primary key NOT NULL,\n"
+                    "    dir_path tsvector NOT NULL\n"
+                    ");\n"
+                    "\n"
+                    "create table public.files\n"
                     "(\n"
                     "    file_id serial primary key NOT NULL,\n"
-                    "    file_name text NOT NULL\n"
+                    "    file_name tsvector NOT NULL,\n"
+                    "    dir_id int REFERENCES public.directories(dir_id) NULL,\n"
+                    "    size_in_bytes bigint NULL\n"
                     ");\n"
                     "\n"
                     "create table public.data\n"
@@ -221,10 +395,18 @@ namespace db_services {
                     "    segment_num bigint NOT NULL,\n"
                     "    segment_hash bytea REFERENCES public.segments(segment_hash) NOT NULL\n"
                     ");"
+                    ""
                     "CREATE INDEX hash_segment_hash on segments using Hash(segment_hash);\n"
                     "CREATE INDEX hash_segment_data on segments using Hash(segment_data);\n"
-                    "ALTER TABLE segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data);";
-
+                    "\n"
+                    "CREATE INDEX dir_id_hash on files using Hash(dir_id);\n"
+                    "\n"
+                    "CREATE INDEX dir_gin_index on directories using gin(dir_path);\n"
+                    "CREATE INDEX files_gin_index on files using gin(file_name);\n"
+                    "\n"
+                    "\n"
+                    "ALTER TABLE segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data);\n"
+                    "ALTER TABLE files ADD CONSTRAINT unique_file_constr UNIQUE(file_name);";
 
             r1 = txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create other tables " << r1.query() << '\n';
@@ -244,7 +426,7 @@ namespace db_services {
                     "        return -1;\n"
                     "    end if;\n"
                     "\n"
-                    "    insert into public.files (file_name) values (file_name) returning file_id into file_id_;\n"
+                    "    insert into public.files (file_name) values (file_name::tsvector) returning file_id into file_id_;\n"
                     "    query := 'CREATE TABLE ' || quote_ident(aggregation_table_name) ||\n"
                     "             ' AS SELECT DISTINCT t.data, COUNT(t.data) AS count\n"
                     "             FROM '||quote_ident(table_name) ||' t ' ||\n"
@@ -291,7 +473,7 @@ namespace db_services {
                     "        select s.segment_data\n"
                     "        from data\n"
                     "                 inner join public.segments s on s.segment_hash = data.segment_hash\n"
-                    "        where data.file_id=(select files.file_id from files where files.file_name=fileName)\n"
+                    "        where data.file_id=(select files.file_id from files where files.file_name=fileName::tsvector)\n"
                     "        order by segment_num;\n"
                     "\n"
                     "END $$;";
@@ -339,7 +521,7 @@ namespace db_services {
             std::string query = "select process_file_data($1)";
             pqxx::result res = txn.exec_params(query, filename);
 
-            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';//todo надо бы это получше оформить
+            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -362,7 +544,7 @@ namespace db_services {
             std::string query = "select get_file_data($1)";
             pqxx::result res = txn.exec_params(query, filename);
 
-            LOG_IF(INFO,verbose >= 2)<< res.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
             txn.commit();
 
@@ -372,11 +554,11 @@ namespace db_services {
             }
 
         } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR,verbose >= 1)<< "SQL Error: " << e.what() << "\n"
-                                      << "Query: " << e.query() << "\n"
-                                      << "SQL State: " << e.sqlstate() << '\n';
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
         } catch (const std::exception &e) {
-            LOG_IF(ERROR,verbose >= 1)<< "Error get_file_segments: " << e.what() << '\n';
+            LOG_IF(ERROR, verbose >= 1) << "Error get_file_segments: " << e.what() << '\n';
         }
         return vector;
     }

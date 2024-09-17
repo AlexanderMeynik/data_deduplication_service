@@ -7,11 +7,18 @@
 #include <iostream>
 #include <openssl/sha.h>
 #include "../common/myconcepts.h"
-#include "../dbUtils/lib.h"
+#include "../dbUtils/dbManager.h"
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
-constexpr int block_size=2048;
+
+
+template<unsigned long segment_size,char fill=23>
+requires IsDiv<segment_size, SHA256size>
+std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf);
+template<unsigned long segment_size,char fill=23>
+requires IsDiv<segment_size, SHA256size>
+std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf);
 enum segmenting_strategy
 {
     use_blocks,
@@ -29,24 +36,29 @@ template<unsigned long segment_size, char fileEndDelim=23>
 requires IsDiv<segment_size, SHA256size>
 class FileParsingService
 {
+public:
+    FileParsingService()
+    {};
     using CurrBlock = block<segment_size,block_size>;
     template<unsigned short verbose = 0,db_usage_strategy str=use>
-    explicit FileParsingService(std::string &dbName);
+    int db_load (std::string &dbName);
 
 
-    template<segmenting_strategy ss=use_blocks,unsigned short verbose = 0>
+    template<unsigned short verbose = 0,segmenting_strategy ss=use_blocks>
     int process_directory(std::string& trainDir);
 
-    template<segmenting_strategy ss=use_blocks,unsigned short verbose = 0>
-    int load_directory(std::string& trainDir);
+    template<unsigned short verbose = 0,segmenting_strategy ss=use_blocks>
+    int load_directory(std::string& trainDir,std::string &to_dir);
 private:
     dbManager<segment_size> manager_;
 };
 
 template<unsigned long segment_size, char fileEndDelim>
 requires IsDiv<segment_size, SHA256size>
-template<segmenting_strategy ss, unsigned short verbose>
-int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &trainDir) {//todo добавить дополнительный параметр куда
+template<unsigned short verbose,segmenting_strategy ss>
+int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &trainDir,std::string &to_dir) {
+    namespace fs = std::filesystem;
+
     /*
      * fs::path parent_dir = full_path.parent_path();
 
@@ -56,17 +68,19 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
         fs::create_directories(parent_dir);
     }
      */
-    //todo создать метод для получения всех имён файлов
+    fs::path curr_abs=fs::canonical(trainDir);
+    auto files=manager_.template get_all_files<verbose>(curr_abs.string());
     //todo создать метод для построения файловой иерархии(за счёт fs::create_directories можно все папки потсроить заранее)
     //todo метод(в бд) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
-
+    auto rel=curr_abs.lexically_relative(files[0]);//todo get file rel path
+    std::cout<<rel<<'\n';
     return 0;
 }
 
 template<unsigned long segment_size, char fileEndDelim>
 requires IsDiv<segment_size, SHA256size>
 template<unsigned short verbose, db_usage_strategy str>
-FileParsingService<segment_size, fileEndDelim>::FileParsingService(std::string &dbName){
+int FileParsingService<segment_size, fileEndDelim>::db_load(std::string &dbName) {
     auto CString=db_services::basic_configuration();
     CString.dbname=dbName;
     CString.update_format();
@@ -81,23 +95,20 @@ FileParsingService<segment_size, fileEndDelim>::FileParsingService(std::string &
     {
         manager_.template connectToDb<verbose>();
     }
+    LOG_IF(INFO,verbose>=2)<<manager_.checkConnection()<<'\n';
+    return 0;
 }
 
 
 
 template<unsigned long segment_size, char fileEndDelim>
 requires IsDiv<segment_size, SHA256size>
-template<segmenting_strategy ss,unsigned short verbose>
+template<unsigned short verbose,segmenting_strategy ss>
 int FileParsingService<segment_size, fileEndDelim>::process_directory(std::string& trainDir) {
-
-
     namespace fs = std::filesystem;
-
     fs::path pp;
     try {
-        pp=fs::canonical(trainDir);//todo сохранить это добро в таблицу с директориями
-        //todo добавить в таблицу  с файлами строку с директориями
-        //todo в файлах будет храниться их абсолютный путь
+        pp=fs::canonical(trainDir);
 
         if(!fs::exists(pp)) {
             LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" no such file or directory\n", pp.string().c_str());
@@ -114,52 +125,64 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
         return -3;
     }
 
+    auto dir_id=manager_.template create_directory<2>(pp.string());
+
+
     for (const auto& entry : fs::recursive_directory_iterator(pp)) {
-        if(!fs::is_directory(pp)){
-            //todo добавить ограничение(в бд) на уникальность файлов
-            //todo реализовать процедуру поблочной отправки файла
-            //todo создать файл
+        if(!fs::is_directory(entry)){
+            auto file=fs::canonical(entry.path()).string();
+            auto size=fs::file_size(entry);//проверить соответствие реальному
+            auto file_id=manager_.template create_file<verbose>(file,dir_id,size);
+
+
+
             if constexpr (ss==segmenting_strategy::use_blocks)
             {
-                //std::cout<<"blocks"<<'\n';
                 CurrBlock block;
-                auto size=fs::file_size(entry);//проверить соответствие реальному
-                unsigned long blocks=fs::file_size(entry)/block_size;
-                std::ifstream in(entry.path());//todo проверить освобождение in
+
+                unsigned long blocks=size/(block_size*segment_size);
+                std::ifstream in(entry.path());
                 for (int i = 0; i < blocks; ++i) {
                     for (int j = 0; j < block_size; ++j) {
-                        segment<segment_size>& curr_s =&block[i][j];
                         //curr_s.fill(0);
                         for (int k = 0; k < segment_size; ++k) {
-                            curr_s[k] = in.get();
+                            block[j][k] = in.get();
                         }
 
                     }
-                    manager_.process_file_block(block,pp.string());
+                    manager_.template stream_segment_array<verbose>(block, file, i);
                 }
                 segvec<segment_size> last_block;
 
                 while (!in.eof()) {
                     auto curr_s = segment<segment_size>();
-                    curr_s.fill(0);
+                    curr_s.fill(23);
                     for (int j = 0; j < segment_size; ++j) {
                         if (in.eof() || in.peek() == -1) {
                             curr_s[j] = 23;//ETB symbol
                             if (j == 0) {
-                                //return source_;
+                                goto end;
                             }
                             last_block.push_back(curr_s);
-                           // return source_;
+                            goto end;
                         }
                         curr_s[j] = in.get();
                     }
                     last_block.push_back(curr_s);
                 }
+                end: in.close();
+                manager_.template stream_segment_array<verbose>(last_block, file, blocks);
+                manager_.template finish_file_processing<verbose>(file,file_id);
             }
             else
             {
-                //todo copy the mthod ge_bulk_blocks
-                std::cout<<"full"<<'\n';
+                segvec<segment_size> buff;
+                std::ifstream in(file);
+                in>>buff;
+
+                manager_.template stream_segment_array<verbose>(buff, file, 0);
+                manager_.template finish_file_processing<verbose>(file,file_id);
+                in.close();
             }
         }
     }
@@ -174,15 +197,15 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
 
 using buf64 = segvec<64>;
 
-template<unsigned long segment_size>
+template<unsigned long segment_size,char fill>
 requires IsDiv<segment_size, SHA256size>
 std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {
     while (!source_.eof()) {
         auto curr_s = segment<segment_size>();
-        curr_s.fill(0);
+        curr_s.fill(fill);
         for (int j = 0; j < segment_size; ++j) {
             if (source_.eof() || source_.peek() == -1) {
-                curr_s[j] = 23;//ETB symbol
+                curr_s[j] =fill;//ETB symbol
                 if (j == 0) {
                     return source_;
                 }
@@ -196,12 +219,12 @@ std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {
     return source_;
 }
 
-template<unsigned long segment_size>
+template<unsigned long segment_size,char fill>
 requires IsDiv<segment_size, SHA256size>
 std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf) {
     for (auto &elem: buf) {
         for (auto &symbol: elem) {
-            if (symbol == 23) {
+            if (symbol == fill) {
                 return target_;
             }
             target_.put(symbol);
