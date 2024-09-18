@@ -18,14 +18,13 @@ namespace db_services {
     struct my_conn_string {
         my_conn_string():port(5432) {}
 
-        template<to_str_to_c_str s1,
-                to_str_to_c_str s2,
-                to_str_to_c_str s3,
-                to_str_to_c_str s4>
-        my_conn_string(s1 &&user_, s2 &&password_, s3 &&host_, s4 &&dbname_, unsigned port_)
-                : user(std::forward<s1>(user_)), password(std::forward<s2>(password_)),
-                  host(std::forward<s3>(host_)),
-                  dbname(std::forward<s4>(dbname_)),
+        my_conn_string(std::string_view user_,
+                       std::string_view password_,
+                       std::string_view host_,
+                       std::string_view dbname_, unsigned port_)
+                : user(user_), password(password_),
+                  host(host_),
+                  dbname(dbname_),
                   port(port_) {
             update_format();
         }
@@ -38,21 +37,18 @@ namespace db_services {
             return formatted_string.c_str();
         }
 
-        template<to_str_to_c_str str>
-        void set_user(str &&new_user) {
-            user = std::forward<str>(new_user);
+        void set_user(std::string_view new_user) {
+            user = std::forward<std::string_view>(new_user);
             update_format();
         }
 
-        template<to_str_to_c_str str>
-        void set_password(str &&new_password) {
-            password = std::forward<str>(new_password);
+        void set_password(std::string_view new_password) {
+            password = new_password;
             update_format();
         }
 
-        template<to_str_to_c_str str>
-        void set_host(str &&new_host) {
-            host = std::forward<str>(new_host);
+        void set_host(std::string_view new_host) {
+            host = new_host;
             update_format();
         }
 
@@ -61,9 +57,8 @@ namespace db_services {
             update_format();
         }
 
-        template<to_str_to_c_str str>
-        void set_dbname(str &&new_dbname) {
-            dbname = std::forward<str>(new_dbname);
+        void set_dbname(std::string_view new_dbname) {
+            dbname = new_dbname;
             update_format();
         }
 
@@ -100,9 +95,8 @@ namespace db_services {
     };
 
 
-    template<unsigned short verbose = 0, typename str>
-    requires to_str_to_c_str<str>
-    conPtr connect_if_possible(str &&cString);
+    template<unsigned short verbose = 0>
+    conPtr connect_if_possible(std::string_view cString);
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>

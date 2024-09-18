@@ -43,32 +43,33 @@ namespace db_services {
         void insert_bulk_segments(const segvec<segment_size> &segments, std::string &filename);
 
         template<verbose_level verbose = 0>
-        [[deprecated("function select get_file_data($1) to be deleted")]] segvec<segment_size> get_file_segmented(std::string &filename);
-
-
-        template<verbose_level verbose = 0, to_str_to_c_str str>
-        index_type create_directory(str &&dir_path);
-
-        template<verbose_level verbose = 0, to_str_to_c_str str>
-        std::vector<std::string> get_all_files(str &&dir_path);
-
-        template<verbose_level verbose = 0, to_str_to_c_str str>
-        index_type create_file(str &&file_path, int dir_id, int file_size = 0);
-
-
-        template<verbose_level verbose = 0, to_str_to_c_str str>
-        void finish_file_processing(str &&file_path, index_type file_id);
-
-
-        template<verbose_level verbose = 0, index_type block_sz = block_size, Index_size T, to_str_to_c_str str>
-        void stream_segment_array(T &segment_block, str &&file_name, size_t block_index);
-
-        template<verbose_level verbose = 0, index_type block_sz = block_size, to_str_to_c_str str, char fill = 23>
-        int get_file_streamed(str &&file_name, std::ostream &out);
+        [[deprecated("function select get_file_data($1) to be deleted")]] segvec<segment_size>
+        get_file_segmented(std::string &filename);
 
 
         template<verbose_level verbose = 0>
-        std::string get_file_contents(std::string &file_name);
+        index_type create_directory(std::string_view dir_path);
+
+        template<verbose_level verbose = 0>
+        std::vector<std::string> get_all_files(std::string_view dir_path);
+
+        template<verbose_level verbose = 0>
+        index_type create_file(std::string_view file_path, int dir_id, int file_size = 0);
+
+
+        template<verbose_level verbose = 0>
+        void finish_file_processing(std::string_view file_path, index_type file_id);
+
+
+        template<verbose_level verbose = 0, index_type block_sz = block_size, Index_size T>
+        void stream_segment_array(T &segment_block, std::string_view file_name, size_t block_index);
+
+        template<verbose_level verbose = 0, index_type block_sz = block_size, char fill = 23>
+        int get_file_streamed(std::string_view file_name, std::ostream &out);
+
+
+        template<verbose_level verbose = 0>
+        [[deprecated]]std::string get_file_contents(std::string &file_name);
 
         bool checkConnection() {
             return conn_->is_open();
@@ -84,8 +85,8 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, index_type block_sz, to_str_to_c_str str, char fill>
-    int dbManager<segment_size>::get_file_streamed(str &&file_name, std::ostream &out) {
+    template<verbose_level verbose, index_type block_sz, char fill>
+    int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
             trasnactionType txn(*conn_);
             std::string query = vformat("select s.segment_data\n"
@@ -93,7 +94,7 @@ namespace db_services {
                                         "         inner join public.segments s on s.segment_hash = data.segment_hash\n"
                                         "        inner join public.files f on f.file_id = data.file_id\n"
                                         "where file_name=\'%s\'::tsvector\n"
-                                        "order by segment_num", file_name.c_str());
+                                        "order by segment_num", file_name.data());
 
             for (auto [name]: txn.stream<std::string>(query)) {
                 for (char i: name) {
@@ -119,19 +120,20 @@ namespace db_services {
         }
         return 0;
     }
-    
-    
+
+
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, index_type block_sz, Index_size T, to_str_to_c_str str>
-    void dbManager<segment_size>::stream_segment_array(T &segment_block, str &&file_name, size_t block_index){
+    template<verbose_level verbose, index_type block_sz, Index_size T>
+    void
+    dbManager<segment_size>::stream_segment_array(T &segment_block, std::string_view file_name, size_t block_index) {
         try {
             trasnactionType txn(*conn_);
-            std::string table_name = "\"temp_file_" + file_name + "\"";
+            std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
+            //todo check https://stackoverflow.com/questions/71928457/how-do-you-use-libpqxx-stream-to-table-or-raw-table
 
-
-            pqxx::stream_to copy_stream(txn, table_name);
+            pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
             size_t index_start = block_index * block_sz;
             for (size_t i = 0; i < segment_block.size(); ++i) {
                 copy_stream
@@ -153,22 +155,23 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, to_str_to_c_str str>
-    void dbManager<segment_size>::finish_file_processing(str &&file_path, index_type file_id) {
+    template<verbose_level verbose>
+    void dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
-            std::string table_name = "\"temp_file_" + file_path + "\"";
-            std::string table_name_ = "\'temp_file_" + file_path + "\'";
+
+            std::string table_name = vformat("\"temp_file_%s\"", file_path.data());
+            std::string table_name_ = vformat("\'temp_file_%s\'", file_path.data());
 
 
-            std::string aggregation_table_name = "\"new_segments_" + file_path + "\"";
-
+            std::string aggregation_table_name = vformat("\"new_segments_%s\"", file_path.data());
+            pqxx::result r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = %s", table_name_.c_str());
-            auto r = txn.exec(q);
-            if (r.empty()) {
-                LOG_IF(WARNING, verbose >= 1) << vformat("No saved data found for file %s \n", file_path.c_str());
+            txn.exec(q).one_row();
+            /*if (r.empty()) {
+                LOG_IF(WARNING, verbose >= 1) << vformat("No saved data found for file %s \n", file_path.data());
                 return;
-            }
+            }*/
 
             q = vformat("CREATE TABLE  %s AS SELECT DISTINCT t.data, COUNT(t.data) AS count"
                         " FROM %s t "
@@ -220,68 +223,105 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, to_str_to_c_str str>
-    index_type dbManager<segment_size>::create_file(str &&file_path, int dir_id, int file_size)  {
+    template<verbose_level verbose>
+    index_type dbManager<segment_size>::create_file(std::string_view file_path, int dir_id, int file_size) {
         trasnactionType txn(*conn_);
+        index_type rrr = -1;
 
         std::string query = "insert into public.files (file_name,dir_id,size_in_bytes)"
                             " values ($1,$2,$3) returning file_id;";
 
+        try {
+            pqxx::result res = txn.exec(query, {file_path, dir_id, file_size});
+            rrr = res.one_row()[0].as<index_type>();
 
-        pqxx::result res = txn.exec_params(query, file_path, dir_id, file_size);
+            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
-        LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
+            std::string table_name = vformat("temp_file_%s", file_path.data());
+            std::string q1 = vformat(
+                    "CREATE TABLE \"%s\" (pos bigint, data char(%d));",
+                    txn.esc(table_name).c_str(),//todo check comma
+                    segment_size
+            );
+            pqxx::result r2 = txn.exec(q1);
+            txn.commit();
 
-
-        std::string table_name = "temp_file_" + file_path;
-        std::string q1 = vformat("CREATE TABLE \"%s\" (pos bigint, data char(%d));", txn.esc(table_name).c_str(),
-                                 segment_size);
-        pqxx::result r2 = txn.exec(q1);
-
-        LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
-
-
-        txn.commit();
-        return res[0][0].as<index_type>();
+            LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
+        }
+            /*catch(const pqxx::unexpected_rows &r)
+            {
+                LOG_IF(ERROR, verbose >= 1) << "File already exists";
+                LOG_IF(ERROR, verbose >= 2) << "    Exception message: "<< r.what();
+                LOG_IF(ERROR, verbose >= 1) << '\n';
+            }*///todo check file existence
+        catch (const pqxx::sql_error &e) {
+            //sql state 23505= limitation violation
+            //sql statte 42P01=: no such raktion
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+        }
+        catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "File already exists";
+        }
+        return rrr;
     }
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, to_str_to_c_str str>
-    std::vector<std::string> dbManager<segment_size>::get_all_files(str &&dir_path) {
+    template<verbose_level verbose>
+    std::vector<std::string> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
         //todo как лучше по пути или по имени
         std::vector<std::string> result;
-        trasnactionType txn(*conn_);
+        try {
+            trasnactionType txn(*conn_);
 
-        std::string query = "select file_name from files\n"
-                            "    inner join public.directories d\n"
-                            "        on d.dir_id = files.dir_id\n"
-                            "where dir_path=$1;";
-        pqxx::result res = txn.exec_params(query, dir_path);
-        LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
-        for (const auto &re: res) {
-            auto tres = re[0].as<std::string>();
-            result.push_back(tres.substr(1, tres.size() - 2));
+            std::string query = "select file_name from files\n"
+                                "    inner join public.directories d\n"
+                                "        on d.dir_id = files.dir_id\n"
+                                "where dir_path=$1;";
+            pqxx::result res = txn.exec(query, pqxx::params(dir_path));
+            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
+            for (const auto &re: res) {
+                auto tres = re[0].as<std::string>();
+                result.push_back(tres.substr(1, tres.size() - 2));
+            }
+
+            txn.commit();
+        } catch (const pqxx::sql_error &e) {
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
         }
-
-        txn.commit();
         return result;
     }
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, to_str_to_c_str str>
-    index_type dbManager<segment_size>::create_directory(str &&dir_path) {
-        trasnactionType txn(*conn_);
-        std::string query = "insert into public.directories (dir_path) values ($1) returning dir_id;";
-        pqxx::result res = txn.exec_params(query, dir_path);
+    template<verbose_level verbose>
+    index_type dbManager<segment_size>::create_directory(std::string_view dir_path) {
+        index_type result = -1;
+        try {
+            trasnactionType txn(*conn_);
+            std::string query = "insert into public.directories (dir_path) values ($1) returning dir_id;";
+            result = txn.exec(query, pqxx::params(dir_path)).one_row()[0].as<index_type>();
 
-        LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
-        txn.commit();
-        return res[0][0].as<index_type>();
+            txn.commit();
+            LOG_IF(INFO, verbose >= 2)
+                            << vformat("New directory %s with id %d was created", dir_path.data(), result) << '\n';
+        } catch (const pqxx::sql_error &e) {
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+        }
+        return result;
     }
 
 
@@ -320,18 +360,20 @@ namespace db_services {
         pqxx::nontransaction no_trans_exec(*temp_connection);
 
         try {
-            pqxx::result r = no_trans_exec.exec(vformat("SELECT 1 FROM pg_database WHERE datname = '%s';",
-                                                        no_trans_exec.esc(cString_.getDbname()).c_str()));
+            pqxx::result r = no_trans_exec.exec("SELECT 1 FROM pg_database WHERE datname = $1;",
+                                                pqxx::params(no_trans_exec.esc(cString_.getDbname())));
+            r.no_rows();
 
-            if (!r.empty()) {
-                LOG_IF(WARNING, verbose >= 2)
-                                << "Database already exists, skipping creation: " << cString_.getDbname() << '\n';
-                no_trans_exec.abort();
-            } else {
-                no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(cString_.getDbname()).c_str()));
+            /* if (!r.empty()) {
+                 LOG_IF(WARNING, verbose >= 2)
+                                 << "Database already exists, skipping creation: " << cString_.getDbname() << '\n';
+                 no_trans_exec.abort();
+             } else*/ {
+                no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(
+                        cString_.getDbname()).c_str()));//не менять, паарметры здесь не подпадают под query
                 no_trans_exec.exec(
                         vformat("GRANT ALL ON DATABASE %s TO %s;", no_trans_exec.esc(cString_.getDbname()).c_str(),
-                                no_trans_exec.esc(cString_.getDbname()).c_str()));
+                                no_trans_exec.esc(cString_.getUser()).c_str()));
                 no_trans_exec.commit();
 
                 LOG_IF(WARNING, verbose >= 2) << "Database created successfully: " << cString_.getDbname() << '\n';
@@ -344,9 +386,14 @@ namespace db_services {
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
             return;
-        } catch (const std::exception &e) {
+        }
+        catch (const pqxx::unexpected_rows &r) {
+            LOG_IF(WARNING, verbose >= 1) << "Database already exists, aborting creation";
+            LOG_IF(WARNING, verbose >= 2) << "    exception message: " << r.what();
+            no_trans_exec.abort();
+        }
+        catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error: " << e.what() << '\n';
-
             return;
         }
 
@@ -362,8 +409,11 @@ namespace db_services {
     template<verbose_level verbose>
     void dbManager<segment_size>::fill_schemas() {
         try {
-            //todo check init
+
             trasnactionType txn(*conn_);
+            txn.exec("select tablename\n"
+                     "from pg_tables\n"
+                     "where schemaname = 'public';").no_rows();
 
             std::string query = "create table public.segments\n"
                                 "(\n"
@@ -420,7 +470,12 @@ namespace db_services {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
+        }
+        catch (const pqxx::unexpected_rows &r) {
+            LOG_IF(WARNING, verbose >= 1) << "Database schemas have been already created, aborting creation";
+            LOG_IF(WARNING, verbose >= 2) << "    exception message: " << r.what();
+        }
+        catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error setting up database schemas: " << e.what() << '\n';
         }
     }
@@ -441,7 +496,7 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
 
 
-            pqxx::stream_to copy_stream(txn, table_name);
+            pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
 
             for (size_t i = 0; i < segments.size(); ++i) {
                 copy_stream
@@ -450,7 +505,7 @@ namespace db_services {
 
             copy_stream.complete();
             std::string query = "select process_file_data($1)";
-            pqxx::result res = txn.exec_params(query, filename);
+            pqxx::result res = txn.exec(query, pqxx::params(filename));
 
             LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
@@ -473,8 +528,8 @@ namespace db_services {
         segvec<segment_size> vector;
         try {
             trasnactionType txn(*conn_);
-            std::string query = "select get_file_data($1)";
-            pqxx::result res = txn.exec_params(query, filename);
+            std::string query = "select get_file_data($1)";//todo replace
+            pqxx::result res = txn.exec(query, pqxx::params(filename));
 
             LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
@@ -506,9 +561,9 @@ namespace db_services {
             std::string query = "select string_agg(ss.data,'')\n"
                                 "from \n"
                                 "    (\n"
-                                "    select get_file_data($1) as data \n"
+                                "    select get_file_data($1) as data \n"//todo replace
                                 "    )as ss;";
-            pqxx::result res = txn.exec_params(query, file_name);
+            pqxx::result res = txn.exec(query, pqxx::params(file_name));
 
             LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
 
@@ -526,10 +581,7 @@ namespace db_services {
     }
 
 
-
-
     template<verbose_level verbose, typename str>
-    requires to_str_to_c_str<str>
     conPtr connect_if_possible(str &&cString) {
         conPtr c;
         std::string css = cString;

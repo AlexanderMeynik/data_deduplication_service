@@ -31,6 +31,13 @@ enum db_usage_strategy
     use,
     create
 };
+
+enum data_retrieval_strategy
+{
+    persist,
+    remove_
+};
+
 using db_services::dbManager;
 template<unsigned long segment_size, char fileEndDelim=23>
 requires is_divisible<segment_size, SHA256size> && is_divisible<total_block_size,segment_size>
@@ -49,7 +56,7 @@ public:
     template<verbose_level verbose = 0,segmenting_strategy ss=use_blocks>
     int process_directory(std::string& trainDir);
 
-    template<verbose_level verbose = 0,segmenting_strategy ss=use_blocks>
+    template<verbose_level verbose = 0,segmenting_strategy ss=use_blocks,data_retrieval_strategy rr=persist>
     int load_directory(std::string& trainDir,std::string &to_dir);
 private:
     dbManager<segment_size> manager_;
@@ -58,7 +65,7 @@ private:
 template<unsigned long segment_size, char fileEndDelim>
 requires is_divisible<segment_size, SHA256size>
          && is_divisible<total_block_size,segment_size>
-template<verbose_level verbose,segmenting_strategy ss>
+template<verbose_level verbose,segmenting_strategy ss,data_retrieval_strategy rr>
 int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &trainDir,std::string &to_dir) {
     namespace fs = std::filesystem;
     fs::path new_abs;
@@ -80,16 +87,6 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
         LOG_IF(ERROR, verbose >= 1) <<vformat("Filesystem error : %s , error code %d\n",e.what(),e.code());
         return -3;
     }
-
-    /*
-     * fs::path parent_dir = full_path.parent_path();
-
-    // Check if the parent directory exists, if not, create it
-    if (!fs::exists(parent_dir)) {
-        std::cout << "Creating directories: " << parent_dir << '\n';
-        fs::create_directories(parent_dir);
-    }
-     */
 
     auto files=manager_.template get_all_files<verbose>(curr_abs.string());
     //todo проверить на сложных иерархиях
@@ -118,6 +115,10 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
 
         }
         out.close();
+        if constexpr (rr==data_retrieval_strategy::remove_)
+        {
+            //todo delete files/directories
+        }
     }
     return 0;
 }
@@ -140,7 +141,7 @@ int FileParsingService<segment_size, fileEndDelim>::db_load(std::string &dbName)
     {
         manager_.template connectToDb<verbose>();
     }
-    LOG_IF(INFO,verbose>=2)<<manager_.checkConnection()<<'\n';
+    LOG_IF(INFO,verbose>=2)<<((manager_.checkConnection())?"connection esablished\n":"cannot connect\n");
     return 0;
 }
 
