@@ -37,16 +37,6 @@ namespace db_services {
         template<verbose_level verbose = 0>
         void fill_schemas();
 
-
-        template<verbose_level verbose = 0>
-        [[deprecated("function select process_file_data($1) to be deleted")]]
-        void insert_bulk_segments(const segvec<segment_size> &segments, std::string &filename);
-
-        template<verbose_level verbose = 0>
-        [[deprecated("function select get_file_data($1) to be deleted")]] segvec<segment_size>
-        get_file_segmented(std::string &filename);
-
-
         template<verbose_level verbose = 0>
         index_type create_directory(std::string_view dir_path);
 
@@ -96,8 +86,10 @@ namespace db_services {
                                         "where file_name=\'%s\'::tsvector\n"
                                         "order by segment_num", file_name.data());
 
-            for (auto [name]: txn.stream<std::string>(query)) {
-                for (char i: name) {
+            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
+                auto str=name.str();
+                auto decoded=/*pg_from_hex*/(str);
+                for (char i: decoded) {
                     if (i == fill) {
                         goto end;
                     }
@@ -131,14 +123,29 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
             std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
-            //todo check https://stackoverflow.com/questions/71928457/how-do-you-use-libpqxx-stream-to-table-or-raw-table
+
+            /*std::string insert_query= vformat("insert into %s ( pos , data ) values \n",table_name.c_str());
+            std::stringstream strem_to;
+            strem_to<<insert_query;
+            size_t i = 0;
+            for (; i < segment_block.size()-1; ++i) {
+                auto sssss=pg_from_hex(segment_block[i].data());
+                strem_to<<vformat("( %d , encode(E\'%s\',\'escape\')),\n",i+1,sssss.c_str());
+            }
+            auto sssss=(pg_from_hex(segment_block[i].data()));
+            strem_to<<vformat("( %d , encode(E\'%s\',\'escape\'));\n",i+1,sssss.c_str());
+            auto res_query=strem_to.str();
+            auto res=txn.exec(res_query);*/
 
             pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
             size_t index_start = block_index * block_sz;
             for (size_t i = 0; i < segment_block.size(); ++i) {
+                //auto rres=/*pg_to_hex*/(segment_block[i].data());
+                std::string temp(segment_block[i].begin(),segment_block[i].end());
+                pqxx::binarystring bn(temp);
                 copy_stream
-                        << std::make_tuple(static_cast<int64_t>(index_start + i + 1),
-                                           std::string(segment_block[i].data(), segment_size));
+                        << std::make_tuple<int64_t,pqxx::binarystring>(static_cast<int64_t>(index_start + i + 1),
+                                                                       std::move(bn));
             }
 
             copy_stream.complete();
@@ -220,6 +227,8 @@ namespace db_services {
         }
     }
 
+    static constexpr const char *const sqlLimitBreached_state = "23505";
+
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
@@ -239,22 +248,21 @@ namespace db_services {
 
             std::string table_name = vformat("temp_file_%s", file_path.data());
             std::string q1 = vformat(
-                    "CREATE TABLE \"%s\" (pos bigint, data char(%d));",
-                    txn.esc(table_name).c_str(),//todo check comma
-                    segment_size
+                    "CREATE TABLE \"%s\" (pos bigint, data bytea);",
+                    txn.esc(table_name).c_str()
+                    //,segment_size//todo check comma
             );
             pqxx::result r2 = txn.exec(q1);
             txn.commit();
 
             LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
         }
-            /*catch(const pqxx::unexpected_rows &r)
-            {
-                LOG_IF(ERROR, verbose >= 1) << "File already exists";
-                LOG_IF(ERROR, verbose >= 2) << "    Exception message: "<< r.what();
-                LOG_IF(ERROR, verbose >= 1) << '\n';
-            }*///todo check file existence
         catch (const pqxx::sql_error &e) {
+            if(e.sqlstate() == sqlLimitBreached_state)
+            {
+                LOG_IF(ERROR, verbose >= 1)<<vformat("File %s already exists\n",file_path.data());
+                return -1;
+            }
             //sql state 23505= limitation violation
             //sql statte 42P01=: no such raktion
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
@@ -315,6 +323,11 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2)
                             << vformat("New directory %s with id %d was created", dir_path.data(), result) << '\n';
         } catch (const pqxx::sql_error &e) {
+            if(e.sqlstate() == sqlLimitBreached_state)
+            {
+                LOG_IF(ERROR, verbose >= 1)<<vformat("Directory %s already exists\n",dir_path.data());
+                return -1;
+            }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
@@ -418,11 +431,11 @@ namespace db_services {
             std::string query = "create table public.segments\n"
                                 "(\n"
                                 "    segment_hash bytea NOT NULL GENERATED ALWAYS AS (sha256(segment_data::bytea)) STORED primary key,\n"
-                                "    segment_data char(%d) NOT NULL,\n"
+                                "    segment_data bytea NOT NULL,\n"
                                 "    segment_count bigint NOT NULL\n"
                                 ");";
 
-            std::string q1 = vformat(query.c_str(), segment_size);
+            std::string q1 = vformat(query.c_str());//, segment_size);
             pqxx::result r1 = txn.exec(q1);
 
             LOG_IF(INFO, verbose >= 2) << "Create segments table " << r1.query() << '\n';
@@ -481,74 +494,9 @@ namespace db_services {
     }
 
 
-    template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>
-    void dbManager<segment_size>::insert_bulk_segments(const segvec<segment_size> &segments, std::string &filename) {
-        try {
-            trasnactionType txn(*conn_);
-            std::string table_name = "temp_file_" + filename;
-            std::string q1 = vformat("CREATE TABLE %s (pos bigint, data char(%d));", txn.esc(table_name).c_str(),
-                                     segment_size);
-            pqxx::result r2 = txn.exec(q1);
-
-            LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
 
 
-            pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
 
-            for (size_t i = 0; i < segments.size(); ++i) {
-                copy_stream
-                        << std::make_tuple(static_cast<int64_t>(i + 1), std::string(segments[i].data(), segment_size));
-            }
-
-            copy_stream.complete();
-            std::string query = "select process_file_data($1)";
-            pqxx::result res = txn.exec(query, pqxx::params(filename));
-
-            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
-
-            txn.commit();
-        } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
-                                        << "Query: " << e.query() << "\n"
-                                        << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error inserting bulk data:" << e.what() << '\n';
-        }
-    }
-
-
-    template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>
-    segvec<segment_size> dbManager<segment_size>::get_file_segmented(std::string &filename) {
-        segvec<segment_size> vector;
-        try {
-            trasnactionType txn(*conn_);
-            std::string query = "select get_file_data($1)";//todo replace
-            pqxx::result res = txn.exec(query, pqxx::params(filename));
-
-            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
-
-            txn.commit();
-
-            for (const auto &re: res) {
-                auto string = re[0].as<std::string>();
-                vector.push_back(from_string<char, 64>(string));
-            }
-
-        } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
-                                        << "Query: " << e.query() << "\n"
-                                        << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error get_file_segments: " << e.what() << '\n';
-        }
-        return vector;
-    }
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>

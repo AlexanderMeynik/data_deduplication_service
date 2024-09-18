@@ -7,7 +7,11 @@
 #include <string>
 #include <type_traits>
 #include <glog/logging.h>
-
+#include <iomanip>
+#include <stdexcept>
+#include <sstream>
+#include <iomanip>
+#include <cstdint>
 using verbose_level=unsigned short;//todo enum
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
@@ -15,9 +19,9 @@ static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 constexpr int total_block_size=128;
 template<unsigned short seg, unsigned short div>
 concept is_divisible = seg % div == 0;
-
+using symbol_type=char;
 template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size>
-using segment = std::array<char, segment_size>;
+using segment = std::array<symbol_type, segment_size>;
 template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size>
 using segvec = std::vector<segment<segment_size>>;
 template<unsigned long segment_size,unsigned long segment_count>
@@ -71,4 +75,36 @@ std::string vformat(const char * const zcFormat, ...) {
 }
 
 
+
+std::string string_to_hex(std::string_view in) {
+    std::stringstream ss;
+
+    ss << std::hex << std::setfill('0');
+    for (size_t i = 0; in.length() > i; ++i) {
+        ss << std::setw(2) << static_cast<unsigned int>(static_cast<unsigned char>(in[i]));
+    }
+
+    return ss.str();
+}
+
+std::string hex_to_string(std::string_view in) {
+    std::string output;
+
+    if ((in.length() % 2) != 0) {
+        throw std::runtime_error("String is not valid length ...");
+    }
+
+    size_t cnt = in.length() / 2;
+
+    for (size_t i = 0; cnt > i; ++i) {
+        uint32_t s = 0;
+        std::stringstream ss;
+        ss << std::hex << in.substr(i * 2, 2);
+        ss >> s;
+
+        output.push_back(static_cast<unsigned char>(s));
+    }
+
+    return output;
+}
 #endif //SERVICE_MYCONCEPTS_H

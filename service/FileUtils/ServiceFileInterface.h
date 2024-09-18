@@ -96,11 +96,10 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
 
         fs::path parent_dir = p_t_s.parent_path();
         if (!fs::exists(parent_dir)) {
-            fs::create_directories(parent_dir);
             LOG_IF(INFO, verbose >= 2) <<vformat("Creating directories:  %s \n",parent_dir.string().c_str());
 
         }
-        std::ofstream out(p_t_s);
+        std::basic_ofstream<symbol_type> out(p_t_s);
 
         if constexpr (ss==segmenting_strategy::use_blocks)
         {
@@ -173,6 +172,11 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
     }
 
     auto dir_id=manager_.template create_directory<2>(pp.string());
+    if(dir_id==-1)
+    {
+        //todo nothing
+        //return dir_id;
+    }
 
 
     for (const auto& entry : fs::recursive_directory_iterator(pp)) {
@@ -180,6 +184,11 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
             auto file=fs::canonical(entry.path()).string();
             auto size=fs::file_size(entry);//проверить соответствие реальному
             auto file_id=manager_.template create_file<verbose>(file,dir_id,size);
+            if(file_id==-1)
+            {
+                //todo log message
+                continue;
+            }
 
 
 
@@ -188,12 +197,12 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
                 CurrBlock block;
 
                 unsigned long blocks=size/(block_size*segment_size);
-                std::ifstream in(entry.path());
+                std::basic_ifstream<symbol_type> in(entry.path());
                 for (int i = 0; i < blocks; ++i) {
                     for (int j = 0; j < block_size; ++j) {
                         //curr_s.fill(0);
                         for (int k = 0; k < segment_size; ++k) {
-                            block[j][k] = in.get();
+                             in.get(block[j][k]);
                         }
 
                     }
@@ -203,17 +212,17 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
 
                 while (!in.eof()) {
                     auto curr_s = segment<segment_size>();
-                    curr_s.fill(23);
+                    curr_s.fill(fileEndDelim);
                     for (int j = 0; j < segment_size; ++j) {
                         if (in.eof() || in.peek() == -1) {
-                            curr_s[j] = 23;//ETB symbol
+                            curr_s[j] = fileEndDelim;//ETB symbol
                             if (j == 0) {
                                 goto end;
                             }
                             last_block.push_back(curr_s);
                             goto end;
                         }
-                        curr_s[j] = in.get();
+                        in.get(curr_s[j]);
                     }
                     last_block.push_back(curr_s);
                 }

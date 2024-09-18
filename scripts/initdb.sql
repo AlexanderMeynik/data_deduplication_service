@@ -1,7 +1,7 @@
 create table public.segments
 (
     segment_hash bytea NOT NULL GENERATED ALWAYS AS (sha256(segment_data::bytea)) STORED primary key,
-    segment_data char(64) NOT NULL,
+    segment_data bytea NOT NULL,
     segment_count bigint NOT NULL
 );
 create table public.directories

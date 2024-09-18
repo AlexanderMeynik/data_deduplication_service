@@ -53,7 +53,8 @@ add_executable(create_insert_retrieve db_create_data_write_test.cpp)
 target_link_libraries(create_insert_retrieve FileUtilsLib dbUtilsLib)
 
 add_executable(file_hierarhy_create pathing.cpp)
-target_link_libraries(file_hierarhy_create glog::glog)
+target_link_libraries(file_hierarhy_create glog::glog commonLibrary)
+
 add_executable(pcv opcvtest.cpp)
 target_link_libraries(pcv ${OpenCV_LIBS})
 

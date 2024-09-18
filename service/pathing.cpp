@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <glog/logging.h>
+#include "common/myconcepts.h"
 namespace fs = std::filesystem;
 
 void create_and_write_file(const std::string& root_dir, const std::string& relative_path, const std::string& file_contents) {
@@ -27,15 +27,23 @@ void create_and_write_file(const std::string& root_dir, const std::string& relat
         std::cerr << "Failed to create file: " << full_path << '\n';
     }
 }
+#include <functional>
 
 int main() {
     std::string root_dir = "/mnt/c/projects/data_deduplication_service/res";
     std::string relative_path = "/mnt/c/projects/data_deduplication_service/res/config.txt";
     std::string file_contents = "This is the content of config.txt";
+
+     auto pg_hex= "\\\\x"+string_to_hex(root_dir);
+    auto original= hex_to_string(pg_hex.substr(3));
+
+
+
     auto rel =std::filesystem::path(relative_path).lexically_relative(root_dir).string();
 
+
     // Call the function to create directories and write the file
-    create_and_write_file(root_dir, relative_path, file_contents);
+    //create_and_write_file(root_dir, relative_path, file_contents);
 
     return 0;
 }
