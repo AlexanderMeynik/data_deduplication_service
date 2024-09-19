@@ -8,7 +8,7 @@
 int main() {
     using namespace db_services;
 
-    auto Cstring=default_configuration();
+    auto Cstring = default_configuration();
     Cstring.set_dbname("deduplication640");
     dbManager dd(Cstring);
     dd.create();

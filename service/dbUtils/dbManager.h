@@ -9,16 +9,18 @@
 namespace db_services {
     //todo exec1 для существоания exec1
     //for_query() https://libpqxx.readthedocs.io/7.8.0/a01222.html#adae522da46299d4cd7c48128403e7c93
-
+    enum delete_strategy
+    {
+        deafult,
+        cascade
+    };
     template<unsigned long segment_size = 64> requires is_divisible<segment_size, SHA256size>
                                                        && is_divisible<total_block_size, segment_size>
     class dbManager {
     public:
         static constexpr unsigned long long block_size = total_block_size / segment_size;
 
-        dbManager() {
-
-        }
+        dbManager() = default;
 
         template<typename ss>
         requires to_str_to_c_str<ss>
@@ -32,10 +34,10 @@ namespace db_services {
 
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
         template<verbose_level verbose = 0>
-        void create();
+        index_type create();
 
         template<verbose_level verbose = 0>
-        void fill_schemas();
+        int fill_schemas();
 
         template<verbose_level verbose = 0>
         index_type create_directory(std::string_view dir_path);
@@ -46,47 +48,175 @@ namespace db_services {
         template<verbose_level verbose = 0>
         index_type create_file(std::string_view file_path, int dir_id, int file_size = 0);
 
+        template<verbose_level verbose = 0>
+        index_type create_file_temp(std::string_view file_path);
 
         template<verbose_level verbose = 0>
         void finish_file_processing(std::string_view file_path, index_type file_id);
 
-        template<verbose_level verbose = 0>
-        int delete_file(std::string_view file_name, index_type file_id);
+        template<verbose_level verbose = 0,delete_strategy del=deafult>
+        int delete_file(std::string_view file_name, index_type file_id=-1);
 
 
-        template<verbose_level verbose = 0>
+        template<verbose_level verbose = 0,delete_strategy del=deafult>
         int get_file_streamed(std::string_view file_name, std::ostream &out);
 
         template<verbose_level verbose = 0>
         int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
-        template<verbose_level verbose = 0>
-        [[deprecated]]std::string get_file_contents(std::string &file_name);
-
         bool checkConnection() {
             return conn_->is_open();
         }
-
-
+        template<verbose_level verbose = 0>
+        int delete_directory(std::string_view directory_path,index_type dir_id=-1);
     private:
         my_conn_string cString_;
         conPtr conn_;
-
     };
+
+
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
+    int dbManager<segment_size>::delete_directory(std::string_view directory_path,index_type dir_id) {
         try {
             trasnactionType txn(*conn_);
 
-            //todo reduce segments used(from select count segments)
-            //todo delete zero segments
-            //todo remove data(where id file = file_id)
-            //todo remove file
+            if(dir_id==-1)
+            {
+                std::string query="select dir_id from directories where dir_path = \'%s\';";
+                std::string qx1= vformat(query.c_str(),directory_path.data());
+                dir_id=txn.query_value<index_type>(qx1);
+            }
+
+            std::string query="update segments s  \n"
+                              "set segment_count=segment_count-ss.cnt  \n"
+                              "from (select segment_hash as hhhash, count(segment_hash) as cnt  \n"
+                              "      from data inner join public.files f on f.file_id = data.file_id  \n"
+                              "      where dir_id = %d  \n"
+                              "      group by dir_id, segment_hash  \n"
+                              ") as ss  \n"
+                              "where ss.hhhash=segment_hash;";
+            std::string qr= vformat(query.c_str(),dir_id);
+
+            txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully reduced segments"
+                                             " counts for directory \"%s\"\n",directory_path.data());
+
+
+            query="delete from data d  \n"
+                  "       where exists  \n"
+                  "           (   \n"
+                  "           select f.file_id  \n"
+                  "           from files f  \n"
+                  "           where dir_id=%d and d.file_id=f.file_id  \n"
+                  "        );  ";
+
+            qr= vformat(query.c_str(),dir_id);
+            txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully deleted data "
+                                             "for directory \"%s\"\n",directory_path.data());
+
+
+            query="delete from files where dir_id=%d;";
+            qr= vformat(query.c_str(),dir_id);
+            txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully deleted files "
+                                             " for directory \"%s\"\n",directory_path.data());
+
+            query="delete from directories where dir_id=%d;";
+            qr= vformat(query.c_str(),dir_id);
+            txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully entry "
+                                             " for directory \"%s\"\n",directory_path.data());
+
+            query="delete from segments where segment_count=0";
+            txn.exec(query);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully deleted redundant "
+                                             "segments for \"%s\"\n"
+                    ,directory_path.data());
+
+
+            //todo check
+
+            txn.commit();
+
+        } catch (const pqxx::sql_error &e) {
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+            return -1;
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "Error while delting directory:" << e.what() << '\n';
+            return -1;
+        }
+        return 0;
+    }
+
+
+
+
+
+    template<unsigned long segment_size>
+    requires is_divisible<segment_size, SHA256size>
+             && is_divisible<total_block_size, segment_size>
+    template<verbose_level verbose,delete_strategy del>
+    int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
+        try {
+            trasnactionType txn(*conn_);
+            if(file_id==-1)
+            {
+                std::string query="select file_id from files where file_name = \'%s\';";
+                auto qx1= vformat(query.c_str(),file_name.data());
+                file_id=txn.query_value<index_type>(qx1);
+            }
+
+            std::string query="update segments s  \n"
+                              "set segment_count=segment_count-ss.cnt  \n"
+                              "from (select segment_hash as hhhash, count(segment_hash) as cnt  \n"
+                              "      from data  \n"
+                              "      where file_id = %d  \n"
+                              "      group by file_id, segment_hash  \n"
+                              ") as ss  \n"
+                              "where ss.hhhash=segment_hash;";
+
+            std::string qr= vformat(query.c_str(),file_id);
+            auto res=txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully reduced segments"
+                                             " counts for file \"%s\"\n",file_name.data());
+
+
+            query="delete from data where file_id=%d;";
+
+            qr= vformat(query.c_str(),file_id);
+            res=txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully deleted data "
+                                             "for file \"%s\"\n",file_name.data());
+
+
+            query="delete from files where file_id=%d;";
+            qr= vformat(query.c_str(),file_id);
+            res=txn.exec(qr);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully deleted file "
+                                             "entry for \"%s\"\n",file_name.data());
+
+            query="delete from segments where segment_count=0";
+            res=txn.exec(query);
+
+            LOG_IF(INFO,verbose>=2)<<vformat("Successfully deleted redundant "
+                                             "segments for \"%s\"\n"
+                    ,file_name.data());
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -95,7 +225,7 @@ namespace db_services {
                                         << "SQL State: " << e.sqlstate() << '\n';
             return -1;
         } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+            LOG_IF(ERROR, verbose >= 1) << "Error while deleting file:" << e.what() << '\n';
             return -1;
         }
         return 0;
@@ -105,7 +235,7 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>
+    template<verbose_level verbose,delete_strategy del>
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
             trasnactionType txn(*conn_);
@@ -271,6 +401,44 @@ namespace db_services {
     }
 
 
+
+
+    template<unsigned long segment_size>
+    requires is_divisible<segment_size, SHA256size>
+             && is_divisible<total_block_size, segment_size>
+    template<verbose_level verbose>
+    index_type dbManager<segment_size>::create_file_temp(std::string_view file_path) {
+        trasnactionType txn(*conn_);
+        index_type rrr = return_codes::error_occured;
+
+        std::string query;
+
+        try {
+            std::string table_name = vformat("temp_file_%s", file_path.data());
+            std::string q1 = vformat(
+                    "CREATE TABLE \"%s\" (pos bigint, data bytea);",
+                    txn.esc(table_name).c_str()
+            );
+            pqxx::result r2 = txn.exec(q1);
+            txn.commit();
+
+            LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
+        }
+        catch (const pqxx::sql_error &e) {
+            if (e.sqlstate() == sqlLimitBreached_state) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("File %s already exists\n", file_path.data());
+                return return_codes::already_exists;
+            }
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+        }
+        catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "File already exists";
+        }
+        return rrr;
+    }
+
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
@@ -392,7 +560,7 @@ namespace db_services {
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    void dbManager<segment_size>::create() {
+    index_type dbManager<segment_size>::create() {
         conn_ = nullptr;
         auto tString = cString_;
         tString.set_dbname(sample_temp_db);
@@ -401,7 +569,7 @@ namespace db_services {
         if (!temp_connection || !temp_connection->is_open()) {
             LOG_IF(WARNING, verbose >= 1)
                             << vformat("Unable to connect by url \"%s\"\n", (tString).operator std::string().c_str());
-            return;
+            return return_codes::error_occured;
         }
         LOG_IF(INFO, verbose >= 1) << vformat("Connected to database %s\n", tString.getDbname().c_str());
 
@@ -413,11 +581,7 @@ namespace db_services {
                                                 pqxx::params(no_trans_exec.esc(cString_.getDbname())));
             r.no_rows();
 
-            /* if (!r.empty()) {
-                 LOG_IF(WARNING, verbose >= 2)
-                                 << "Database already exists, skipping creation: " << cString_.getDbname() << '\n';
-                 no_trans_exec.abort();
-             } else*/ {
+
                 no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(
                         cString_.getDbname()).c_str()));//не менять, паарметры здесь не подпадают под query
                 no_trans_exec.exec(
@@ -427,28 +591,32 @@ namespace db_services {
 
                 LOG_IF(WARNING, verbose >= 2) << "Database created successfully: " << cString_.getDbname() << '\n';
 
-            }
+
 
 
         } catch (const pqxx::sql_error &e) {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
-            return;
+            return return_codes::error_occured;
         }
         catch (const pqxx::unexpected_rows &r) {
             LOG_IF(WARNING, verbose >= 1) << "Database already exists, aborting creation";
             LOG_IF(WARNING, verbose >= 2) << "    exception message: " << r.what();
             no_trans_exec.abort();
+            temp_connection->close();
+            conn_ = connect_if_possible<verbose>(cString_);
+            return return_codes::warning_message;
         }
         catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error: " << e.what() << '\n';
-            return;
+            return return_codes::error_occured;
         }
 
 
         temp_connection->close();
         conn_ = connect_if_possible<verbose>(cString_);
+        return 0;
     }
 
 
@@ -456,7 +624,7 @@ namespace db_services {
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    void dbManager<segment_size>::fill_schemas() {
+    int dbManager<segment_size>::fill_schemas() {
         try {
 
             trasnactionType txn(*conn_);
@@ -500,6 +668,7 @@ namespace db_services {
                     ""
                     "CREATE INDEX if not exists hash_segment_hash on segments(segment_hash);\n"
                     "CREATE INDEX if not exists hash_segment_data on segments(segment_data);\n"
+                    "CREATE INDEX if not exists segment_count on segments(segment_count);\n"
                     "CREATE INDEX  if not exists bin_file_id on data(file_id);\n"
                     "CREATE INDEX if not exists dir_gin_index on directories using gin(dir_path);\n"
                     "CREATE INDEX if not exists dir_bin_index on directories(dir_path);\n"
@@ -519,46 +688,21 @@ namespace db_services {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
+            return return_codes::error_occured;
         }
         catch (const pqxx::unexpected_rows &r) {
             LOG_IF(WARNING, verbose >= 1) << "Database schemas have been already created, aborting creation";
             LOG_IF(WARNING, verbose >= 2) << "    exception message: " << r.what();
+            return return_codes::warning_message;
         }
         catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error setting up database schemas: " << e.what() << '\n';
+            return return_codes::error_occured;
         }
+        return 0;
     }
 
 
-    template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>
-    std::string
-    dbManager<segment_size>::get_file_contents(std::string &file_name) {
-        try {
-            trasnactionType txn(*conn_);
-            std::string query = "select string_agg(ss.data,'')\n"
-                                "from \n"
-                                "    (\n"
-                                "    select get_file_data($1) as data \n"//todo replace
-                                "    )as ss;";
-            pqxx::result res = txn.exec(query, pqxx::params(file_name));
-
-            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
-
-            txn.commit();
-            return res[0][0].as<std::string>();
-
-        } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
-                                        << "Query: " << e.query() << "\n"
-                                        << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error gett_file_contents: " << e.what() << '\n';
-        }
-        return "";
-    }
 
 
     template<verbose_level verbose, typename str>
