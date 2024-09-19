@@ -4,7 +4,7 @@ find_package(OpenSSL REQUIRED)
 list(APPEND CMAKE_PREFIX_PATH "/home/login/glog/build")
 list(APPEND CMAKE_PREFIX_PATH "/home/login/libpqxx/build")
 
-find_package(glog  0.7.1 REQUIRED)
+find_package(glog 0.7.1 REQUIRED)
 
 find_package(libpqxx REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -40,25 +40,10 @@ add_library(FileUtilsLib ${FileUtils_files})
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)
 
 
-add_executable(create_db_test main.cpp)
-target_link_libraries(create_db_test dbUtilsLib)
-
-add_executable(SegmentTest main2.cpp)
-target_link_libraries(SegmentTest FileUtilsLib)
-
-add_executable(Segment_dataTest main3.cpp)
-target_link_libraries(Segment_dataTest FileUtilsLib dbUtilsLib)
-
-add_executable(create_insert_retrieve db_create_data_write_test.cpp)
-target_link_libraries(create_insert_retrieve FileUtilsLib dbUtilsLib)
-
-add_executable(file_hierarhy_create pathing.cpp)
-target_link_libraries(file_hierarhy_create glog::glog commonLibrary)
-
-add_executable(pcv opcvtest.cpp)
-target_link_libraries(pcv ${OpenCV_LIBS})
+#[[add_executable(pcv opcvtest.cpp)
+target_link_libraries(pcv ${OpenCV_LIBS})]]
 
 
 add_executable(file_service fileServiceTest.cpp)
-target_link_libraries(file_service FileUtilsLib )
+target_link_libraries(file_service FileUtilsLib)
 

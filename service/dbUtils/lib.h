@@ -5,6 +5,7 @@
 #include <fstream>
 #include <pqxx/pqxx>
 #include <functional>
+
 namespace db_services {
 
 
@@ -13,10 +14,11 @@ namespace db_services {
 
     static const char *const sample_temp_db = "template1";
     using conPtr = std::shared_ptr<pqxx::connection>;
+    static constexpr const char *const sqlLimitBreached_state = "23505";
 
 
     struct my_conn_string {
-        my_conn_string():port(5432) {}
+        my_conn_string() : port(5432) {}
 
         my_conn_string(std::string_view user_,
                        std::string_view password_,
@@ -103,8 +105,8 @@ namespace db_services {
     my_conn_string load_configuration(s1 &&filenam, unsigned port = 5501);
 
     template<typename T, unsigned long size>
-    std::array <T, size> from_string(std::basic_string <T> &string) {
-        std::array <T, size> res;
+    std::array<T, size> from_string(std::basic_string<T> &string) {
+        std::array<T, size> res;
         for (int i = 0; i < size; ++i) {
             res[i] = string[i];
         }
@@ -134,7 +136,6 @@ namespace db_services {
         return res;
     }
 }
-
 
 
 #endif //SERVICE_LIB_H

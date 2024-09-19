@@ -1,5 +1,6 @@
 #ifndef SERVICE_MYCONCEPTS_H
 #define SERVICE_MYCONCEPTS_H
+
 #include <concepts>
 #include <array>
 #include <vector>
@@ -12,47 +13,42 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdint>
-using verbose_level=unsigned short;//todo enum
+
+using verbose_level = unsigned short;//todo enum
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 //constexpr int block_size=2;
-constexpr int total_block_size=128;
+constexpr int total_block_size = 128;
 template<unsigned short seg, unsigned short div>
 concept is_divisible = seg % div == 0;
-using symbol_type=char;
-template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size>
-using segment = std::array<symbol_type, segment_size>;
-template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size>
-using segvec = std::vector<segment<segment_size>>;//todo delete
-template<unsigned long segment_size,unsigned long segment_count>
-using block = std::array<segment<segment_size>,segment_count>;
+
+using symbol_type = char;
+
+
 template<typename str>
 //has c_str()->const char* method
-concept has_c_srt = requires (str &s) {
-    { s.c_str() }->std::same_as<const char*>;
+concept has_c_srt = requires(str &s) {
+    { s.c_str() }->std::same_as<const char *>;
 };
 
 template<typename str>
 //can be imlicitly converted to std::string and has c_str()->const char* method
-concept to_str_to_c_str = requires (str &s) {
-    std::is_convertible<str,std::string>::value&&has_c_srt<str>;
+concept to_str_to_c_str = requires(str &s) {
+    std::is_convertible<str, std::string>::value &&has_c_srt<str>;
 };
 
 template<typename Col>
-concept Index_size=requires(Col&c,size_t index)
+concept Index_size=requires(Col &c, size_t index)
                    {
-                       {c[index]}->std::same_as<typename Col::value_type &>;
-                   }&&
-                   requires(Col&c)
+                       { c[index] }->std::same_as<typename Col::value_type &>;
+                   } && requires(Col &c)
                    {
-                       {c.size()}->std::same_as<size_t>;
+                       { c.size() }->std::same_as<size_t>;
                    };
 
 
-
-
 //from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-std::string vformat(const char * const zcFormat, ...) {
+std::string vformat(const char *const zcFormat, ...) {
 
     // initialize use of the variable argument array
     va_list vaArgs;
@@ -73,7 +69,6 @@ std::string vformat(const char * const zcFormat, ...) {
     va_end(vaArgs);
     return std::string(zc.data(), iLen);
 }
-
 
 
 std::string string_to_hex(std::string_view in) {
@@ -108,27 +103,11 @@ std::string hex_to_string(std::string_view in) {
     return output;
 }
 
-const char* ws = "\0";
 
-// trim from end of string (right)
-inline std::string& rtrim(std::string& s, const char* t = ws)
-{
-    s.erase(s.find_last_not_of(t) + 1);
-    return s;
-}
-
-// trim from beginning of string (left)
-inline std::string& ltrim(std::string& s, const char* t = ws)
-{
-    s.erase(0, s.find_first_not_of(t));
-    return s;
-}
-
-// trim from both ends of string (right then left)
-inline std::string& trim(std::string& s, const char* t = ws)
-{
-    return ltrim(rtrim(s, t), t);
-}
-
+enum return_codes {
+    warning_message = -3,
+    already_exists = -2,
+    error_occured = -1
+};
 
 #endif //SERVICE_MYCONCEPTS_H

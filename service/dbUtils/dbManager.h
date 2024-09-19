@@ -41,7 +41,7 @@ namespace db_services {
         index_type create_directory(std::string_view dir_path);
 
         template<verbose_level verbose = 0>
-        std::vector<std::string> get_all_files(std::string_view dir_path);
+        std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
 
         template<verbose_level verbose = 0>
         index_type create_file(std::string_view file_path, int dir_id, int file_size = 0);
@@ -50,15 +50,15 @@ namespace db_services {
         template<verbose_level verbose = 0>
         void finish_file_processing(std::string_view file_path, index_type file_id);
 
+        template<verbose_level verbose = 0>
+        int delete_file(std::string_view file_name, index_type file_id);
 
-        template<verbose_level verbose = 0, index_type block_sz = block_size, Index_size T>//todo delete
-        [[deprecated("to be deleted since insert_file_streamed is better")]]void stream_segment_array(T &segment_block, std::string_view file_name, size_t block_index);
 
-        template<verbose_level verbose = 0, index_type block_sz = block_size, bool last=false, char fill = 23>
+        template<verbose_level verbose = 0>
         int get_file_streamed(std::string_view file_name, std::ostream &out);
 
-        template<verbose_level verbose = 0, index_type block_sz = block_size, char fill = 23>
-        int inser_file_streamed(std::string_view file_name, std::istream &in);
+        template<verbose_level verbose = 0>
+        int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
         template<verbose_level verbose = 0>
@@ -75,12 +75,37 @@ namespace db_services {
 
     };
 
+    template<unsigned long segment_size>
+    requires is_divisible<segment_size, SHA256size>
+             && is_divisible<total_block_size, segment_size>
+    template<verbose_level verbose>
+    int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
+        try {
+            trasnactionType txn(*conn_);
+
+            //todo reduce segments used(from select count segments)
+            //todo delete zero segments
+            //todo remove data(where id file = file_id)
+            //todo remove file
+
+            txn.commit();
+        } catch (const pqxx::sql_error &e) {
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+            return -1;
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+            return -1;
+        }
+        return 0;
+    }
 
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, index_type block_sz,bool last, char fill>
+    template<verbose_level verbose>
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
             trasnactionType txn(*conn_);
@@ -90,13 +115,13 @@ namespace db_services {
                                         "        inner join public.files f on f.file_id = data.file_id\n"
                                         "where file_name=\'%s\'::tsvector\n"
                                         "order by segment_num", file_name.data());
-            int aa=0;
+            //int aa=0;
             for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
-                auto str=name.str();
-                auto decoded=/*pg_from_hex*/(str);
-                auto hex= string_to_hex(name.view());
-                aa++;
-                out<<name.str();
+                auto str = name.str();
+                // auto decoded=/*pg_from_hex*/(str);
+                //auto hex= string_to_hex(name.view());
+                //aa++;
+                out << name.str();
 
                 /*for (size_t i;i<name.size();i++) {
                     auto elem=name[i];
@@ -120,47 +145,43 @@ namespace db_services {
     }
 
 
-
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, index_type block_sz, char fill>
-    int dbManager<segment_size>::inser_file_streamed(std::string_view file_name, std::istream &in) {
+    template<verbose_level verbose>
+    int dbManager<segment_size>::insert_file_from_stream(std::string_view file_name, std::istream &in) {
         try {
             trasnactionType txn(*conn_);
             std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
             pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
-            char cc=0;
-            int count=0;
-            int block_index=1;
-            std::string buffer(segment_size,'\0');
-            while (!in.eof() &&in.peek() != -1)//todo get file size
+            char cc = 0;
+            int count = 0;
+            int block_index = 1;
+            std::string buffer(segment_size, '\0');
+            while (!in.eof() && in.peek() != -1)//todo get file size
             {
                 in.get(cc);
 
-                buffer[count++]=cc;
-                if(count==segment_size)
-                {
+                buffer[count++] = cc;
+                if (count == segment_size) {
                     pqxx::binarystring bf(buffer);
-                    auto str= string_to_hex(buffer);
+                    auto str = string_to_hex(buffer);
                     copy_stream
-                            << std::make_tuple<int64_t,pqxx::binarystring>(
+                            << std::make_tuple<int64_t, pqxx::binarystring>(
                                     block_index,
                                     std::move(bf));
-                    count=0;
+                    count = 0;
 
                     block_index++;
                 }
             }
-            if(count!=0)
-            {
-                buffer= rtrim(buffer);
-                std::string osas=buffer.substr(0,count);
-                auto str= string_to_hex(buffer);
-                auto str2= string_to_hex(osas);
+            if (count != 0) {
+                std::string osas = buffer.substr(0, count);
+                auto str = string_to_hex(buffer);
+                auto str2 = string_to_hex(osas);
                 pqxx::binarystring bf(osas);
                 copy_stream
-                        << std::make_tuple<int64_t,pqxx::binarystring>(
+                        << std::make_tuple<int64_t, pqxx::binarystring>(
                                 block_index,
                                 std::move(bf));
             }
@@ -177,50 +198,7 @@ namespace db_services {
         }
         return 0;
     }
-    template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, index_type block_sz, Index_size T>
-    void
-    dbManager<segment_size>::stream_segment_array(T &segment_block, std::string_view file_name, size_t block_index) {
-        try {
-            trasnactionType txn(*conn_);
-            std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
 
-            /*std::string insert_query= vformat("insert into %s ( pos , data ) values \n",table_name.c_str());
-            std::stringstream strem_to;
-            strem_to<<insert_query;
-            size_t i = 0;
-            for (; i < segment_block.size()-1; ++i) {
-                auto sssss=pg_from_hex(segment_block[i].data());
-                strem_to<<vformat("( %d , encode(E\'%s\',\'escape\')),\n",i+1,sssss.c_str());
-            }
-            auto sssss=(pg_from_hex(segment_block[i].data()));
-            strem_to<<vformat("( %d , encode(E\'%s\',\'escape\'));\n",i+1,sssss.c_str());
-            auto res_query=strem_to.str();
-            auto res=txn.exec(res_query);*/
-
-            pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
-            size_t index_start = block_index * block_sz;
-            for (size_t i = 0; i < segment_block.size(); ++i) {
-                //auto rres=/*pg_to_hex*/(segment_block[i].data());
-                std::string temp(segment_block[i].begin(),segment_block[i].end());
-                pqxx::binarystring bn(temp);
-                copy_stream
-                        << std::make_tuple<int64_t,pqxx::binarystring>(static_cast<int64_t>(index_start + i + 1),
-                                                                       std::move(bn));
-            }
-
-            copy_stream.complete();
-            txn.commit();
-        } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
-                                        << "Query: " << e.query() << "\n"
-                                        << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
-        }
-    }
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
@@ -283,16 +261,15 @@ namespace db_services {
                                         << "SQL State: " << e.sqlstate() << '\n';
 
         }
-        catch(const pqxx::unexpected_rows &r) {
-            LOG_IF(ERROR, verbose >= 1) << vformat("No data found for file \"%s\"",file_path.data());
-            LOG_IF(ERROR,verbose>=2)<< vformat("Exception description: %s",r.what()) << '\n';
+        catch (const pqxx::unexpected_rows &r) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("No data found for file \"%s\"", file_path.data());
+            LOG_IF(ERROR, verbose >= 2) << vformat("Exception description: %s", r.what()) << '\n';
         }
         catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error processing file data:" << e.what() << '\n';
         }
     }
 
-    static constexpr const char *const sqlLimitBreached_state = "23505";
 
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
@@ -300,7 +277,7 @@ namespace db_services {
     template<verbose_level verbose>
     index_type dbManager<segment_size>::create_file(std::string_view file_path, int dir_id, int file_size) {
         trasnactionType txn(*conn_);
-        index_type rrr = -1;
+        index_type rrr = return_codes::error_occured;
 
         std::string query = "insert into public.files (file_name,dir_id,size_in_bytes)"
                             " values ($1,$2,$3) returning file_id;";
@@ -315,7 +292,6 @@ namespace db_services {
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
                     txn.esc(table_name).c_str()
-                    //,segment_size//todo check comma
             );
             pqxx::result r2 = txn.exec(q1);
             txn.commit();
@@ -323,13 +299,10 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
         }
         catch (const pqxx::sql_error &e) {
-            if(e.sqlstate() == sqlLimitBreached_state)
-            {
-                LOG_IF(ERROR, verbose >= 1)<<vformat("File %s already exists\n",file_path.data());
-                return -1;
+            if (e.sqlstate() == sqlLimitBreached_state) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("File %s already exists\n", file_path.data());
+                return return_codes::already_exists;
             }
-            //sql state 23505= limitation violation
-            //sql statte 42P01=: no such raktion
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
@@ -344,23 +317,22 @@ namespace db_services {
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    std::vector<std::string> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
+    std::vector<std::pair<index_type, std::string>> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
         //todo как лучше по пути или по имени
-        std::vector<std::string> result;
+        std::vector<std::pair<index_type, std::string>> result;
         try {
             trasnactionType txn(*conn_);
 
-            std::string query = "select file_name from files\n"
+            std::string query = "select file_id,file_name from files\n"
                                 "    inner join public.directories d\n"
                                 "        on d.dir_id = files.dir_id\n"
                                 "where dir_path=$1;";
             pqxx::result res = txn.exec(query, pqxx::params(dir_path));
             LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
             for (const auto &re: res) {
-                auto tres = re[0].as<std::string>();
-                result.push_back(tres.substr(1, tres.size() - 2));
+                auto tres = re[1].as<std::string>();
+                result.emplace_back(re[0].as<index_type>(), tres.substr(1, tres.size() - 2));
             }
-
             txn.commit();
         } catch (const pqxx::sql_error &e) {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
@@ -369,7 +341,7 @@ namespace db_services {
         } catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
         }
-        return result;
+        return result;//todo return
     }
 
     template<unsigned long segment_size>
@@ -388,16 +360,15 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2)
                             << vformat("New directory %s with id %d was created", dir_path.data(), result) << '\n';
         } catch (const pqxx::sql_error &e) {
-            if(e.sqlstate() == sqlLimitBreached_state)
-            {
-                LOG_IF(ERROR, verbose >= 1)<<vformat("Directory %s already exists\n",dir_path.data());
-                return -1;
+            if (e.sqlstate() == sqlLimitBreached_state) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("Directory %s already exists\n", dir_path.data());
+                return -2;
             }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
         } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+            LOG_IF(ERROR, verbose >= 1) << "Error creating directory:" << e.what() << '\n';
         }
         return result;
     }
@@ -557,10 +528,6 @@ namespace db_services {
             LOG_IF(ERROR, verbose >= 1) << "Error setting up database schemas: " << e.what() << '\n';
         }
     }
-
-
-
-
 
 
     template<unsigned long segment_size>
