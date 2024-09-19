@@ -51,11 +51,14 @@ namespace db_services {
         void finish_file_processing(std::string_view file_path, index_type file_id);
 
 
-        template<verbose_level verbose = 0, index_type block_sz = block_size, Index_size T>
-        void stream_segment_array(T &segment_block, std::string_view file_name, size_t block_index);
+        template<verbose_level verbose = 0, index_type block_sz = block_size, Index_size T>//todo delete
+        [[deprecated("to be deleted since insert_file_streamed is better")]]void stream_segment_array(T &segment_block, std::string_view file_name, size_t block_index);
+
+        template<verbose_level verbose = 0, index_type block_sz = block_size, bool last=false, char fill = 23>
+        int get_file_streamed(std::string_view file_name, std::ostream &out);
 
         template<verbose_level verbose = 0, index_type block_sz = block_size, char fill = 23>
-        int get_file_streamed(std::string_view file_name, std::ostream &out);
+        int inser_file_streamed(std::string_view file_name, std::istream &in);
 
 
         template<verbose_level verbose = 0>
@@ -72,10 +75,12 @@ namespace db_services {
 
     };
 
+
+
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose, index_type block_sz, char fill>
+    template<verbose_level verbose, index_type block_sz,bool last, char fill>
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
             trasnactionType txn(*conn_);
@@ -85,19 +90,20 @@ namespace db_services {
                                         "        inner join public.files f on f.file_id = data.file_id\n"
                                         "where file_name=\'%s\'::tsvector\n"
                                         "order by segment_num", file_name.data());
-
+            int aa=0;
             for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
                 auto str=name.str();
                 auto decoded=/*pg_from_hex*/(str);
-                for (char i: decoded) {
-                    if (i == fill) {
-                        goto end;
-                    }
-                    out.put(i);
+                auto hex= string_to_hex(name.view());
+                aa++;
+                out<<name.str();
 
-                }
+                /*for (size_t i;i<name.size();i++) {
+                    auto elem=name[i];
+                    out.put(elem);
+
+                }*/
             }
-            end:
             txn.commit();
 
 
@@ -114,6 +120,63 @@ namespace db_services {
     }
 
 
+
+    template<unsigned long segment_size>
+    requires is_divisible<segment_size, SHA256size>
+             && is_divisible<total_block_size, segment_size>
+    template<verbose_level verbose, index_type block_sz, char fill>
+    int dbManager<segment_size>::inser_file_streamed(std::string_view file_name, std::istream &in) {
+        try {
+            trasnactionType txn(*conn_);
+            std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
+            pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
+            char cc=0;
+            int count=0;
+            int block_index=1;
+            std::string buffer(segment_size,'\0');
+            while (!in.eof() &&in.peek() != -1)//todo get file size
+            {
+                in.get(cc);
+
+                buffer[count++]=cc;
+                if(count==segment_size)
+                {
+                    pqxx::binarystring bf(buffer);
+                    auto str= string_to_hex(buffer);
+                    copy_stream
+                            << std::make_tuple<int64_t,pqxx::binarystring>(
+                                    block_index,
+                                    std::move(bf));
+                    count=0;
+
+                    block_index++;
+                }
+            }
+            if(count!=0)
+            {
+                buffer= rtrim(buffer);
+                std::string osas=buffer.substr(0,count);
+                auto str= string_to_hex(buffer);
+                auto str2= string_to_hex(osas);
+                pqxx::binarystring bf(osas);
+                copy_stream
+                        << std::make_tuple<int64_t,pqxx::binarystring>(
+                                block_index,
+                                std::move(bf));
+            }
+            copy_stream.complete();
+            txn.commit();
+        } catch (const pqxx::sql_error &e) {
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
+                                        << "Query: " << e.query() << "\n"
+                                        << "SQL State: " << e.sqlstate() << '\n';
+            return -1;
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "Error inserting block data:" << e.what() << '\n';
+            return -1;
+        }
+        return 0;
+    }
     template<unsigned long segment_size>
     requires is_divisible<segment_size, SHA256size>
              && is_divisible<total_block_size, segment_size>
@@ -175,10 +238,6 @@ namespace db_services {
             pqxx::result r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = %s", table_name_.c_str());
             txn.exec(q).one_row();
-            /*if (r.empty()) {
-                LOG_IF(WARNING, verbose >= 1) << vformat("No saved data found for file %s \n", file_path.data());
-                return;
-            }*/
 
             q = vformat("CREATE TABLE  %s AS SELECT DISTINCT t.data, COUNT(t.data) AS count"
                         " FROM %s t "
@@ -222,7 +281,13 @@ namespace db_services {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what() << "\n"
                                         << "Query: " << e.query() << "\n"
                                         << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
+
+        }
+        catch(const pqxx::unexpected_rows &r) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("No data found for file \"%s\"",file_path.data());
+            LOG_IF(ERROR,verbose>=2)<< vformat("Exception description: %s",r.what()) << '\n';
+        }
+        catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error processing file data:" << e.what() << '\n';
         }
     }
@@ -462,15 +527,15 @@ namespace db_services {
                     "    segment_hash bytea REFERENCES public.segments(segment_hash) NOT NULL\n"
                     ");"
                     ""
-                    "CREATE INDEX hash_segment_hash on segments using Hash(segment_hash);\n"
-                    "CREATE INDEX hash_segment_data on segments using Hash(segment_data);\n"
-                    "\n"
-                    "CREATE INDEX dir_id_hash on files using Hash(dir_id);\n"
-                    "\n"
-                    "CREATE INDEX dir_gin_index on directories using gin(dir_path);\n"
-                    "CREATE INDEX files_gin_index on files using gin(file_name);\n"
-                    "\n"
-                    "\n"
+                    "CREATE INDEX if not exists hash_segment_hash on segments(segment_hash);\n"
+                    "CREATE INDEX if not exists hash_segment_data on segments(segment_data);\n"
+                    "CREATE INDEX  if not exists bin_file_id on data(file_id);\n"
+                    "CREATE INDEX if not exists dir_gin_index on directories using gin(dir_path);\n"
+                    "CREATE INDEX if not exists dir_bin_index on directories(dir_path);\n"
+                    "CREATE INDEX if not exists dir_id_bin on files(dir_id);\n"
+                    "CREATE INDEX if not exists files_bin_index on files(file_name);\n"
+                    "CREATE INDEX if not exists files_gin_index on files using gin(file_name);--todo check\n"
+                    "CREATE INDEX if not exists bin_file_id_ on files(file_id);\n"
                     "ALTER TABLE segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data);\n"
                     "ALTER TABLE files ADD CONSTRAINT unique_file_constr UNIQUE(file_name);";
 

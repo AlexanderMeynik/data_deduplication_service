@@ -15,10 +15,10 @@
 
 template<unsigned long segment_size,char fill=23>
 requires is_divisible<segment_size, SHA256size>
-std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf);
+std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf);//todo delete
 template<unsigned long segment_size,char fill=23>
 requires is_divisible<segment_size, SHA256size>
-std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf);
+std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf);//todo delete
 enum segmenting_strategy
 {
     use_blocks,
@@ -39,7 +39,7 @@ enum data_retrieval_strategy
 };
 
 using db_services::dbManager;
-template<unsigned long segment_size, char fileEndDelim=23>
+template<unsigned long segment_size, char fileEndDelim=26>//todo check/remove
 requires is_divisible<segment_size, SHA256size> && is_divisible<total_block_size,segment_size>
 class FileParsingService
 {
@@ -88,31 +88,31 @@ int FileParsingService<segment_size, fileEndDelim>::load_directory(std::string &
         return -3;
     }
 
-    auto files=manager_.template get_all_files<verbose>(curr_abs.string());
-    //todo проверить на сложных иерархиях
+    auto files=manager_.template get_all_files<verbose>(curr_abs.string());//get
     //todo метод(в бд?) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
     for (const auto & e:files) {
         auto p_t_s=new_abs/fs::path(e).lexically_relative(curr_abs);
 
         fs::path parent_dir = p_t_s.parent_path();
         if (!fs::exists(parent_dir)) {
+            fs::create_directories(parent_dir);
             LOG_IF(INFO, verbose >= 2) <<vformat("Creating directories:  %s \n",parent_dir.string().c_str());
 
         }
         std::basic_ofstream<symbol_type> out(p_t_s);
 
-        if constexpr (ss==segmenting_strategy::use_blocks)
+        if constexpr (ss==segmenting_strategy::use_blocks)//todo удалить это
         {
             CurrBlock block;
             manager_.template get_file_streamed<verbose>(e, out);
         }
-        else
+        /*else
         {
             segvec<segment_size> buff=manager_.get_file_segmented(e);//todo test
             out<<buff;
 
 
-        }
+        }*/
         out.close();
         if constexpr (rr==data_retrieval_strategy::remove_)
         {
@@ -192,12 +192,16 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
 
 
 
-            if constexpr (ss==segmenting_strategy::use_blocks)
+            if constexpr (ss==segmenting_strategy::use_blocks)//todo delete
             {
                 CurrBlock block;
-
-                unsigned long blocks=size/(block_size*segment_size);
                 std::basic_ifstream<symbol_type> in(entry.path());
+
+                manager_.template inser_file_streamed<verbose>(file,in);
+                manager_.template finish_file_processing<verbose>(file,file_id);//todo try to integrate/remove
+
+                /*unsigned long blocks=size/(block_size*segment_size);
+
                 for (int i = 0; i < blocks; ++i) {
                     for (int j = 0; j < block_size; ++j) {
                         //curr_s.fill(0);
@@ -206,7 +210,7 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
                         }
 
                     }
-                    manager_.template stream_segment_array<verbose>(block, file, i);
+                    manager_.template stream_segment_array<verbose>(block, file, i);//todo too slow
                 }
                 segvec<segment_size> last_block;
 
@@ -228,7 +232,7 @@ int FileParsingService<segment_size, fileEndDelim>::process_directory(std::strin
                 }
                 end: in.close();
                 manager_.template stream_segment_array<verbose>(last_block, file, blocks);
-                manager_.template finish_file_processing<verbose>(file,file_id);
+                manager_.template finish_file_processing<verbose>(file,file_id);*/
             }
             else
             {
@@ -255,7 +259,7 @@ using buf64 = segvec<64>;
 
 template<unsigned long segment_size,char fill>
 requires is_divisible<segment_size, SHA256size>
-std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {
+std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {//todo delete
     while (!source_.eof()) {
         auto curr_s = segment<segment_size>();
         curr_s.fill(fill);
@@ -277,7 +281,7 @@ std::istream &operator>>(std::istream &source_, segvec<segment_size> &buf) {
 
 template<unsigned long segment_size,char fill>
 requires is_divisible<segment_size, SHA256size>
-std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf) {
+std::ostream &operator<<(std::ostream &target_, const segvec<segment_size> &buf) { //todo delete
     for (auto &elem: buf) {
         for (auto &symbol: elem) {
             if (symbol == fill) {
