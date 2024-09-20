@@ -10,10 +10,11 @@ std::vector<std::string> from_dirs = {"../../documentation", "../../test1", "../
 std::vector<std::string> to_dirs = {"../../res1/doc", from_dirs[1] + "_", from_dirs[2] + "_"};
 
 int main() {
-    FileParsingService<64> fs;
-    std::string dbName = "deduplication2";
+    FileParsingService<64,hash_function::MD_5> fs;
+    std::string dbName = "deduplication5";
+    fs.db_load<2, db_usage_strategy::create>(dbName);
+
     for (int i = 0; i < from_dirs.size(); ++i) {
-        fs.db_load<2, db_usage_strategy::create>(dbName);
 
         fs.process_directory<2, data_insetion_strategy::replace_with_new>(from_dirs[i]);
         fs.load_directory<2, directory_handling_strategy::create_main>(from_dirs[i], to_dirs[i]);

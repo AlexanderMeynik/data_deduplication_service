@@ -12,8 +12,8 @@ namespace db_services {
         cascade
     };
 
-    template<unsigned long segment_size = 64> requires is_divisible<segment_size, SHA256size>
-                                                       && is_divisible<total_block_size, segment_size>
+    template<unsigned long segment_size = 64>
+    requires is_divisible<total_block_size, segment_size>
     class dbManager {
     public:
         static constexpr unsigned long long block_size = total_block_size / segment_size;
@@ -34,7 +34,8 @@ namespace db_services {
         template<verbose_level verbose = 0>
         index_type create();
 
-        template<verbose_level verbose = 0>
+        template<verbose_level verbose = 0,hash_function hash=SHA_256>
+        requires is_divisible<segment_size, hash_function_size[hash]>
         int fill_schemas();
 
         template<verbose_level verbose = 0>
@@ -76,8 +77,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose, delete_strategy del>
     int dbManager<segment_size>::delete_directory(std::string_view directory_path, index_type dir_id) {
         try {
@@ -156,8 +156,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose, delete_strategy del>
     int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
         try {
@@ -221,8 +220,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
@@ -253,8 +251,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     int dbManager<segment_size>::insert_file_from_stream(std::string_view file_name, std::istream &in) {
         try {
@@ -308,8 +305,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     void dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
@@ -328,7 +324,10 @@ namespace db_services {
                         "FROM %s t "
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
             r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) << r.query() << '\n';
+
+            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data was aggregated into \"%s\" for file %s.",//todo some strange things happen there \"%s\"."
+                                                 aggregation_table_name.c_str(),
+                                                 file_path.data());
 
 
             q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
@@ -339,11 +338,13 @@ namespace db_services {
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
                         aggregation_table_name.c_str());
             r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) << r.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) <<vformat("New segments were inserted for file \"%s\".",file_path.data());
 
             q = vformat("drop table %s;", aggregation_table_name.c_str());
             r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) << r.query() << '\n';
+
+            LOG_IF(INFO, verbose >= 2) <<vformat("Temporary aggregation table \"%s\" was deleted.",aggregation_table_name.c_str());
+
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
                         "SELECT pos, se.segment_hash,  %d "
@@ -354,12 +355,13 @@ namespace db_services {
                         table_name.c_str()
             );
             r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) << r.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data of  \"%s\" was inserted.",table_name.c_str());
 
 
             q = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
             r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) << r.query() << '\n';
+
+            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table \"%s\" was deleted.",table_name.c_str());
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -379,8 +381,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     index_type dbManager<segment_size>::create_file_temp(std::string_view file_path) {
         trasnactionType txn(*conn_);
@@ -397,7 +398,7 @@ namespace db_services {
             pqxx::result r2 = txn.exec(q1);
             txn.commit();
 
-            LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table %s was created.",table_name.c_str());
         }
         catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlLimitBreached_state) {
@@ -415,31 +416,35 @@ namespace db_services {
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     index_type dbManager<segment_size>::create_file(std::string_view file_path, int dir_id, int file_size) {
         trasnactionType txn(*conn_);
-        index_type rrr = return_codes::error_occured;
+        index_type future_file_id = return_codes::error_occured;
 
         std::string query = "insert into public.files (file_name,dir_id,size_in_bytes)"
                             " values ($1,$2,$3) returning file_id;";
 
         try {
             pqxx::result res = txn.exec(query, {file_path, dir_id, file_size});
-            rrr = res.one_row()[0].as<index_type>();
+            future_file_id = res.one_row()[0].as<index_type>();
 
-            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) << vformat("File record (%d,\"%s\",%d,%d) was successfully created.",
+                                                  future_file_id,
+                                                  file_path.data(),
+                                                  dir_id,
+                                                  file_size);
 
             std::string table_name = vformat("temp_file_%s", file_path.data());
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
                     txn.esc(table_name).c_str()
             );
+
             pqxx::result r2 = txn.exec(q1);
             txn.commit();
 
-            LOG_IF(INFO, verbose >= 2) << r2.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table \"%s\" was created.",table_name.c_str());
         }
         catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlLimitBreached_state) {
@@ -453,12 +458,11 @@ namespace db_services {
         catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error while creting file:" << e.what() << '\n';
         }
-        return rrr;
+        return future_file_id;
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     std::vector<std::pair<index_type, std::string>> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
         //todo как лучше по пути или по имени
@@ -471,7 +475,7 @@ namespace db_services {
                                 "        on d.dir_id = public.files.dir_id "
                                 "where dir_path=$1;";
             pqxx::result res = txn.exec(query, pqxx::params(dir_path));
-            LOG_IF(INFO, verbose >= 2) << res.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) <<vformat("Filenames were successfully retrieved for directory \"%s\".",dir_path.data());
             for (const auto &re: res) {
                 auto tres = re[1].as<std::string>();
                 result.emplace_back(re[0].as<index_type>(), tres.substr(1, tres.size() - 2));
@@ -488,8 +492,7 @@ namespace db_services {
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     index_type dbManager<segment_size>::create_directory(std::string_view dir_path) {
         index_type result = return_codes::error_occured;
@@ -504,7 +507,7 @@ namespace db_services {
                             << vformat("New directory %s with id %d was created", dir_path.data(), result) << '\n';
         } catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlLimitBreached_state) {
-                LOG_IF(ERROR, verbose >= 1) << vformat("Directory %s already exists\n", dir_path.data());
+                LOG_IF(ERROR, verbose >= 1) << vformat("Directory \"%s\" already exists\n", dir_path.data());
                 return return_codes::already_exists;
             }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
@@ -518,8 +521,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     conPtr dbManager<segment_size>::connectToDb() {
         if (conn_ && conn_->is_open()) {
@@ -532,8 +534,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
+    requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     index_type dbManager<segment_size>::create() {
         conn_ = nullptr;
@@ -557,11 +558,11 @@ namespace db_services {
             r.no_rows();
 
 
-            no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(
-                    cString_.getDbname()).c_str()));//не менять, паарметры здесь не подпадают под query
-            no_trans_exec.exec(
-                    vformat("GRANT ALL ON DATABASE %s TO %s;", no_trans_exec.esc(cString_.getDbname()).c_str(),
-                            no_trans_exec.esc(cString_.getUser()).c_str()));
+            no_trans_exec.exec(vformat("CREATE DATABASE %s;",no_trans_exec.esc(cString_.getDbname()).c_str()));
+            //не менять, паарметры здесь не подпадают под query
+            no_trans_exec.exec(vformat("GRANT ALL ON DATABASE %s TO %s;",
+                                       no_trans_exec.esc(cString_.getDbname()).c_str(),
+                                       no_trans_exec.esc(cString_.getUser()).c_str()));
             no_trans_exec.commit();
 
             LOG_IF(WARNING, verbose >= 2) << "Database created successfully: " << cString_.getDbname() << '\n';
@@ -594,9 +595,9 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<segment_size, SHA256size>
-             && is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>
+    requires is_divisible<total_block_size, segment_size>
+    template<verbose_level verbose,hash_function hash>
+    requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::fill_schemas() {
         try {
 
@@ -605,18 +606,18 @@ namespace db_services {
                      "from pg_tables "
                      "where schemaname = 'public';").no_rows();
 
-            std::string query = "create schema if not exists public;"
+            std::string query = vformat("create schema if not exists public;"
                                 "create table public.segments"
                                 "("
-                                "    segment_hash bytea NOT NULL GENERATED ALWAYS AS (sha256(segment_data::bytea)) STORED primary key, "
+                                "    segment_hash bytea NOT NULL GENERATED ALWAYS AS ((%s(segment_data::bytea))::bytea) STORED primary key, "
                                 "    segment_data bytea NOT NULL,"
                                 "    segment_count bigint NOT NULL"
-                                ");";
+                                ");",hash_function_name[hash]);
 
-            std::string q1 = vformat(query.c_str());//, segment_size);
-            pqxx::result r1 = txn.exec(q1);
 
-            LOG_IF(INFO, verbose >= 2) << "Create segments table " << r1.query() << '\n';
+            pqxx::result r1 = txn.exec(query);
+
+            LOG_IF(INFO, verbose >= 2) << vformat("Create segments table with preferred hashing function %s\n",hash_function_name[hash]);
 
 
             query = "create table public.directories "
@@ -642,7 +643,8 @@ namespace db_services {
 
 
             r1 = txn.exec(query);
-            LOG_IF(INFO, verbose >= 2) << "Create other tables " << r1.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) << "Create directories, files and data tables\n";
+
 
             query = "CREATE INDEX if not exists hash_segment_hash on public.segments(segment_hash); "
                     "CREATE INDEX if not exists hash_segment_data on public.segments(segment_data); "
@@ -655,14 +657,14 @@ namespace db_services {
                     "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); "
                     "CREATE INDEX if not exists bin_file_id_ on public.files(file_id); ";
             r1 = txn.exec(query);
-            LOG_IF(INFO, verbose >= 2) << "Create indexes " << r1.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) << "Create indexes for main tables\n";
 
 
             query = "ALTER TABLE public.segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data); "
                     "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
                     "ALTER TABLE public.directories ADD CONSTRAINT unique_dir_constr UNIQUE(dir_path);";
             r1 = txn.exec(query);
-            LOG_IF(INFO, verbose >= 2) << "Create unique constraints " << r1.query() << '\n';
+            LOG_IF(INFO, verbose >= 2) << "Create unique constraints for tables\n";
             txn.commit();
 
         } catch (const pqxx::sql_error &e) {

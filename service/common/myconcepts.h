@@ -17,6 +17,38 @@
 using verbose_level = unsigned short;//todo enum
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
+
+
+enum hash_function
+{
+    SHA_224,
+    SHA_256,
+    MD_5,
+    SHA_384,
+    SHA_512
+};
+
+static constexpr std::array<const char*,5> hash_function_name
+        {
+                "sha224",
+                "sha256",
+                "md5",
+                "sha384",
+                "sha512"
+        };
+
+static constexpr std::array<unsigned short ,5> hash_function_size
+        {
+                28,
+                32,
+                32,
+                48,
+                64
+        };
+
+
+
+
 //constexpr int block_size=2;
 constexpr int total_block_size = 128;
 template<unsigned short seg, unsigned short div>

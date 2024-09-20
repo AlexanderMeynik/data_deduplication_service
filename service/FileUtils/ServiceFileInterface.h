@@ -34,8 +34,10 @@ enum directory_handling_strategy {
 
 using db_services::dbManager;
 
-template<unsigned long segment_size> requires is_divisible<segment_size, SHA256size> &&
-                                              is_divisible<total_block_size, segment_size>
+
+template<unsigned long segment_size,hash_function hash=SHA_256>
+        requires is_divisible<segment_size, hash_function_size[hash]> &&
+        is_divisible<total_block_size, segment_size>
 class FileParsingService {
 public:
     static constexpr unsigned long long block_size = total_block_size / segment_size;
@@ -59,11 +61,11 @@ private:
     dbManager<segment_size> manager_;
 };
 
-template<unsigned long segment_size>
-requires is_divisible<segment_size, SHA256size>
+template<unsigned long segment_size,hash_function hash>
+requires is_divisible<segment_size, hash_function_size[hash]>
          && is_divisible<total_block_size, segment_size>
 template<verbose_level verbose, directory_handling_strategy dir_s, data_retrieval_strategy rr>
-int FileParsingService<segment_size>::load_directory(std::string &from_dir, std::string &to_dir) {
+int FileParsingService<segment_size,hash>::load_directory(std::string &from_dir, std::string &to_dir) {
     namespace fs = std::filesystem;
     fs::path new_abs;
     fs::path curr_abs = fs::canonical(from_dir);
@@ -121,11 +123,11 @@ int FileParsingService<segment_size>::load_directory(std::string &from_dir, std:
     return 0;
 }
 
-template<unsigned long segment_size>
-requires is_divisible<segment_size, SHA256size>
+template<unsigned long segment_size,hash_function hash>
+requires is_divisible<segment_size, hash_function_size[hash]>
          && is_divisible<total_block_size, segment_size>
 template<verbose_level verbose, db_usage_strategy str>
-int FileParsingService<segment_size>::db_load(std::string &dbName) {
+int FileParsingService<segment_size,hash>::db_load(std::string &dbName) {
     auto CString = db_services::default_configuration();
     CString.set_dbname(dbName);
 
@@ -137,7 +139,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
             LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
             return return_codes::error_occured;
         }
-        reusult = manager_.template fill_schemas<verbose>();
+        reusult = manager_.template fill_schemas<verbose,hash>();
 
         if (reusult == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1)
@@ -152,11 +154,11 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
 }
 
 
-template<unsigned long segment_size>
-requires is_divisible<segment_size, SHA256size>
+template<unsigned long segment_size,hash_function hash>
+requires is_divisible<segment_size, hash_function_size[hash]>
          && is_divisible<total_block_size, segment_size>
 template<verbose_level verbose, data_insetion_strategy strategy>
-int FileParsingService<segment_size>::process_directory(std::string &trainDir) {
+int FileParsingService<segment_size,hash>::process_directory(std::string &trainDir) {
     namespace fs = std::filesystem;
     fs::path pp;
     try {
