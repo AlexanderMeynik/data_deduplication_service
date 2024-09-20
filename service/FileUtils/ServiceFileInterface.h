@@ -55,7 +55,6 @@ public:
     int load_directory(std::string &from_dir, std::string &to_dir);
 
 
-
 private:
     dbManager<segment_size> manager_;
 };
@@ -71,20 +70,17 @@ int FileParsingService<segment_size>::load_directory(std::string &from_dir, std:
     try {
 
 
-
-
         if (!fs::exists(to_dir)) {
             if constexpr (dir_s == create_main) {
                 fs::create_directories(to_dir);
                 LOG_IF(INFO, verbose >= 2)
                                 << vformat("Root directory \"%s\" was created successfully", to_dir.c_str());
-            }
-            else {
+            } else {
                 LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" no such file or directory\n", to_dir.c_str());
                 return return_codes::error_occured;
             }
         }
-        if constexpr (dir_s==no_create_main) {
+        if constexpr (dir_s == no_create_main) {
 
             if (!fs::is_directory(to_dir)) {
                 LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" is not a directory use procesFile for files\n",
@@ -136,8 +132,18 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
     manager_ = dbManager<segment_size>(CString);
 
     if constexpr (str == create) {
-        manager_.template create<verbose>();
-        manager_.template fill_schemas<verbose>();
+        auto reusult = manager_.template create<verbose>();
+        if (reusult == return_codes::error_occured) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
+            return return_codes::error_occured;
+        }
+        reusult = manager_.template fill_schemas<verbose>();
+
+        if (reusult == return_codes::error_occured) {
+            LOG_IF(ERROR, verbose >= 1)
+                            << vformat("Error occurred during database's \"%s\" schema's creation\n", dbName.c_str());
+            return return_codes::error_occured;
+        }
     } else {
         manager_.template connectToDb<verbose>();
     }
@@ -157,15 +163,15 @@ int FileParsingService<segment_size>::process_directory(std::string &trainDir) {
         pp = fs::canonical(trainDir);
 
         if (!fs::exists(pp)) {
-                LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" no such file or directory\n", pp.string().c_str());
-                return return_codes::error_occured;
+            LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" no such file or directory\n", pp.string().c_str());
+            return return_codes::error_occured;
 
         }
-            if (!fs::is_directory(pp)) {
-                LOG_IF(ERROR, verbose >= 1)
-                                << vformat("\"%s\" is not a directory use procesFile for files\n", pp.string().c_str());
-                return return_codes::error_occured;
-            }
+        if (!fs::is_directory(pp)) {
+            LOG_IF(ERROR, verbose >= 1)
+                            << vformat("\"%s\" is not a directory use procesFile for files\n", pp.string().c_str());
+            return return_codes::error_occured;
+        }
 
     } catch (const fs::filesystem_error &e) {
         LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
@@ -173,7 +179,7 @@ int FileParsingService<segment_size>::process_directory(std::string &trainDir) {
     }
 
     auto dir_id = manager_.template create_directory<2>(pp.string());
-    if (dir_id == return_codes::error_occured) {
+    if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
         LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during directory creation.\nDirectory path \"%s\"!",
                                                trainDir.c_str());
         return dir_id;
@@ -189,9 +195,8 @@ int FileParsingService<segment_size>::process_directory(std::string &trainDir) {
             if (file_id == return_codes::already_exists) {
                 if (strategy == preserve_old) {
                     continue;
-                }
-                else {
-                    auto res = manager_.template delete_file<verbose>(file, file_id);//todo check
+                } else {
+                    auto res = manager_.template delete_file<verbose>(file, file_id);
 
                     if (res == return_codes::error_occured) {
                         LOG_IF(ERROR, verbose >= 1)
@@ -199,7 +204,7 @@ int FileParsingService<segment_size>::process_directory(std::string &trainDir) {
                                                    file.c_str());
                         return file_id;
                     }
-                    file_id = manager_.template create_file<verbose>(file, dir_id, size);//todo check
+                    file_id = manager_.template create_file<verbose>(file, dir_id, size);
                 }
             }
 

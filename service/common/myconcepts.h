@@ -107,7 +107,8 @@ std::string hex_to_string(std::string_view in) {
 enum return_codes {
     warning_message = -3,
     already_exists = -2,
-    error_occured = -1
+    error_occured = -1,
+    return_sucess = 0
 };
 
 #endif //SERVICE_MYCONCEPTS_H

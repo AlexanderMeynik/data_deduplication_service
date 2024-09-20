@@ -5,21 +5,28 @@
 std::string res_dir_path = "../../documentation";
 std::string res_dir_path2 = "../../res1/doc";
 
-/*std::string res_dir_path = "../../test1";
-std::string res_dir_path2 = res_dir_path+"_";*/
 
-/*std::string res_dir_path = "../../res";
-std::string res_dir_path2 = res_dir_path+"_";*/
+std::vector<std::string> from_dirs = {"../../documentation", "../../test1", "../../res"};
+std::vector<std::string> to_dirs = {"../../res1/doc", from_dirs[1] + "_", from_dirs[2] + "_"};
+
 int main() {
-    std::string dbName = "deduplication";
     FileParsingService<64> fs;
+    std::string dbName = "deduplication2";
+    for (int i = 0; i < from_dirs.size(); ++i) {
+        fs.db_load<2, db_usage_strategy::create>(dbName);
 
-    fs.db_load<2, db_usage_strategy::create>(dbName);
+        fs.process_directory<2, data_insetion_strategy::replace_with_new>(from_dirs[i]);
+        fs.load_directory<2, directory_handling_strategy::create_main>(from_dirs[i], to_dirs[i]);
+    }
 
-    fs.process_directory<2,data_insetion_strategy::replace_with_new>(res_dir_path);
-    fs.load_directory<2,directory_handling_strategy::create_main>(res_dir_path, res_dir_path2);
+    //fs.load_directory<2,directory_handling_strategy::create_main>(from_dirs[i], to_dirs[i]);
 
-   /* fs.load_directory<2,directory_handling_strategy::create_main,data_retrieval_strategy::remove_>(res_dir_path, res_dir_path2);*/
+
+
+
+
+
+    /* fs.load_directory<2,directory_handling_strategy::create_main,data_retrieval_strategy::remove_>(res_dir_path, res_dir_path2);*/
 
 
 }
