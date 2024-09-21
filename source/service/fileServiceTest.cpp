@@ -2,16 +2,13 @@
 #include <iostream>
 #include "FileUtils/ServiceFileInterface.h"
 
-std::string res_dir_path = "../../documentation";
-std::string res_dir_path2 = "../../res1/doc";
 
-
-std::vector<std::string> from_dirs = {"../../documentation", "../../test1", "../../res"};
-std::vector<std::string> to_dirs = {"../../res1/doc", from_dirs[1] + "_", from_dirs[2] + "_"};
+std::vector<std::string> from_dirs = {"../../../documentation", "../../../test1", "../../../res"};
+std::vector<std::string> to_dirs = {from_dirs[0] + "_", from_dirs[1] + "_", from_dirs[2] + "_"};
 
 int main() {
     FileParsingService<64,hash_function::MD_5> fs;
-    std::string dbName = "deduplication5";
+    std::string dbName = "deduplication3";
     fs.db_load<2, db_usage_strategy::create>(dbName);
 
     for (int i = 0; i < from_dirs.size(); ++i) {

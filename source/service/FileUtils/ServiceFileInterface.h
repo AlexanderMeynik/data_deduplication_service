@@ -182,7 +182,7 @@ int FileParsingService<segment_size,hash>::process_directory(std::string &trainD
 
     auto dir_id = manager_.template create_directory<2>(pp.string());
     if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
-        LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during directory creation.\nDirectory path \"%s\"!",
+        LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during directory creation. Directory path \"%s\"!",
                                                trainDir.c_str());
         return dir_id;
     }

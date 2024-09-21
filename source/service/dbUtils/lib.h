@@ -104,6 +104,16 @@ namespace db_services {
     requires std::is_convertible_v<s1, std::string>
     my_conn_string load_configuration(s1 &&filenam, unsigned port = 5501);
 
+    using namespace std::placeholders;
+
+    std::string res_dir_path = "../../res/";
+    std::string cfile_name = res_dir_path.append("config.txt");
+
+
+    auto default_configuration = [](unsigned int port = 5501) {
+        return load_configuration(cfile_name, std::forward<decltype(port)>(port));
+    };
+
     template<typename T, unsigned long size>
     std::array<T, size> from_string(std::basic_string<T> &string) {
         std::array<T, size> res;
@@ -114,15 +124,7 @@ namespace db_services {
     }
 
 
-    using namespace std::placeholders;
 
-    std::string res_dir_path = "../res/";
-    std::string cfile_name = res_dir_path.append("config.txt");
-
-
-    auto default_configuration = [](unsigned int port = 5501) {
-        return load_configuration(cfile_name, std::forward<decltype(port)>(port));
-    };
 
 
     template<typename s1>
@@ -134,6 +136,28 @@ namespace db_services {
         auto res = my_conn_string(user, password, "localhost", dbname1, port);
         //res.update_format();
         return res;
+    }
+
+    template<verbose_level verbose, typename str>
+    conPtr connect_if_possible(str &&cString) {
+        conPtr c;
+        std::string css = cString;
+        try {
+            c = std::make_shared<pqxx::connection>(css);
+            if (!c->is_open()) {
+
+                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to connect by url \"%s\"\n", cString.c_str());
+            } else {
+                LOG_IF(INFO, verbose >= 2) << "Opened database successfully: " << c->dbname() << '\n';
+            }
+        } catch (const pqxx::sql_error &e) {
+            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
+                                        << "Query: " << e.query()
+                                        << "SQL State: " << e.sqlstate() << '\n';
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, verbose >= 1) << "Error: " << e.what() << '\n';
+        }
+        return c;
     }
 }
 

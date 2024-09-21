@@ -268,12 +268,12 @@ namespace db_services {
 
                 buffer[count++] = cc;
                 if (count == segment_size) {
-                    pqxx::binarystring bf(buffer);
                     auto str = string_to_hex(buffer);
+                    auto ss_ss=pqxx::binary_cast(buffer);
                     copy_stream
-                            << std::make_tuple<int64_t, pqxx::binarystring>(
+                            << std::make_tuple(
                                     block_index,
-                                    std::move(bf));
+                            ss_ss );
                     count = 0;
 
                     block_index++;
@@ -282,12 +282,12 @@ namespace db_services {
             if (count != 0) {
                 std::string osas = buffer.substr(0, count);
                 auto str = string_to_hex(buffer);
-                auto str2 = string_to_hex(osas);
-                pqxx::binarystring bf(osas);
+                auto str2 = string_to_hex(osas);//todo remove unwanted
+                auto ss_ss=pqxx::binary_cast(osas);
                 copy_stream
-                        << std::make_tuple<int64_t, pqxx::binarystring>(
+                        << std::make_tuple(
                                 block_index,
-                                std::move(bf));
+                                ss_ss);
             }
             copy_stream.complete();
             txn.commit();
@@ -325,7 +325,7 @@ namespace db_services {
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
             r = txn.exec(q);
 
-            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data was aggregated into \"%s\" for file %s.",//todo some strange things happen there \"%s\"."
+            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data was aggregated into %s for file %s.",//todo some strange things happen there \"%s\"."
                                                  aggregation_table_name.c_str(),
                                                  file_path.data());
 
@@ -343,7 +343,7 @@ namespace db_services {
             q = vformat("drop table %s;", aggregation_table_name.c_str());
             r = txn.exec(q);
 
-            LOG_IF(INFO, verbose >= 2) <<vformat("Temporary aggregation table \"%s\" was deleted.",aggregation_table_name.c_str());
+            LOG_IF(INFO, verbose >= 2) <<vformat("Temporary aggregation table %s was deleted.",aggregation_table_name.c_str());
 
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
@@ -355,13 +355,13 @@ namespace db_services {
                         table_name.c_str()
             );
             r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data of  \"%s\" was inserted.",table_name.c_str());
+            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data of %s was inserted.",table_name.c_str());
 
 
             q = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
             r = txn.exec(q);
 
-            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table \"%s\" was deleted.",table_name.c_str());
+            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table %s was deleted.",table_name.c_str());
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -686,27 +686,7 @@ namespace db_services {
     }
 
 
-    template<verbose_level verbose, typename str>
-    conPtr connect_if_possible(str &&cString) {
-        conPtr c;
-        std::string css = cString;
-        try {
-            c = std::make_shared<pqxx::connection>(css);
-            if (!c->is_open()) {
 
-                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to connect by url \"%s\"\n", cString.c_str());
-            } else {
-                LOG_IF(INFO, verbose >= 2) << "Opened database successfully: " << c->dbname() << '\n';
-            }
-        } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
-                                        << "Query: " << e.query()
-                                        << "SQL State: " << e.sqlstate() << '\n';
-        } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error: " << e.what() << '\n';
-        }
-        return c;
-    }
 
 }
 
