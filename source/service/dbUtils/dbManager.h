@@ -231,7 +231,7 @@ namespace db_services {
                                         "        inner join public.files f on f.file_id = public.data.file_id "
                                         "where file_name=\'%s\'::tsvector "
                                         "order by segment_num", file_name.data());
-            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
+            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {//todo try to migrate
                 out << name.str();
             }
             txn.commit();

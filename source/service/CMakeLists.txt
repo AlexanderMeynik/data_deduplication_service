@@ -1,8 +1,6 @@
 
 
 find_package(OpenSSL REQUIRED)
-list(APPEND CMAKE_PREFIX_PATH "/home/login/glog/build")
-list(APPEND CMAKE_PREFIX_PATH "/home/login/libpqxx/build")
 
 find_package(glog 0.7.1 REQUIRED)
 
@@ -43,7 +41,33 @@ target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLi
 #[[add_executable(pcv opcvtest.cpp)
 target_link_libraries(pcv ${OpenCV_LIBS})]]
 
-
 add_executable(file_service fileServiceTest.cpp)
 target_link_libraries(file_service FileUtilsLib)
+
+
+
+# custom run with different configurations
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_custom_target(run_file_service
+            COMMAND ${CMAKE_COMMAND} -E env
+            GLOG_log_dir=/mnt/c/projects/logs/dedup
+            GLOG_logtostderr=0
+            GLOG_stderrthreshold=0
+            ./file_service
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS file_service
+    )
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_custom_target(run_file_service
+            COMMAND ${CMAKE_COMMAND} -E env
+            GLOG_log_dir=/mnt/c/projects/logs/dedup
+            GLOG_logtostderr=0
+            GLOG_stderrthreshold=2
+            ./file_service
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS file_service
+    )
+endif()
+
+
 
