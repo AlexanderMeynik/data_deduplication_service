@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <cstdint>
 
-using verbose_level = unsigned short;//todo enum
+using verbose_level = unsigned short;//todo use VLOG for verbose logging
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 
@@ -141,6 +141,11 @@ enum return_codes {
     already_exists = -2,
     error_occured = -1,
     return_sucess = 0
+};
+
+enum index_vals
+{
+    empty_parameter_value=-1
 };
 
 #endif //SERVICE_MYCONCEPTS_H

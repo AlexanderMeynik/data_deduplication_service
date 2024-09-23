@@ -9,8 +9,15 @@
 namespace db_services {
 
 
+
+
     using index_type = long long;
     using trasnactionType = pqxx::work;
+
+    enum delete_strategy {
+        cascade,
+        only_record
+    };
 
     static const char *const sample_temp_db = "template1";
     using conPtr = std::shared_ptr<pqxx::connection>;
@@ -64,23 +71,23 @@ namespace db_services {
             update_format();
         }
 
-        const std::string &getUser() const {
+        [[nodiscard]] const std::string &getUser() const {
             return user;
         }
 
-        const std::string &getPassword() const {
+        [[nodiscard]] const std::string &getPassword() const {
             return password;
         }
 
-        const std::string &getHost() const {
+        [[nodiscard]] const std::string &getHost() const {
             return host;
         }
 
-        const std::string &getDbname() const {
+        [[nodiscard]] const std::string &getDbname() const {
             return dbname;
         }
 
-        unsigned int getPort() const {
+        [[nodiscard]] unsigned int getPort() const {
             return port;
         }
 

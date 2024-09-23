@@ -7,10 +7,7 @@
 #define SERVICE_DBMANAGER_H
 
 namespace db_services {
-    enum delete_strategy {
-        deafult,
-        cascade
-    };
+
 
     template<unsigned long segment_size = 64>
     requires is_divisible<total_block_size, segment_size>
@@ -45,18 +42,18 @@ namespace db_services {
         std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
 
         template<verbose_level verbose = 0>
-        index_type create_file(std::string_view file_path, int dir_id, int file_size = 0);
+        index_type create_file(std::string_view file_path, index_type dir_id, int file_size = 0);
 
         template<verbose_level verbose = 0>
         index_type create_file_temp(std::string_view file_path);
 
         template<verbose_level verbose = 0>
-        void finish_file_processing(std::string_view file_path, index_type file_id);
+        int finish_file_processing(std::string_view file_path, index_type file_id);
 
-        template<verbose_level verbose = 0, delete_strategy del = deafult>
+        template<verbose_level verbose = 0, delete_strategy del = cascade>
         int delete_file(std::string_view file_name, index_type file_id = return_codes::already_exists);
 
-        template<verbose_level verbose = 0, delete_strategy del = deafult>
+        template<verbose_level verbose = 0, delete_strategy del = cascade>
         int delete_directory(std::string_view directory_path, index_type dir_id = return_codes::already_exists);
 
         template<verbose_level verbose = 0>
@@ -89,43 +86,54 @@ namespace db_services {
                 dir_id = txn.query_value<index_type>(qx1);
             }
 
-            std::string query = "update public.segments s "
-                                "set segment_count=segment_count-ss.cnt "
-                                "from (select segment_hash as hhhash, count(segment_hash) as cnt "
-                                "      from public.data inner join public.files f on f.file_id = public.data.file_id "
-                                "      where dir_id = %d "
-                                "      group by dir_id, segment_hash "
-                                ") as ss "
-                                "where ss.hhhash=segment_hash;";
-            std::string qr = vformat(query.c_str(), dir_id);
+            std::string query,qr;
+            pqxx::result res;
+            if constexpr (del==cascade) {
 
-            txn.exec(qr);
+                query = "update public.segments s "
+                                    "set segment_count=segment_count-ss.cnt "
+                                    "from (select segment_hash as hhhash, count(segment_hash) as cnt "
+                                    "      from public.data inner join public.files f on f.file_id = public.data.file_id "
+                                    "      where dir_id = %d "
+                                    "      group by dir_id, segment_hash "
+                                    ") as ss "
+                                    "where ss.hhhash=segment_hash;";
+                qr = vformat(query.c_str(), dir_id);
 
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully reduced segments"
-                                                  " counts for directory \"%s\"\n", directory_path.data());
+                txn.exec(qr);
 
-
-            query = "delete from public.data d "
-                    "       where exists "
-                    "           ("
-                    "           select f.file_id "
-                    "           from public.files f "
-                    "           where dir_id=%d and d.file_id=f.file_id "
-                    "        );  ";
-
-            qr = vformat(query.c_str(), dir_id);
-            txn.exec(qr);
-
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted data "
-                                                  "for directory \"%s\"\n", directory_path.data());
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully reduced segments"
+                                                      " counts for directory \"%s\"\n", directory_path.data());
 
 
-            query = "delete from public.files where dir_id=%d;";
-            qr = vformat(query.c_str(), dir_id);
-            txn.exec(qr);
+                query = "delete from public.data d "
+                        "       where exists "
+                        "           ("
+                        "           select f.file_id "
+                        "           from public.files f "
+                        "           where dir_id=%d and d.file_id=f.file_id "
+                        "        );  ";
 
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted public.files "
-                                                  " for directory \"%s\"\n", directory_path.data());
+                qr = vformat(query.c_str(), dir_id);
+                txn.exec(qr);
+
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted data "
+                                                      "for directory \"%s\"\n", directory_path.data());
+
+
+                query = "delete from public.files where dir_id=%d;";
+                qr = vformat(query.c_str(), dir_id);
+                txn.exec(qr);
+
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted public.files "
+                                                      " for directory \"%s\"\n", directory_path.data());
+
+                query = "delete from public.segments where segment_count=0";
+                txn.exec(query);
+
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted redundant "
+                                                      "segments for \"%s\"\n", directory_path.data());
+            }
 
             query = "delete from public.directories where dir_id=%d;";
             qr = vformat(query.c_str(), dir_id);
@@ -133,13 +141,6 @@ namespace db_services {
 
             LOG_IF(INFO, verbose >= 2) << vformat("Successfully entry "
                                                   " for directory \"%s\"\n", directory_path.data());
-
-            query = "delete from public.segments where segment_count=0";
-            txn.exec(query);
-
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted redundant "
-                                                  "segments for \"%s\"\n", directory_path.data());
-
             txn.commit();
 
         } catch (const pqxx::sql_error &e) {
@@ -166,44 +167,52 @@ namespace db_services {
                 auto qx1 = vformat(query.c_str(), file_name.data());
                 file_id = txn.query_value<index_type>(qx1);
             }
+            std::string query,qr;
+            pqxx::result res;
+            if constexpr (del==cascade) {
 
-            std::string query = "update public.segments s "
-                                "set segment_count=segment_count-ss.cnt "
-                                "from (select segment_hash as hhhash, count(segment_hash) as cnt "
-                                "      from public.data "
-                                "      where file_id = %d "
-                                "      group by file_id, segment_hash "
-                                ") as ss "
-                                "where ss.hhhash=segment_hash;";
+                query = "update public.segments s "
+                                    "set segment_count=segment_count-ss.cnt "
+                                    "from (select segment_hash as hhhash, count(segment_hash) as cnt "
+                                    "      from public.data "
+                                    "      where file_id = %d "
+                                    "      group by file_id, segment_hash "
+                                    ") as ss "
+                                    "where ss.hhhash=segment_hash;";
 
-            std::string qr = vformat(query.c_str(), file_id);
-            auto res = txn.exec(qr);
+                qr = vformat(query.c_str(), file_id);
+                res = txn.exec(qr);
 
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully reduced segments"
-                                                  " counts for file \"%s\"\n", file_name.data());
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully reduced segments"
+                                                      " counts for file \"%s\"\n", file_name.data());
 
 
-            query = "delete from public.data where file_id=%d;";
+                query = "delete from public.data where file_id=%d;";
 
-            qr = vformat(query.c_str(), file_id);
-            res = txn.exec(qr);
+                qr = vformat(query.c_str(), file_id);
+                res = txn.exec(qr);
 
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted data "
-                                                  "for file \"%s\"\n", file_name.data());
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted data "
+                                                      "for file \"%s\"\n", file_name.data());
+
+
+                query = "delete from public.segments where segment_count=0";
+                res = txn.exec(query);
+
+                LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted redundant "
+                                                      "segments for \"%s\"\n", file_name.data());
+            }
 
 
             query = "delete from public.files where file_id=%d;";
             qr = vformat(query.c_str(), file_id);
             res = txn.exec(qr);
 
+
             LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted file "
                                                   "entry for \"%s\"\n", file_name.data());
 
-            query = "delete from public.segments where segment_count=0";
-            res = txn.exec(query);
 
-            LOG_IF(INFO, verbose >= 2) << vformat("Successfully deleted redundant "
-                                                  "segments for \"%s\"\n", file_name.data());
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -307,7 +316,7 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    void dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
+    int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
 
@@ -368,15 +377,19 @@ namespace db_services {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
                                         << "SQL State: " << e.sqlstate() << '\n';
+            return return_codes::error_occured;
 
         }
         catch (const pqxx::unexpected_rows &r) {
             LOG_IF(ERROR, verbose >= 1) << vformat("No data found for file \"%s\"", file_path.data());
             LOG_IF(ERROR, verbose >= 2) << vformat("Exception description: %s", r.what()) << '\n';
+            return return_codes::error_occured;
         }
         catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error processing file data:" << e.what() << '\n';
+            return return_codes::error_occured;
         }
+        return 0;
     }
 
 
@@ -418,15 +431,25 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    index_type dbManager<segment_size>::create_file(std::string_view file_path, int dir_id, int file_size) {
+    index_type dbManager<segment_size>::create_file(std::string_view file_path, index_type dir_id, int file_size) {
         trasnactionType txn(*conn_);
         index_type future_file_id = return_codes::error_occured;
 
-        std::string query = "insert into public.files (file_name,dir_id,size_in_bytes)"
-                            " values ($1,$2,$3) returning file_id;";
-
+        std::string query;
+        pqxx::result res;
         try {
-            pqxx::result res = txn.exec(query, {file_path, dir_id, file_size});
+            if(dir_id==index_vals::empty_parameter_value)
+            {
+                query = "insert into public.files (file_name,size_in_bytes)"
+                        " values ($1,$2) returning file_id;";
+                res = txn.exec(query, {file_path, file_size});
+            }
+            else {
+                query = "insert into public.files (file_name,dir_id,size_in_bytes)"
+                        " values ($1,$2,$3) returning file_id;";
+                res = txn.exec(query, {file_path, dir_id, file_size});
+            }
+
             future_file_id = res.one_row()[0].as<index_type>();
 
             LOG_IF(INFO, verbose >= 2) << vformat("File record (%d,\"%s\",%d,%d) was successfully created.",
@@ -528,7 +551,7 @@ namespace db_services {
             return conn_;
         }
         LOG_IF(WARNING, verbose >= 1) << "Failed to listen with current connection, attempt to reconnect via cString\n";
-        conn_ = connect_if_possible<verbose>(cString_);//todo error return
+        conn_ = connect_if_possible<verbose>(cString_);//todo error return via expected
         return conn_;
     }
 
