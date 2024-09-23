@@ -86,8 +86,12 @@ tl::expected<std::string, int> check_directory_existence(std::string_view dir_pa
     }
     return tl::expected<std::string, int>{directory};
 }
-
-
+namespace fs= std::filesystem;
+fs::path get_normal_abs(fs::path  pwd)
+{
+    return fs::absolute(pwd).lexically_normal();
+}
+using ds=db_services::delete_strategy;
 template<unsigned long segment_size> requires is_divisible<total_block_size, segment_size>
 class FileParsingService {
 public:
@@ -116,15 +120,43 @@ public:
     template<verbose_level verbose = 0, directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist, bool from_load_dir = false>
     int load_file(std::string_view from_file, std::string_view to_file);
 
-    template<verbose_level verbose = 0>
-    int delete_file();//todo implement + test for different options
-    template<verbose_level verbose = 0>
-    int delete_directory();//todo implement + test for different options
+    template<verbose_level verbose = 0,ds delS=ds::cascade>
+    int delete_file(std::string_view file_path);
+    template<verbose_level verbose = 0,ds delS=ds::cascade>
+    int delete_directory(std::string_view dir_path);
 
 
 private:
     dbManager<segment_size> manager_;
 };
+
+template<unsigned long segment_size>
+requires is_divisible<total_block_size, segment_size>
+template<verbose_level verbose, ds delS>
+int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
+    fs::path file_abs_path= get_normal_abs(file_path);
+    auto res=manager_.template delete_file<verbose,delS>(file_abs_path.string());
+    if(res==return_codes::error_occured)
+    {
+        LOG_IF(ERROR,verbose>=1)<<vformat("Error occurred during directory \"%s\" removal.\n",file_abs_path.c_str());
+    }
+    return res;
+}
+
+template<unsigned long segment_size>
+requires is_divisible<total_block_size, segment_size>
+template<verbose_level verbose, ds delS>
+int FileParsingService<segment_size>::delete_directory(std::string_view dir_path) {
+    fs::path dir_abs_path= get_normal_abs(dir_path);
+    auto res=manager_.template delete_directory<verbose,delS>(dir_abs_path.string());
+    if(res==return_codes::error_occured)
+    {
+        LOG_IF(ERROR,verbose>=1)<<vformat("Error occurred during directory \"%s\" removal.\n",dir_abs_path.c_str());
+    }
+    return res;
+}
+
+
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
@@ -135,9 +167,9 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
     fs::path from_file_path;
     fs::path parent_dir_path;
     try {
-        to_file_path = fs::absolute(to_file).lexically_normal();
+        to_file_path = get_normal_abs(to_file);
         parent_dir_path = to_file_path.parent_path();
-        from_file_path = fs::absolute(from_file).lexically_normal();
+        from_file_path = get_normal_abs(from_file);
 
         if (!fs::exists(parent_dir_path)) {
             if constexpr (dir_s == create_main) {
@@ -201,7 +233,7 @@ template<verbose_level verbose, directory_handling_strategy dir_s, data_retrieva
 int FileParsingService<segment_size>::load_directory(std::string_view from_dir, std::string_view to_dir) {
     namespace fs = std::filesystem;
     fs::path new_dir_path;
-    fs::path from_dir_path = fs::absolute(from_dir).lexically_normal();
+    fs::path from_dir_path = get_normal_abs(from_dir);
     try {
         if (!fs::exists(to_dir)) {
             if constexpr (dir_s == create_main) {
@@ -221,7 +253,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
                 return return_codes::error_occured;
             }
         }
-        new_dir_path = fs::absolute(to_dir).lexically_normal();
+        new_dir_path = get_normal_abs(to_dir);
 
     } catch (const fs::filesystem_error &e) {
         LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
@@ -247,7 +279,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
     }
 
     if constexpr (rr == data_retrieval_strategy::remove_) {
-        manager_.template delete_directory<verbose>(from_dir_path.string());
+        manager_.template delete_directory<verbose>(from_dir_path.string());//todo leave be or replace
     }
     return 0;
 }
@@ -278,7 +310,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
     } else {
         manager_.template connectToDb<verbose>();
     }
-    LOG_IF(INFO, verbose >= 2) << ((manager_.checkConnection()) ? "connection esablished\n" : "cannot connect\n");
+    LOG_IF(INFO, verbose >= 2) << ((manager_.checkConnection()) ? "connection established\n" : "cannot connect\n");
     return 0;
 }
 
@@ -308,7 +340,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
             return return_codes::already_exists;
         }
 
-        auto res = manager_.template delete_file<verbose>(file, file_id);
+        auto res = manager_.template delete_file<verbose>(file, file_id);//todo replace or presereve
 
         if (res == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1)

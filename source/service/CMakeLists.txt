@@ -38,16 +38,11 @@ add_library(FileUtilsLib ${FileUtils_files})
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)
 
 
-#[[add_executable(pcv opcvtest.cpp)
-target_link_libraries(pcv ${OpenCV_LIBS})]]
-
 add_executable(file_service fileServiceTest.cpp)
 target_link_libraries(file_service FileUtilsLib)
 
 
-
-# custom run with different configurations
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_custom_target(run_file_service
             COMMAND ${CMAKE_COMMAND} -E env
             GLOG_log_dir=/mnt/c/projects/logs/dedup
@@ -57,7 +52,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             DEPENDS file_service
     )
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_custom_target(run_file_service
             COMMAND ${CMAKE_COMMAND} -E env
             GLOG_log_dir=/mnt/c/projects/logs/dedup
@@ -67,7 +62,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             DEPENDS file_service
     )
-endif()
+endif ()
 
 
 

@@ -9,8 +9,7 @@
 namespace db_services {
 
 
-    template<unsigned long segment_size = 64>
-    requires is_divisible<total_block_size, segment_size>
+    template<unsigned long segment_size = 64> requires is_divisible<total_block_size, segment_size>
     class dbManager {
     public:
         static constexpr unsigned long long block_size = total_block_size / segment_size;
@@ -31,7 +30,7 @@ namespace db_services {
         template<verbose_level verbose = 0>
         index_type create();
 
-        template<verbose_level verbose = 0,hash_function hash=SHA_256>
+        template<verbose_level verbose = 0, hash_function hash = SHA_256>
         requires is_divisible<segment_size, hash_function_size[hash]>
         int fill_schemas();
 
@@ -80,24 +79,24 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
 
-            if (dir_id == return_codes::already_exists) {
+            if (dir_id == return_codes::already_exists) {//todo not very good name for optional vlaue
                 std::string query = "select dir_id from public.directories where dir_path = \'%s\';";
                 std::string qx1 = vformat(query.c_str(), directory_path.data());
                 dir_id = txn.query_value<index_type>(qx1);
             }
 
-            std::string query,qr;
+            std::string query, qr;
             pqxx::result res;
-            if constexpr (del==cascade) {
+            if constexpr (del == cascade) {
 
                 query = "update public.segments s "
-                                    "set segment_count=segment_count-ss.cnt "
-                                    "from (select segment_hash as hhhash, count(segment_hash) as cnt "
-                                    "      from public.data inner join public.files f on f.file_id = public.data.file_id "
-                                    "      where dir_id = %d "
-                                    "      group by dir_id, segment_hash "
-                                    ") as ss "
-                                    "where ss.hhhash=segment_hash;";
+                        "set segment_count=segment_count-ss.cnt "
+                        "from (select segment_hash as hhhash, count(segment_hash) as cnt "
+                        "      from public.data inner join public.files f on f.file_id = public.data.file_id "
+                        "      where dir_id = %d "
+                        "      group by dir_id, segment_hash "
+                        ") as ss "
+                        "where ss.hhhash=segment_hash;";
                 qr = vformat(query.c_str(), dir_id);
 
                 txn.exec(qr);
@@ -144,6 +143,12 @@ namespace db_services {
             txn.commit();
 
         } catch (const pqxx::sql_error &e) {
+            if(e.sqlstate()==sqlFqConstraight)
+            {
+                LOG_IF(ERROR,verbose>=1)<<vformat("Unable to remove record for directory \"%s\" since files "
+                                                  "for it are stile present.",directory_path.data());
+                return return_codes::error_occured;//todo is thin an error
+            }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
                                         << "SQL State: " << e.sqlstate() << '\n';
@@ -167,18 +172,18 @@ namespace db_services {
                 auto qx1 = vformat(query.c_str(), file_name.data());
                 file_id = txn.query_value<index_type>(qx1);
             }
-            std::string query,qr;
+            std::string query, qr;
             pqxx::result res;
-            if constexpr (del==cascade) {
+            if constexpr (del == cascade) {
 
                 query = "update public.segments s "
-                                    "set segment_count=segment_count-ss.cnt "
-                                    "from (select segment_hash as hhhash, count(segment_hash) as cnt "
-                                    "      from public.data "
-                                    "      where file_id = %d "
-                                    "      group by file_id, segment_hash "
-                                    ") as ss "
-                                    "where ss.hhhash=segment_hash;";
+                        "set segment_count=segment_count-ss.cnt "
+                        "from (select segment_hash as hhhash, count(segment_hash) as cnt "
+                        "      from public.data "
+                        "      where file_id = %d "
+                        "      group by file_id, segment_hash "
+                        ") as ss "
+                        "where ss.hhhash=segment_hash;";
 
                 qr = vformat(query.c_str(), file_id);
                 res = txn.exec(qr);
@@ -213,9 +218,14 @@ namespace db_services {
                                                   "entry for \"%s\"\n", file_name.data());
 
 
-
             txn.commit();
         } catch (const pqxx::sql_error &e) {
+            if(e.sqlstate()==sqlFqConstraight)
+            {
+                LOG_IF(ERROR,verbose>=1)<<vformat("Unable to remove record for file \"%s\" since segment data "
+                                                  "for it are stile present.",file_name.data());
+                return return_codes::error_occured;//todo is this an error
+            }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
                                         << "SQL State: " << e.sqlstate() << '\n';
@@ -240,8 +250,8 @@ namespace db_services {
                                         "        inner join public.files f on f.file_id = public.data.file_id "
                                         "where file_name=\'%s\'::tsvector "
                                         "order by segment_num", file_name.data());
-            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {//todo try to migrate
-                out << name.str();
+            for (auto [name]: txn.stream<pqxx::bytes>(query)) {
+                out <<  hex_to_string(pqxx::to_string(name).substr(2));
             }
             txn.commit();
 
@@ -278,25 +288,20 @@ namespace db_services {
                 buffer[count++] = cc;
                 if (count == segment_size) {
                     auto str = string_to_hex(buffer);
-                    auto ss_ss=pqxx::binary_cast(buffer);
                     copy_stream
                             << std::make_tuple(
                                     block_index,
-                            ss_ss );
+                                    pqxx::binary_cast(buffer));
                     count = 0;
 
                     block_index++;
                 }
             }
             if (count != 0) {
-                std::string osas = buffer.substr(0, count);
-                auto str = string_to_hex(buffer);
-                auto str2 = string_to_hex(osas);//todo remove unwanted
-                auto ss_ss=pqxx::binary_cast(osas);
                 copy_stream
                         << std::make_tuple(
                                 block_index,
-                                ss_ss);
+                                pqxx::binary_cast(buffer.substr(0, count)));
             }
             copy_stream.complete();
             txn.commit();
@@ -323,7 +328,6 @@ namespace db_services {
             std::string table_name = vformat("\"temp_file_%s\"", file_path.data());
             std::string table_name_ = vformat("\'temp_file_%s\'", file_path.data());
 
-
             std::string aggregation_table_name = vformat("\"new_segments_%s\"", file_path.data());
             pqxx::result r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = %s", table_name_.c_str());
@@ -332,11 +336,11 @@ namespace db_services {
             q = vformat("CREATE TABLE  %s AS SELECT DISTINCT t.data, COUNT(t.data) AS count "
                         "FROM %s t "
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
-            r = txn.exec(q);
-
-            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data was aggregated into %s for file %s.",//todo some strange things happen there \"%s\"."
-                                                 aggregation_table_name.c_str(),
-                                                 file_path.data());
+            txn.exec(q);
+            LOG_IF(INFO, verbose >= 2) << vformat(
+                    "Segment data was aggregated into %s for file %s.",//todo some strange things happen there \"%s\"."
+                    aggregation_table_name.c_str(),
+                    file_path.data());
 
 
             q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
@@ -346,13 +350,13 @@ namespace db_services {
                         "DO UPDATE "
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
                         aggregation_table_name.c_str());
-            r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) <<vformat("New segments were inserted for file \"%s\".",file_path.data());
+            txn.exec(q);
+            LOG_IF(INFO, verbose >= 2) << vformat("New segments were inserted for file \"%s\".", file_path.data());
 
             q = vformat("drop table %s;", aggregation_table_name.c_str());
-            r = txn.exec(q);
-
-            LOG_IF(INFO, verbose >= 2) <<vformat("Temporary aggregation table %s was deleted.",aggregation_table_name.c_str());
+            txn.exec(q);
+            LOG_IF(INFO, verbose >= 2)
+                            << vformat("Temporary aggregation table %s was deleted.", aggregation_table_name.c_str());
 
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
@@ -363,14 +367,13 @@ namespace db_services {
                         file_id,
                         table_name.c_str()
             );
-            r = txn.exec(q);
-            LOG_IF(INFO, verbose >= 2) <<vformat("Segment data of %s was inserted.",table_name.c_str());
+            txn.exec(q);
+            LOG_IF(INFO, verbose >= 2) << vformat("Segment data of %s was inserted.", table_name.c_str());
 
 
             q = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
-            r = txn.exec(q);
-
-            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table %s was deleted.",table_name.c_str());
+            txn.exec(q);
+            LOG_IF(INFO, verbose >= 2) << vformat("Temp data table %s was deleted.", table_name.c_str());
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -378,7 +381,6 @@ namespace db_services {
                                         << "Query: " << e.query()
                                         << "SQL State: " << e.sqlstate() << '\n';
             return return_codes::error_occured;
-
         }
         catch (const pqxx::unexpected_rows &r) {
             LOG_IF(ERROR, verbose >= 1) << vformat("No data found for file \"%s\"", file_path.data());
@@ -411,7 +413,7 @@ namespace db_services {
             pqxx::result r2 = txn.exec(q1);
             txn.commit();
 
-            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table %s was created.",table_name.c_str());
+            LOG_IF(INFO, verbose >= 2) << vformat("Temp data table %s was created.", table_name.c_str());
         }
         catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlLimitBreached_state) {
@@ -438,20 +440,17 @@ namespace db_services {
         std::string query;
         pqxx::result res;
         try {
-            if(dir_id==index_vals::empty_parameter_value)
-            {
+            if (dir_id == index_vals::empty_parameter_value) {
                 query = "insert into public.files (file_name,size_in_bytes)"
                         " values ($1,$2) returning file_id;";
                 res = txn.exec(query, {file_path, file_size});
-            }
-            else {
+            } else {
                 query = "insert into public.files (file_name,dir_id,size_in_bytes)"
                         " values ($1,$2,$3) returning file_id;";
                 res = txn.exec(query, {file_path, dir_id, file_size});
             }
 
             future_file_id = res.one_row()[0].as<index_type>();
-
             LOG_IF(INFO, verbose >= 2) << vformat("File record (%d,\"%s\",%d,%d) was successfully created.",
                                                   future_file_id,
                                                   file_path.data(),
@@ -463,11 +462,11 @@ namespace db_services {
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
                     txn.esc(table_name).c_str()
             );
+            txn.exec(q1);
 
-            pqxx::result r2 = txn.exec(q1);
             txn.commit();
 
-            LOG_IF(INFO, verbose >= 2) <<vformat("Temp data table \"%s\" was created.",table_name.c_str());
+            LOG_IF(INFO, verbose >= 2) << vformat("Temp data table \"%s\" was created.", table_name.c_str());
         }
         catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlLimitBreached_state) {
@@ -498,7 +497,8 @@ namespace db_services {
                                 "        on d.dir_id = public.files.dir_id "
                                 "where dir_path=$1;";
             pqxx::result res = txn.exec(query, pqxx::params(dir_path));
-            LOG_IF(INFO, verbose >= 2) <<vformat("Filenames were successfully retrieved for directory \"%s\".",dir_path.data());
+            LOG_IF(INFO, verbose >= 2)
+                            << vformat("Filenames were successfully retrieved for directory \"%s\".", dir_path.data());
             for (const auto &re: res) {
                 auto tres = re[1].as<std::string>();
                 result.emplace_back(re[0].as<index_type>(), tres.substr(1, tres.size() - 2));
@@ -523,7 +523,6 @@ namespace db_services {
             trasnactionType txn(*conn_);
             std::string query = "insert into public.directories (dir_path) values ($1) returning dir_id;";
             result = txn.exec(query, pqxx::params(dir_path)).one_row()[0].as<index_type>();
-
 
             txn.commit();
             LOG_IF(INFO, verbose >= 2)
@@ -581,7 +580,7 @@ namespace db_services {
             r.no_rows();
 
 
-            no_trans_exec.exec(vformat("CREATE DATABASE %s;",no_trans_exec.esc(cString_.getDbname()).c_str()));
+            no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(cString_.getDbname()).c_str()));
             //не менять, паарметры здесь не подпадают под query
             no_trans_exec.exec(vformat("GRANT ALL ON DATABASE %s TO %s;",
                                        no_trans_exec.esc(cString_.getDbname()).c_str(),
@@ -619,7 +618,7 @@ namespace db_services {
 
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose,hash_function hash>
+    template<verbose_level verbose, hash_function hash>
     requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::fill_schemas() {
         try {
@@ -630,17 +629,15 @@ namespace db_services {
                      "where schemaname = 'public';").no_rows();
 
             std::string query = vformat("create schema if not exists public;"
-                                "create table public.segments"
-                                "("
-                                "    segment_hash bytea NOT NULL GENERATED ALWAYS AS ((%s(segment_data::bytea))::bytea) STORED primary key, "
-                                "    segment_data bytea NOT NULL,"
-                                "    segment_count bigint NOT NULL"
-                                ");",hash_function_name[hash]);
-
-
-            pqxx::result r1 = txn.exec(query);
-
-            LOG_IF(INFO, verbose >= 2) << vformat("Create segments table with preferred hashing function %s\n",hash_function_name[hash]);
+                                        "create table public.segments"
+                                        "("
+                                        "    segment_hash bytea NOT NULL GENERATED ALWAYS AS ((%s(segment_data::bytea))::bytea) STORED primary key, "
+                                        "    segment_data bytea NOT NULL,"
+                                        "    segment_count bigint NOT NULL"
+                                        ");", hash_function_name[hash]);
+            txn.exec(query);
+            LOG_IF(INFO, verbose >= 2) << vformat("Create segments table with preferred hashing function %s\n",
+                                                  hash_function_name[hash]);
 
 
             query = "create table public.directories "
@@ -663,9 +660,7 @@ namespace db_services {
                     "    segment_num bigint NOT NULL,"
                     "    segment_hash bytea REFERENCES public.segments(segment_hash) NOT NULL"
                     ");";
-
-
-            r1 = txn.exec(query);
+            txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create directories, files and data tables\n";
 
 
@@ -679,17 +674,16 @@ namespace db_services {
                     "CREATE INDEX if not exists files_bin_index on public.files(file_name); "
                     "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); "
                     "CREATE INDEX if not exists bin_file_id_ on public.files(file_id); ";
-            r1 = txn.exec(query);
+            txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create indexes for main tables\n";
 
 
             query = "ALTER TABLE public.segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data); "
                     "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
                     "ALTER TABLE public.directories ADD CONSTRAINT unique_dir_constr UNIQUE(dir_path);";
-            r1 = txn.exec(query);
+            txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create unique constraints for tables\n";
             txn.commit();
-
         } catch (const pqxx::sql_error &e) {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
@@ -707,10 +701,6 @@ namespace db_services {
         }
         return return_sucess;
     }
-
-
-
-
 }
 
 

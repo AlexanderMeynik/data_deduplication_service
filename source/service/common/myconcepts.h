@@ -49,7 +49,7 @@ static constexpr std::array<unsigned short, 5> hash_function_size
 //constexpr int block_size=2;
 constexpr int total_block_size = 128;
 template<unsigned short seg, unsigned short div>
-concept is_divisible = seg % div == 0||seg % div != 0;//todo
+concept is_divisible = seg % div == 0;
 
 using symbol_type = char;
 

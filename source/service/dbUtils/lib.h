@@ -19,8 +19,10 @@ namespace db_services {
 
     static const char *const sample_temp_db = "template1";
     using conPtr = std::shared_ptr<pqxx::connection>;
-    static constexpr const char *const sqlLimitBreached_state = "23505";
 
+
+    static constexpr const char *const sqlLimitBreached_state = "23505";
+    static constexpr const char *const sqlFqConstraight = "23503";
 
     struct my_conn_string {
         my_conn_string() : port(5432) {}
