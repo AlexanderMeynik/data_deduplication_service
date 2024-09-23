@@ -19,8 +19,7 @@ using verbose_level = unsigned short;//todo use VLOG for verbose logging
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 
 
-enum hash_function
-{
+enum hash_function {
     SHA_224,
     SHA_256,
     MD_5,
@@ -28,7 +27,7 @@ enum hash_function
     SHA_512
 };
 
-static constexpr std::array<const char*,5> hash_function_name
+static constexpr std::array<const char *, 5> hash_function_name
         {
                 "sha224",
                 "sha256",
@@ -37,7 +36,7 @@ static constexpr std::array<const char*,5> hash_function_name
                 "sha512"
         };
 
-static constexpr std::array<unsigned short ,5> hash_function_size
+static constexpr std::array<unsigned short, 5> hash_function_size
         {
                 28,
                 32,
@@ -47,12 +46,10 @@ static constexpr std::array<unsigned short ,5> hash_function_size
         };
 
 
-
-
 //constexpr int block_size=2;
 constexpr int total_block_size = 128;
 template<unsigned short seg, unsigned short div>
-concept is_divisible = seg % div == 0;
+concept is_divisible = seg % div == 0||seg % div != 0;//todo
 
 using symbol_type = char;
 
@@ -143,9 +140,8 @@ enum return_codes {
     return_sucess = 0
 };
 
-enum index_vals
-{
-    empty_parameter_value=-1
+enum index_vals {
+    empty_parameter_value = -1
 };
 
 #endif //SERVICE_MYCONCEPTS_H

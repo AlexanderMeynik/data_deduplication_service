@@ -36,7 +36,7 @@ using db_services::dbManager;
 
 
 template<verbose_level verbose>
-tl::expected<std::string, int>  check_file_existence(std::string_view file_path){
+tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
     std::string file;
     try {
         file = std::filesystem::canonical(file_path).string();
@@ -48,7 +48,8 @@ tl::expected<std::string, int>  check_file_existence(std::string_view file_path)
         }
         if (std::filesystem::is_directory(file_path)) {
             LOG_IF(ERROR, verbose >= 1)
-                            << vformat("\"%s\" is not a file, use processDirectory for directories!\n", file_path.data());
+                            << vformat("\"%s\" is not a file, use processDirectory for directories!\n",
+                                       file_path.data());
             return tl::unexpected{return_codes::error_occured};
         }
 
@@ -56,12 +57,12 @@ tl::expected<std::string, int>  check_file_existence(std::string_view file_path)
         LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
         return tl::unexpected{return_codes::error_occured};
     }
-    return tl::expected<std::string,int>{file};
+    return tl::expected<std::string, int>{file};
 }
 
 
 template<verbose_level verbose>
-tl::expected<std::string, int>   check_directory_existence(std::string_view dir_path){
+tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
     std::string directory;
     try {
         directory = std::filesystem::canonical(dir_path).string();
@@ -83,13 +84,11 @@ tl::expected<std::string, int>   check_directory_existence(std::string_view dir_
         LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
         return tl::unexpected{return_codes::error_occured};
     }
-    return tl::expected<std::string,int>{directory};
+    return tl::expected<std::string, int>{directory};
 }
 
 
-
-template<unsigned long segment_size>
-        requires is_divisible<total_block_size, segment_size>
+template<unsigned long segment_size> requires is_divisible<total_block_size, segment_size>
 class FileParsingService {
 public:
     using index_type = db_services::index_type;
@@ -99,22 +98,22 @@ public:
     = default;
 
 
-    template<verbose_level verbose = 0, db_usage_strategy str = use,hash_function hash=SHA_256>
+    template<verbose_level verbose = 0, db_usage_strategy str = use, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
     int db_load(std::string &dbName);
 
     template<verbose_level verbose = 0, data_insetion_strategy strategy = preserve_old>
     int process_directory(std::string_view dir_path);
 
-    template<verbose_level verbose = 0, data_insetion_strategy strategy = preserve_old,bool existence_checks=true>
-    int process_file(std::string_view file_path,index_type dir_id=index_vals::empty_parameter_value);
+    template<verbose_level verbose = 0, data_insetion_strategy strategy = preserve_old, bool existence_checks = true>
+    int process_file(std::string_view file_path, index_type dir_id = index_vals::empty_parameter_value);
 
 
     template<verbose_level verbose = 0, directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist>
     int load_directory(std::string_view from_dir, std::string_view to_dir);
 
 
-    template<verbose_level verbose = 0, directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist,bool from_load_dir=false>
+    template<verbose_level verbose = 0, directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist, bool from_load_dir = false>
     int load_file(std::string_view from_file, std::string_view to_file);
 
     template<verbose_level verbose = 0>
@@ -129,68 +128,64 @@ private:
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template<verbose_level verbose, directory_handling_strategy dir_s, data_retrieval_strategy rr,bool from_load_dir>
+template<verbose_level verbose, directory_handling_strategy dir_s, data_retrieval_strategy rr, bool from_load_dir>
 int FileParsingService<segment_size>::load_file(std::string_view from_file, std::string_view to_file) {
     namespace fs = std::filesystem;
-    fs::path new_abs;
-    fs::path curr_abs;
-    if constexpr (!from_load_dir) {
-        fs::path parent;
-        try {
-            curr_abs = fs::weakly_canonical(from_file);//todo does not support doted operators
-            parent = fs::absolute(to_file).parent_path();
-            if (!fs::exists(parent)) {
-                if constexpr (dir_s == create_main) {
-                    fs::create_directories(parent);
-                    LOG_IF(INFO, verbose >= 2)
-                                    << vformat("Root directory \"%s\" was created successfully", parent.c_str());
-                } else {
-                    LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" no such file or directory\n", parent.c_str());
-                    return return_codes::error_occured;
-                }
+    fs::path to_file_path;
+    fs::path from_file_path;
+    fs::path parent_dir_path;
+    try {
+        to_file_path = fs::absolute(to_file).lexically_normal();
+        parent_dir_path = to_file_path.parent_path();
+        from_file_path = fs::absolute(from_file).lexically_normal();
+
+        if (!fs::exists(parent_dir_path)) {
+            if constexpr (dir_s == create_main) {
+                fs::create_directories(parent_dir_path);
+                LOG_IF(INFO, verbose >= 2)
+                                << vformat("Root directory \"%s\" was created successfully",
+                                           parent_dir_path.c_str());
+            } else {
+                LOG_IF(ERROR, verbose >= 1)
+                                << vformat("\"%s\" no such file or directory\n", parent_dir_path.c_str());
+                return return_codes::error_occured;
             }
-            if constexpr (dir_s == no_create_main) {
+        }
+        if constexpr (dir_s == no_create_main) {
 
-                if (!fs::is_directory(parent)) {
-                    LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" is not a directory use procesFile for files\n",
-                                                           parent.c_str());
-                    return return_codes::error_occured;
-                }
+            if (!fs::is_directory(parent_dir_path)) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("\"%s\" is not a directory use procesFile for files\n",
+                                                       parent_dir_path.c_str());
+                return return_codes::error_occured;
             }
-
         }
-        catch (const fs::filesystem_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
-            return return_codes::error_occured;
-        }
-       new_abs = parent/fs::path(to_file).filename();
-    }
-    else {
-        curr_abs=from_file;
-        new_abs = to_file;
-    }
-    std::basic_ofstream<symbol_type> out(new_abs.c_str());
 
-    auto stream_res=manager_.template get_file_streamed<verbose>(curr_abs.string(), out);
+    }
+    catch (const fs::filesystem_error &e) {
+        LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
+        return return_codes::error_occured;
+    }
+
+    std::basic_ofstream<symbol_type> out(to_file_path.c_str());
+
+    auto stream_res = manager_.template get_file_streamed<verbose>(from_file_path.string(), out);
 
     out.close();
 
-    if(stream_res==return_codes::error_occured)
-    {
-        LOG_IF(ERROR, verbose>=1)<<vformat("Error occurred during "
-                                           "file \"%s\" streaming",
-                                           curr_abs.c_str());
+    if (stream_res == return_codes::error_occured) {
+        LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during "
+                                               "file \"%s\" streaming",
+                                               from_file_path.c_str());
         return stream_res;
     }
 
 
-    if constexpr (!from_load_dir&&rr == data_retrieval_strategy::remove_) {
-        auto del_res=manager_.template delete_file<verbose>(curr_abs.string());
-        if(del_res==return_codes::error_occured)
-        {
-            LOG_IF(ERROR, verbose>=1)<<vformat("Error occurred during "
-                                               "file \"%s\" deletion",
-                                               curr_abs.c_str());
+    if constexpr (!from_load_dir && rr == data_retrieval_strategy::remove_) {
+        auto del_res = manager_.template delete_file<verbose>(from_file_path.string());
+        if (del_res == return_codes::error_occured) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during "
+                                                   "file \"%s\" deletion",
+                                                   from_file_path.c_str());
             return del_res;
         }
     }
@@ -205,8 +200,8 @@ requires is_divisible<total_block_size, segment_size>
 template<verbose_level verbose, directory_handling_strategy dir_s, data_retrieval_strategy rr>
 int FileParsingService<segment_size>::load_directory(std::string_view from_dir, std::string_view to_dir) {
     namespace fs = std::filesystem;
-    fs::path new_abs;
-    fs::path curr_abs = fs::canonical(from_dir);//todo this one assumes that from path exists which is not always the case
+    fs::path new_dir_path;
+    fs::path from_dir_path = fs::absolute(from_dir).lexically_normal();
     try {
         if (!fs::exists(to_dir)) {
             if constexpr (dir_s == create_main) {
@@ -226,51 +221,40 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
                 return return_codes::error_occured;
             }
         }
-        new_abs = fs::canonical(to_dir);
+        new_dir_path = fs::absolute(to_dir).lexically_normal();
 
     } catch (const fs::filesystem_error &e) {
         LOG_IF(ERROR, verbose >= 1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
         return return_codes::error_occured;
     }
 
-    auto files = manager_.template get_all_files<verbose>(curr_abs.string());//get
+    auto files = manager_.template get_all_files<verbose>(from_dir_path.string());//get
     //todo метод(в бд?) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
     for (const std::pair<db_services::index_type, std::string> &pair: files) {
         std::string file_path = pair.second;
 
-        auto p_t_s = new_abs / fs::path(pair.second).lexically_relative(curr_abs);
+        auto p_t_s = new_dir_path / fs::path(pair.second).lexically_relative(from_dir_path);
 
 
-        auto result=this->template load_file<verbose,dir_s,rr, true>(pair.second,p_t_s.string());
-        if(result==return_codes::error_occured)
-        {
-            LOG_IF(ERROR, verbose>=1)<<vformat("Error occurred during "
-                                               "file \"%s\" retrieval",
-                                               curr_abs.c_str());
+        auto result = this->template load_file<verbose, directory_handling_strategy::create_main, rr, true>(pair.second,
+                                                                                                            p_t_s.string());
+        if (result == return_codes::error_occured) {
+            LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during "
+                                                   "file \"%s\" retrieval",
+                                                   from_dir_path.c_str());
             continue;
         }
-        /*fs::path parent_dir = p_t_s.parent_path();
-        if (!fs::exists(parent_dir)) {
-            fs::create_directories(parent_dir);
-            LOG_IF(INFO, verbose >= 2) << vformat("Creating parent directories:  %s \n", parent_dir.c_str());
-
-        }
-        std::basic_ofstream<symbol_type> out(p_t_s);
-
-        manager_.template get_file_streamed<verbose>(pair.second, out);
-
-        out.close();*/
     }
 
     if constexpr (rr == data_retrieval_strategy::remove_) {
-        manager_.template delete_directory<verbose>(curr_abs.string());
+        manager_.template delete_directory<verbose>(from_dir_path.string());
     }
     return 0;
 }
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template<verbose_level verbose, db_usage_strategy str,hash_function hash>
+template<verbose_level verbose, db_usage_strategy str, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::db_load(std::string &dbName) {
     auto CString = db_services::default_configuration();
@@ -284,7 +268,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
             LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
             return return_codes::error_occured;
         }
-        reusult = manager_.template fill_schemas<verbose,hash>();
+        reusult = manager_.template fill_schemas<verbose, hash>();
 
         if (reusult == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1)
@@ -301,21 +285,18 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template<verbose_level verbose, data_insetion_strategy strategy,bool existence_checks>
-int FileParsingService<segment_size>::process_file(std::string_view file_path,index_type dir_id) {
+template<verbose_level verbose, data_insetion_strategy strategy, bool existence_checks>
+int FileParsingService<segment_size>::process_file(std::string_view file_path, index_type dir_id) {
 
     namespace fs = std::filesystem;
     std::string file;
-    if constexpr (existence_checks)
-    {
-        auto result= check_file_existence<verbose>(file_path);
-        if(!result.has_value())
-        {
+    if constexpr (existence_checks) {
+        auto result = check_file_existence<verbose>(file_path);
+        if (!result.has_value()) {
             return return_codes::error_occured;
         }
-        file=result.value();
-    }
-    else {
+        file = result.value();
+    } else {
         file = file_path;
     }
 
@@ -346,23 +327,20 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path,in
     std::basic_ifstream<symbol_type> in(file);
 
     auto res1 = manager_.template insert_file_from_stream<verbose>(file, in);
-    if(res1==return_codes::error_occured)
-    {
+    if (res1 == return_codes::error_occured) {
         LOG_IF(ERROR, verbose >= 1)
                         << vformat("Error occurred during file contents streaming.\n File path \"%s\"!", file.c_str());
         return res1;
     }
-    res1=manager_.template finish_file_processing<verbose>(file, file_id);
+    res1 = manager_.template finish_file_processing<verbose>(file, file_id);
 
-    if(res1==return_codes::error_occured)
-    {
+    if (res1 == return_codes::error_occured) {
         LOG_IF(ERROR, verbose >= 1)
                         << vformat("Error occurred during file contents processing.\n File path \"%s\"!", file.c_str());
         return res1;
     }
     return 0;
 }
-
 
 
 template<unsigned long segment_size>
@@ -372,12 +350,11 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     namespace fs = std::filesystem;
     fs::path pp;
 
-    auto result= check_directory_existence<verbose>(dir_path);
-    if(!result.has_value())
-    {
+    auto result = check_directory_existence<verbose>(dir_path);
+    if (!result.has_value()) {
         return return_codes::error_occured;
     }
-    pp=result.value();
+    pp = result.value();
 
     auto dir_id = manager_.template create_directory<2>(pp.string());
     if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
@@ -390,15 +367,12 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     for (const auto &entry: fs::recursive_directory_iterator(pp)) {
         if (!fs::is_directory(entry)) {
             auto file = fs::canonical(entry.path()).string();
-            auto results=this-> template process_file<verbose,strategy, false>(file,dir_id);
-           if(results==return_codes::already_exists)
-           {
-               continue;
-           }
-           else if(results==return_codes::error_occured)
-           {
-               return results;
-           }
+            auto results = this->template process_file<verbose, strategy, false>(file, dir_id);
+            if (results == return_codes::already_exists) {
+                continue;
+            } else if (results == return_codes::error_occured) {
+                return results;
+            }
         }
     }
 

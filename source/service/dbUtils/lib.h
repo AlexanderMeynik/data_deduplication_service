@@ -9,8 +9,6 @@
 namespace db_services {
 
 
-
-
     using index_type = long long;
     using trasnactionType = pqxx::work;
 
@@ -129,9 +127,6 @@ namespace db_services {
         }
         return res;
     }
-
-
-
 
 
     template<typename s1>
