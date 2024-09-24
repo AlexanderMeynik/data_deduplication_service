@@ -41,7 +41,7 @@ target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLi
 add_executable(file_service fileServiceTest.cpp)
 target_link_libraries(file_service FileUtilsLib)
 
-
+add_executable(tsts1 main2.cpp)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_custom_target(run_file_service
             COMMAND ${CMAKE_COMMAND} -E env

@@ -86,7 +86,7 @@ namespace db_services {
             }
 
             std::string query, qr;
-            pqxx::result res;
+            ResType res;
             if constexpr (del == cascade) {
 
                 query = "update public.segments s "
@@ -173,7 +173,7 @@ namespace db_services {
                 file_id = txn.query_value<index_type>(qx1);
             }
             std::string query, qr;
-            pqxx::result res;
+            ResType res;
             if constexpr (del == cascade) {
 
                 query = "update public.segments s "
@@ -329,7 +329,7 @@ namespace db_services {
             std::string table_name_ = vformat("\'temp_file_%s\'", file_path.data());
 
             std::string aggregation_table_name = vformat("\"new_segments_%s\"", file_path.data());
-            pqxx::result r;
+            ResType r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = %s", table_name_.c_str());
             txn.exec(q).one_row();
 
@@ -410,7 +410,7 @@ namespace db_services {
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
                     txn.esc(table_name).c_str()
             );
-            pqxx::result r2 = txn.exec(q1);
+            ResType r2 = txn.exec(q1);
             txn.commit();
 
             LOG_IF(INFO, verbose >= 2) << vformat("Temp data table %s was created.", table_name.c_str());
@@ -438,7 +438,7 @@ namespace db_services {
         index_type future_file_id = return_codes::error_occured;
 
         std::string query;
-        pqxx::result res;
+        ResType res;
         try {
             if (dir_id == index_vals::empty_parameter_value) {
                 query = "insert into public.files (file_name,size_in_bytes)"
@@ -496,7 +496,7 @@ namespace db_services {
                                 "    inner join public.directories d "
                                 "        on d.dir_id = public.files.dir_id "
                                 "where dir_path=$1;";
-            pqxx::result res = txn.exec(query, pqxx::params(dir_path));
+            ResType res = txn.exec(query, pqxx::params(dir_path));
             LOG_IF(INFO, verbose >= 2)
                             << vformat("Filenames were successfully retrieved for directory \"%s\".", dir_path.data());
             for (const auto &re: res) {
@@ -573,14 +573,15 @@ namespace db_services {
 
 
         pqxx::nontransaction no_trans_exec(*temp_connection);
+        //todo use type template
 
         try {
-            pqxx::result r = no_trans_exec.exec("SELECT 1 FROM pg_database WHERE datname = $1;",
+            ResType r = no_trans_exec.exec("SELECT 1 FROM pg_database WHERE datname = $1;",
                                                 pqxx::params(no_trans_exec.esc(cString_.getDbname())));
             r.no_rows();
 
 
-            no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(cString_.getDbname()).c_str()));
+            no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(cString_.getDbname()).c_str()));//todo use "" to save db
             //не менять, паарметры здесь не подпадают под query
             no_trans_exec.exec(vformat("GRANT ALL ON DATABASE %s TO %s;",
                                        no_trans_exec.esc(cString_.getDbname()).c_str(),

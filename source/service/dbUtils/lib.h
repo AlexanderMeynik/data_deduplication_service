@@ -8,9 +8,10 @@
 
 namespace db_services {
 
-
     using index_type = long long;
     using trasnactionType = pqxx::work;
+    using conPtr = std::shared_ptr<pqxx::connection>;
+    using ResType=pqxx::result;
 
     enum delete_strategy {
         cascade,
@@ -18,7 +19,8 @@ namespace db_services {
     };
 
     static const char *const sample_temp_db = "template1";
-    using conPtr = std::shared_ptr<pqxx::connection>;
+
+
 
 
     static constexpr const char *const sqlLimitBreached_state = "23505";
