@@ -1,19 +1,29 @@
 #ifndef SOURCE_SERVICE_CLASSWRAPPERS_H
 #define SOURCE_SERVICE_CLASSWRAPPERS_H
 #include <pqxx/pqxx>
-
+//todo add timing
 class connectionWrapper
 {
-    connectionWrapper():inner_(){};
+
+    connectionWrapper() {
+        empty_contr_impl();
+    }
+
+    void empty_contr_impl(){
+        inner_=pqxx::connection();
+    };
     virtual bool is_open() const noexcept
     {
         return inner_.is_open();
     };
 
-    explicit connectionWrapper(pqxx::zview options) : inner_(options.c_str())
-    //todo divide into impl and constructor
+    explicit connectionWrapper(pqxx::zview options)
     {
-
+        connection_cont_impl(options);
+    }
+    void connection_cont_impl(pqxx::zview options)
+    {
+        inner_=pqxx::connection{options.c_str()};
     }
 
     connectionWrapper(connectionWrapper &&rhs):inner_(std::move(rhs.inner_))
@@ -31,11 +41,14 @@ template<typename connectionType=pqxx::connection,typename ResultType=pqxx::resu
         write_policy READWRITE = write_policy::read_write>
 class transactionWrapper
 {
-    explicit transactionWrapper(connectionType &cx) : inner_(cx)
+    transactionWrapper(connectionType &cx, std::string_view tname = "")
     {
-        //todo divide into impl and constructor
+        trans_constr_impl(cx,tname);
     }
-
+    virtual void trans_constr_impl(connectionType &cx)
+    {
+        inner_={cx,cx};
+    }
     virtual ResultType exec(std::string_view query)
     {
         return inner_.exec(query);
@@ -67,9 +80,15 @@ private:
 template<typename connectionType=pqxx::connection,typename ResultType=pqxx::result>
 class notransactionWrapper
 {
-    explicit notransactionWrapper(connectionType &cx) : inner_(cx)
+
+
+    notransactionWrapper(connectionType &cx, std::string_view tname = "")
     {
-        //todo divide into impl and constructor
+        nonTrans_constr_impl(cx,tname);
+    }
+    virtual void nonTrans_constr_impl(connectionType &cx)
+    {
+        inner_={cx,cx};
     }
 
     virtual ResultType exec(std::string_view query)
@@ -106,8 +125,15 @@ class resultWrapper
 {
     using reference = pqxx::field;
     using size_type = pqxx::row_size_type;
-    resultWrapper() noexcept : inner_()
-    {}
+    resultWrapper() noexcept
+    {
+        const_impl();
+    }
+
+    virtual void const_impl()noexcept
+    {
+        inner_=pqxx::result();
+    }
 
     virtual resultWrapper &operator=(resultWrapper &&rhs) noexcept = default;
     virtual pqxx::row one_row() const

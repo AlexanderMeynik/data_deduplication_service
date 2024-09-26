@@ -364,7 +364,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
                         << vformat("Error occurred during file contents streaming.\n File path \"%s\"!", file.c_str());
         return res1;
     }
-    res1 = manager_.template finish_file_processing<verbose>(file, file_id);
+    res1 = manager_.template finish_file_processing<verbose>(file, file_id);//todo hash function template
 
     if (res1 == return_codes::error_occured) {
         LOG_IF(ERROR, verbose >= 1)

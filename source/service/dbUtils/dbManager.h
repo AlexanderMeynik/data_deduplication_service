@@ -320,7 +320,7 @@ namespace db_services {
 
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>
+    template<verbose_level verbose>//todo hash function template
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
@@ -346,8 +346,8 @@ namespace db_services {
             q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
                         "SELECT ns.data, ns.count "
                         "FROM %s ns "
-                        "ON CONFLICT ON CONSTRAINT unique_data_constr "
-                        "DO UPDATE "
+                        "ON CONFLICT ON CONSTRAINT unique_data_constr "//todo may cause slowness
+                        "DO UPDATE "//todo check option (genreate hash) on hash columns + unique segment_hash
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
                         aggregation_table_name.c_str());
             txn.exec(q);
@@ -363,7 +363,7 @@ namespace db_services {
                         "SELECT pos, se.segment_hash,  %d "
                         "FROM  %s tt "
                         "INNER JOIN public.segments se "
-                        "ON tt.data = se.segment_data;",
+                        "ON tt.data = se.segment_data;",//todo this one is redundant we can calculate hash again
                         file_id,
                         table_name.c_str()
             );
@@ -665,21 +665,22 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2) << "Create directories, files and data tables\n";
 
 
-            query = "CREATE INDEX if not exists hash_segment_hash on public.segments(segment_hash); "
-                    "CREATE INDEX if not exists hash_segment_data on public.segments(segment_data); "
+            query = "CREATE INDEX if not exists hash_segment_hash on public.segments(segment_hash); "//todo delete
+                    "CREATE INDEX if not exists hash_segment_data on public.segments(segment_data); "//todo delete at any costs
                     "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
                     "CREATE INDEX if not exists dir_gin_index on public.directories using gin(dir_path); "
-                    "CREATE INDEX if not exists dir_bin_index on public.directories(dir_path); "
+                    "CREATE INDEX if not exists dir_bin_index on public.directories(dir_path); "//todo delete
                     "CREATE INDEX if not exists dir_id_bin on public.files(dir_id); "
-                    "CREATE INDEX if not exists files_bin_index on public.files(file_name); "
+                    "CREATE INDEX if not exists files_bin_index on public.files(file_name); "//todo delete
                     "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); "
-                    "CREATE INDEX if not exists bin_file_id_ on public.files(file_id); ";
+                    "CREATE INDEX if not exists bin_file_id_ on public.files(file_id); ";//todo delete
             txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create indexes for main tables\n";
 
-
-            query = "ALTER TABLE public.segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data); "
+            //unique_data_constr
+            //
+            query = "ALTER TABLE public.segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data); "//todo potenrially can be deleted
                     "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
                     "ALTER TABLE public.directories ADD CONSTRAINT unique_dir_constr UNIQUE(dir_path);";
             txn.exec(query);
