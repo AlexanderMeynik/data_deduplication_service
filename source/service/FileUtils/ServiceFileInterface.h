@@ -109,7 +109,8 @@ public:
     template<verbose_level verbose = 0, data_insetion_strategy strategy = preserve_old>
     int process_directory(std::string_view dir_path);
 
-    template<verbose_level verbose = 0, data_insetion_strategy strategy = preserve_old, bool existence_checks = true>
+    template<verbose_level verbose = 0, data_insetion_strategy strategy = preserve_old, bool existence_checks = true, hash_function hash = SHA_256>
+    requires is_divisible<segment_size, hash_function_size[hash]>
     int process_file(std::string_view file_path, index_type dir_id = index_vals::empty_parameter_value);
 
 
@@ -337,7 +338,8 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template<verbose_level verbose, data_insetion_strategy strategy, bool existence_checks>
+template<verbose_level verbose, data_insetion_strategy strategy, bool existence_checks, hash_function hash>
+requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::process_file(std::string_view file_path, index_type dir_id) {
 
     namespace fs = std::filesystem;
@@ -393,7 +395,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
         return res1;
     }
     MEASURE_TIME(
-    res1 = manager_.template finish_file_processing<verbose>(file, file_id);//todo hash function template
+    res1 = manager_.template finish_file_processing<verbose COMMA hash>(file, file_id);//todo hash function template
     )
 
     if (res1 == return_codes::error_occured) {

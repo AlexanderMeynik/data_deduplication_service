@@ -46,7 +46,7 @@ namespace db_services {
         template<verbose_level verbose = 0>
         index_type create_file_temp(std::string_view file_path);
 
-        template<verbose_level verbose = 0>
+        template<verbose_level verbose = 0, hash_function hash = SHA_256>
         int finish_file_processing(std::string_view file_path, index_type file_id);
 
         template<verbose_level verbose = 0, delete_strategy del = cascade>
@@ -143,10 +143,9 @@ namespace db_services {
             txn.commit();
 
         } catch (const pqxx::sql_error &e) {
-            if(e.sqlstate()==sqlFqConstraight)
-            {
-                LOG_IF(ERROR,verbose>=1)<<vformat("Unable to remove record for directory \"%s\" since files "
-                                                  "for it are stile present.",directory_path.data());
+            if (e.sqlstate() == sqlFqConstraight) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to remove record for directory \"%s\" since files "
+                                                       "for it are stile present.", directory_path.data());
                 return return_codes::error_occured;//todo is thin an error
             }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
@@ -220,10 +219,9 @@ namespace db_services {
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
-            if(e.sqlstate()==sqlFqConstraight)
-            {
-                LOG_IF(ERROR,verbose>=1)<<vformat("Unable to remove record for file \"%s\" since segment data "
-                                                  "for it are stile present.",file_name.data());
+            if (e.sqlstate() == sqlFqConstraight) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to remove record for file \"%s\" since segment data "
+                                                       "for it are stile present.", file_name.data());
                 return return_codes::error_occured;//todo is this an error
             }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
@@ -251,7 +249,7 @@ namespace db_services {
                                         "where file_name=\'%s\'::tsvector "
                                         "order by segment_num", file_name.data());
             for (auto [name]: txn.stream<pqxx::bytes>(query)) {
-                out <<  hex_to_string(pqxx::to_string(name).substr(2));
+                out << hex_to_string(pqxx::to_string(name).substr(2));
             }
             txn.commit();
 
@@ -320,7 +318,7 @@ namespace db_services {
 
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
-    template<verbose_level verbose>//todo hash function template
+    template<verbose_level verbose, hash_function hash>
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
@@ -346,8 +344,8 @@ namespace db_services {
             q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
                         "SELECT ns.data, ns.count "
                         "FROM %s ns "
-                        "ON CONFLICT ON CONSTRAINT unique_data_constr "//todo may cause slowness
-                        "DO UPDATE "//todo check option (genreate hash) on hash columns + unique segment_hash
+                        "ON CONFLICT (segment_hash) "
+                        "DO UPDATE "
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
                         aggregation_table_name.c_str());
             txn.exec(q);
@@ -360,10 +358,8 @@ namespace db_services {
 
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
-                        "SELECT pos, se.segment_hash,  %d "
-                        "FROM  %s tt "
-                        "INNER JOIN public.segments se "
-                        "ON tt.data = se.segment_data;",//todo this one is redundant we can calculate hash again
+                        "SELECT tt.pos, %s(tt.data),  %d "
+                        "FROM  %s tt ", hash_function_name[hash],
                         file_id,
                         table_name.c_str()
             );
@@ -577,11 +573,12 @@ namespace db_services {
 
         try {
             ResType r = no_trans_exec.exec("SELECT 1 FROM pg_database WHERE datname = $1;",
-                                                pqxx::params(no_trans_exec.esc(cString_.getDbname())));
+                                           pqxx::params(no_trans_exec.esc(cString_.getDbname())));
             r.no_rows();
 
 
-            no_trans_exec.exec(vformat("CREATE DATABASE %s;", no_trans_exec.esc(cString_.getDbname()).c_str()));//todo use "" to save db
+            no_trans_exec.exec(vformat("CREATE DATABASE %s;",
+                                       no_trans_exec.esc(cString_.getDbname()).c_str()));//todo use "" to save db
             //не менять, паарметры здесь не подпадают под query
             no_trans_exec.exec(vformat("GRANT ALL ON DATABASE %s TO %s;",
                                        no_trans_exec.esc(cString_.getDbname()).c_str(),
@@ -665,23 +662,17 @@ namespace db_services {
             LOG_IF(INFO, verbose >= 2) << "Create directories, files and data tables\n";
 
 
-            query = "CREATE INDEX if not exists hash_segment_hash on public.segments(segment_hash); "//todo delete
-                    "CREATE INDEX if not exists hash_segment_data on public.segments(segment_data); "//todo delete at any costs
-                    "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
+            query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
                     "CREATE INDEX if not exists dir_gin_index on public.directories using gin(dir_path); "
-                    "CREATE INDEX if not exists dir_bin_index on public.directories(dir_path); "//todo delete
                     "CREATE INDEX if not exists dir_id_bin on public.files(dir_id); "
-                    "CREATE INDEX if not exists files_bin_index on public.files(file_name); "//todo delete
-                    "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); "
-                    "CREATE INDEX if not exists bin_file_id_ on public.files(file_id); ";//todo delete
+                    "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); ";
             txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create indexes for main tables\n";
 
             //unique_data_constr
             //
-            query = "ALTER TABLE public.segments ADD CONSTRAINT unique_data_constr UNIQUE(segment_data); "//todo potenrially can be deleted
-                    "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
+            query = "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
                     "ALTER TABLE public.directories ADD CONSTRAINT unique_dir_constr UNIQUE(dir_path);";
             txn.exec(query);
             LOG_IF(INFO, verbose >= 2) << "Create unique constraints for tables\n";
