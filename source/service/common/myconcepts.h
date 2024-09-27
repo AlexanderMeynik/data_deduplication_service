@@ -13,7 +13,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdint>
-
+#include "ClockArray.h"
 using verbose_level = unsigned short;//todo use VLOG for verbose logging
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
