@@ -18,6 +18,21 @@ using verbose_level = unsigned short;//todo use VLOG for verbose logging
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 
+using CLOCK =timing::chrono_clock_template<std::chrono::milliseconds>;
+static CLOCK  clk;
+#define COMMA ,
+//crutch
+#define MEASURE_TIME(block) \
+    clk.tik();              \
+    block                   \
+    clk.tak();
+/*template<typename F, typename... Args>
+double funcTime(F func, Args&&... args){
+    clk.tik();
+    func(std::forward<Args>(args)...);
+    clk.tak();
+    return duration(timeNow()-t1);
+}*/
 
 enum hash_function {
     SHA_224,

@@ -24,8 +24,10 @@ void func_2(CLOCK &cl)
 }
 int main(){
     CLOCK cl;
+    for (int i = 0; i < 3; ++i) {
+        func_1(cl);
+    }
 
-func_1(cl);
 func_2(cl);
 for(const auto& p:cl)
     std::cout<<p.first[0]<<'\t'<<p.first[1]<<'\t'<<p.second<<'\n';

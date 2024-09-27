@@ -135,7 +135,9 @@ requires is_divisible<total_block_size, segment_size>
 template<verbose_level verbose, ds delS>
 int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
     fs::path file_abs_path= get_normal_abs(file_path);
-    auto res=manager_.template delete_file<verbose,delS>(file_abs_path.string());
+    MEASURE_TIME(
+    auto res=manager_.template delete_file<verbose COMMA delS>(file_abs_path.string());
+    )
     if(res==return_codes::error_occured)
     {
         LOG_IF(ERROR,verbose>=1)<<vformat("Error occurred during directory \"%s\" removal.\n",file_abs_path.c_str());
@@ -148,7 +150,10 @@ requires is_divisible<total_block_size, segment_size>
 template<verbose_level verbose, ds delS>
 int FileParsingService<segment_size>::delete_directory(std::string_view dir_path) {
     fs::path dir_abs_path= get_normal_abs(dir_path);
-    auto res=manager_.template delete_directory<verbose,delS>(dir_abs_path.string());
+
+    MEASURE_TIME(
+    auto res=manager_.template delete_directory<verbose COMMA delS>(dir_abs_path.string());
+    )
     if(res==return_codes::error_occured)
     {
         LOG_IF(ERROR,verbose>=1)<<vformat("Error occurred during directory \"%s\" removal.\n",dir_abs_path.c_str());
@@ -200,7 +205,9 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
 
     std::basic_ofstream<symbol_type> out(to_file_path.c_str());
 
+    MEASURE_TIME(
     auto stream_res = manager_.template get_file_streamed<verbose>(from_file_path.string(), out);
+    )
 
     out.close();
 
@@ -213,7 +220,9 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
 
 
     if constexpr (!from_load_dir && rr == data_retrieval_strategy::remove_) {
+        MEASURE_TIME(
         auto del_res = manager_.template delete_file<verbose>(from_file_path.string());
+        )
         if (del_res == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during "
                                                    "file \"%s\" deletion",
@@ -260,7 +269,9 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
         return return_codes::error_occured;
     }
 
+    MEASURE_TIME(
     auto files = manager_.template get_all_files<verbose>(from_dir_path.string());//get
+    )
     //todo метод(в бд?) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
     for (const std::pair<db_services::index_type, std::string> &pair: files) {
         std::string file_path = pair.second;
@@ -279,7 +290,9 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
     }
 
     if constexpr (rr == data_retrieval_strategy::remove_) {
+        MEASURE_TIME(
         manager_.template delete_directory<verbose>(from_dir_path.string());//todo leave be or replace
+        )
     }
     return 0;
 }
@@ -291,16 +304,21 @@ requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::db_load(std::string &dbName) {
     auto CString = db_services::default_configuration();
     CString.set_dbname(dbName);
-
+    MEASURE_TIME(
     manager_ = dbManager<segment_size>(CString);
+    )
 
     if constexpr (str == create) {
+        MEASURE_TIME(
         auto reusult = manager_.template create<verbose>();
+        )
         if (reusult == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
             return return_codes::error_occured;
         }
-        reusult = manager_.template fill_schemas<verbose, hash>();
+        MEASURE_TIME(
+        reusult = manager_.template fill_schemas<verbose COMMA hash>();
+        )
 
         if (reusult == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1)
@@ -308,7 +326,9 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
             return return_codes::error_occured;
         }
     } else {
+        MEASURE_TIME(
         manager_.template connectToDb<verbose>();
+        )
     }
     LOG_IF(INFO, verbose >= 2) << ((manager_.checkConnection()) ? "connection established\n" : "cannot connect\n");
     return 0;
@@ -333,14 +353,17 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     }
 
     auto size = fs::file_size(file);
+    MEASURE_TIME(
     auto file_id = manager_.template create_file<verbose>(file, dir_id, size);
+    )
 
     if (file_id == return_codes::already_exists) {
         if (strategy == preserve_old) {
             return return_codes::already_exists;
         }
-
+        MEASURE_TIME(
         auto res = manager_.template delete_file<verbose>(file, file_id);//todo replace or presereve
+        )
 
         if (res == return_codes::error_occured) {
             LOG_IF(ERROR, verbose >= 1)
@@ -348,7 +371,9 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
                                        file.c_str());
             return return_codes::error_occured;
         }
+        MEASURE_TIME(
         file_id = manager_.template create_file<verbose>(file, dir_id, size);
+        )
     }
 
     if (file_id == return_codes::error_occured) {
@@ -358,13 +383,18 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     }
     std::basic_ifstream<symbol_type> in(file);
 
+    MEASURE_TIME(
     auto res1 = manager_.template insert_file_from_stream<verbose>(file, in);
+    )
+
     if (res1 == return_codes::error_occured) {
         LOG_IF(ERROR, verbose >= 1)
                         << vformat("Error occurred during file contents streaming.\n File path \"%s\"!", file.c_str());
         return res1;
     }
+    MEASURE_TIME(
     res1 = manager_.template finish_file_processing<verbose>(file, file_id);//todo hash function template
+    )
 
     if (res1 == return_codes::error_occured) {
         LOG_IF(ERROR, verbose >= 1)
@@ -388,7 +418,9 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     }
     pp = result.value();
 
-    auto dir_id = manager_.template create_directory<2>(pp.string());
+    MEASURE_TIME(
+    auto dir_id = manager_.template create_directory<verbose>(pp.string());
+    )
     if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
         LOG_IF(ERROR, verbose >= 1) << vformat("Error occurred during directory creation. Directory path \"%s\"!",
                                                dir_path.data());

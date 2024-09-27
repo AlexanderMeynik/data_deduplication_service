@@ -14,13 +14,13 @@
 
 #include <source_location>
 
-using location_type=std::array<std::string,3>;
+using location_type=std::array<std::string,4>;
 template<>
 struct std::hash<location_type>
 {
     std::size_t operator()(const location_type & s) const noexcept
     {
-        return std::hash<std::string>{}(s[0]+s[1]+s[2]);
+        return std::hash<std::string>{}(s[0]+s[1]+s[2]+s[3]);
     }
 };
 namespace timing {
@@ -35,7 +35,8 @@ namespace timing {
         auto id2=name.find('(');
 
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now()-std::chrono::high_resolution_clock::now());
-        return {name.substr(id+1,id2-id-1),std::to_string(location.line()),std::to_string(location.column())};
+        std::string fname=location.file_name();
+        return {name.substr(id+1,id2-id-1),std::to_string(location.line()),std::to_string(location.column()),fname.substr(fname.rfind('/')+1)};
 
     }
 
@@ -49,6 +50,17 @@ namespace timing {
     T(*double_cast)(std::chrono::system_clock::time_point curr,std::chrono::system_clock::time_point prev)>
     class ClockArray {
     public:
+
+        struct time_store
+        {
+            T time;
+            size_t count;
+            friend std::ostream &operator<<(std::ostream &out,const time_store&ts)
+            {
+                out<<ts.time;///ts.count;
+                return out;
+            }
+        };
         template<typename Tp, typename BinaryOperation>
         Tp aggregate(Tp init,
                      BinaryOperation binary_op) {
@@ -65,7 +77,16 @@ namespace timing {
             id[1]=to_tak.top()[1];
             id[2]=to_tak.top()[2];
             to_tak.pop();
-            timers[id] =double_cast((*timeGetter)() , startIngTimers[id]);
+            auto res=double_cast((*timeGetter)() , startIngTimers[id]);
+            if(timers.contains(id))
+            {
+                timers[id] ={res,1};
+            }
+            else
+            {
+                timers[id].time+=res;
+                timers[id].count++;
+            }
         }
 
         void tik(const std::source_location& location
@@ -81,19 +102,39 @@ namespace timing {
 
         }
 
-        auto begin()
+        decltype(auto) begin() const
         {
             return timers.begin();
         }
 
-        auto end()
+        decltype(auto)  end() const
         {
             return timers.end();
         }
 
+        auto cbegin() const
+        {
+            return timers.cbegin();
+        }
+
+        auto cend() const
+        {
+            return timers.cend();
+        }
+
+        friend std::ostream &operator<<(std::ostream &out,const ClockArray<T,T2,timeGetter,func_name,double_cast>&ts)
+        {
+            out<<"Function name\tLine\nTime";
+            for (auto& val:ts) {
+                std::cout<<val.first[0]<<'\t'<<val.first[3]<<":"<<val.first[1]<<'\t'<<val.second<<'\n';
+            }
+            return out;
+        }
+
+
         //decltype()
     private:
-        std::unordered_map<location_type ,T> timers;
+        std::unordered_map<location_type ,time_store> timers;
 
         std::unordered_map<location_type ,T2>startIngTimers;
         std::stack<location_type> to_tak;
