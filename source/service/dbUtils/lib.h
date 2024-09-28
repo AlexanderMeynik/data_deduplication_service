@@ -155,20 +155,20 @@ namespace db_services {
         try {
             c = std::make_shared<pqxx::connection>(css);
             if (!c->is_open()) {
-                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to connect by url \"%s\"\n", cString.data());
+                VLOG(1) << vformat("Unable to connect by url \"%s\"\n", cString.data());
                 return tl::unexpected(return_codes::error_occured);
 
             } else {
 
-                LOG_IF(INFO, verbose >= 2) << "Opened database successfully: " << c->dbname() << '\n';
+                VLOG(2) << "Opened database successfully: " << c->dbname() << '\n';
             }
         } catch (const pqxx::sql_error &e) {
-            LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
+            VLOG(1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
                                         << "SQL State: " << e.sqlstate() << '\n';
             return tl::unexpected(return_codes::error_occured);
         } catch (const std::exception &e) {
-            LOG_IF(ERROR, verbose >= 1) << "Error: " << e.what() << '\n';
+            VLOG(1) << "Error: " << e.what() << '\n';
             return tl::unexpected(return_codes::error_occured);
         }
         return tl::expected<conPtr,return_codes>{c};

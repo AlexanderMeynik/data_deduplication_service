@@ -146,12 +146,12 @@ class resultWrapper
         return inner_.no_rows();
     };
 
-    auto begin()
+    virtual pqxx::const_result_iterator begin()
     {
         return inner_.begin();
     }
 
-    auto end()
+    virtual pqxx::const_result_iterator end()
     {
         return inner_.end();
     }
