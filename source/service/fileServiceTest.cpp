@@ -14,9 +14,8 @@ int main(int argc, char *argv[]) {
     fs.db_load<2 COMMA db_usage_strategy::create>(dbName);
 
     for (int i = 0  ; i < from_dirs.size(); ++i) {
-
-         fs.process_directory<2 COMMA data_insetion_strategy::replace_with_new>(from_dirs[i]);
-          fs.load_directory<2 COMMA directory_handling_strategy::create_main>(from_dirs[i], to_dirs[i]);
+        fs.process_directory<2 COMMA data_insetion_strategy::replace_with_new>(from_dirs[i]);
+        fs.load_directory<2 COMMA directory_handling_strategy::create_main>(from_dirs[i], to_dirs[i]);
     }
     )
     std::cout<<"\n\n\n"<<clk;

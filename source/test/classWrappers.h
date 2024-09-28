@@ -1,7 +1,7 @@
 #ifndef SOURCE_SERVICE_CLASSWRAPPERS_H
 #define SOURCE_SERVICE_CLASSWRAPPERS_H
 #include <pqxx/pqxx>
-//todo add timing
+
 class connectionWrapper
 {
 
@@ -26,10 +26,12 @@ class connectionWrapper
         inner_=pqxx::connection{options.c_str()};
     }
 
-    connectionWrapper(connectionWrapper &&rhs):inner_(std::move(rhs.inner_))
+    connectionWrapper(connectionWrapper &&rhs) {
+        connn_contr_impl(std::move(rhs));
+    }
+    virtual void connn_contr_impl(connectionWrapper &&rhs)
     {
-        //todo divide into impl and constructor
-
+        inner_=std::move(rhs.inner_);
     }
 
 
@@ -115,7 +117,6 @@ class notransactionWrapper
         inner_.abort();
     }
     //todo this one is the same as transction
-    //todo 2 esc function must be removed
 
 private:
     pqxx::nontransaction inner_;
@@ -145,7 +146,15 @@ class resultWrapper
         return inner_.no_rows();
     };
 
-    //todo 502 begin end const iterators
+    auto begin()
+    {
+        return inner_.begin();
+    }
+
+    auto end()
+    {
+        return inner_.end();
+    }
     //todo have to do something with fields(503)
 
 private:

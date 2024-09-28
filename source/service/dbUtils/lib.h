@@ -2,6 +2,7 @@
 #define SERVICE_LIB_H
 
 #include "../common/myconcepts.h"
+#include "../common/expected.hpp"
 #include <fstream>
 #include <pqxx/pqxx>
 #include <functional>
@@ -12,6 +13,7 @@ namespace db_services {
     using trasnactionType = pqxx::work;
     using conPtr = std::shared_ptr<pqxx::connection>;
     using ResType=pqxx::result;
+    using nonTransType= pqxx::nontransaction;
 
     enum delete_strategy {
         cascade,
@@ -43,7 +45,9 @@ namespace db_services {
         operator std::string() {
             return formatted_string;
         }
-
+        operator std::string_view() {
+            return formatted_string.c_str();
+        }
         [[nodiscard]] const char *c_str() const {
             return formatted_string.c_str();
         }
@@ -107,7 +111,7 @@ namespace db_services {
 
 
     template<unsigned short verbose = 0>
-    conPtr connect_if_possible(std::string_view cString);
+    tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
@@ -144,26 +148,30 @@ namespace db_services {
         return res;
     }
 
-    template<verbose_level verbose, typename str>
-    conPtr connect_if_possible(str &&cString) {
+    template<verbose_level verbose>
+    tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString) {
         conPtr c;
-        std::string css = cString;
+        std::string css = cString.data();
         try {
             c = std::make_shared<pqxx::connection>(css);
             if (!c->is_open()) {
+                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to connect by url \"%s\"\n", cString.data());
+                return tl::unexpected(return_codes::error_occured);
 
-                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to connect by url \"%s\"\n", cString.c_str());
             } else {
+
                 LOG_IF(INFO, verbose >= 2) << "Opened database successfully: " << c->dbname() << '\n';
             }
         } catch (const pqxx::sql_error &e) {
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
                                         << "SQL State: " << e.sqlstate() << '\n';
+            return tl::unexpected(return_codes::error_occured);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, verbose >= 1) << "Error: " << e.what() << '\n';
+            return tl::unexpected(return_codes::error_occured);
         }
-        return c;
+        return tl::expected<conPtr,return_codes>{c};
     }
 }
 

@@ -273,7 +273,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
     MEASURE_TIME(
     auto files = manager_.template get_all_files<verbose>(from_dir_path.string());//get
     )
-    //todo метод(в бд?) для считывания файла по его имени/пути(gin или какй-нибудь бругой индекс тут пригодяться+tsvector)
+
     for (const std::pair<db_services::index_type, std::string> &pair: files) {
         std::string file_path = pair.second;
 
@@ -395,7 +395,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
         return res1;
     }
     MEASURE_TIME(
-    res1 = manager_.template finish_file_processing<verbose COMMA hash>(file, file_id);//todo hash function template
+    res1 = manager_.template finish_file_processing<verbose COMMA hash>(file, file_id);
     )
 
     if (res1 == return_codes::error_occured) {

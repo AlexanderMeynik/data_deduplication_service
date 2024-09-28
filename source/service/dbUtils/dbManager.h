@@ -23,7 +23,7 @@ namespace db_services {
         }
 
         template<verbose_level verbose = 0>
-        conPtr connectToDb();
+        int connectToDb();
 
 
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
@@ -79,7 +79,7 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
 
-            if (dir_id == return_codes::already_exists) {//todo not very good name for optional vlaue
+            if (dir_id == index_vals::empty_parameter_value) {
                 std::string query = "select dir_id from public.directories where dir_path = \'%s\';";
                 std::string qx1 = vformat(query.c_str(), directory_path.data());
                 dir_id = txn.query_value<index_type>(qx1);
@@ -144,9 +144,9 @@ namespace db_services {
 
         } catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlFqConstraight) {
-                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to remove record for directory \"%s\" since files "
+                LOG_IF(WARNING, verbose >= 1) << vformat("Unable to remove record for directory \"%s\" since files "
                                                        "for it are stile present.", directory_path.data());
-                return return_codes::error_occured;//todo is thin an error
+                return return_codes::warning_message;
             }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
@@ -220,9 +220,9 @@ namespace db_services {
             txn.commit();
         } catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlFqConstraight) {
-                LOG_IF(ERROR, verbose >= 1) << vformat("Unable to remove record for file \"%s\" since segment data "
+                LOG_IF(WARNING, verbose >= 1) << vformat("Unable to remove record for file \"%s\" since segment data "
                                                        "for it are stile present.", file_name.data());
-                return return_codes::error_occured;//todo is this an error
+                return return_codes::warning_message;
             }
             LOG_IF(ERROR, verbose >= 1) << "SQL Error: " << e.what()
                                         << "Query: " << e.query()
@@ -483,7 +483,6 @@ namespace db_services {
     requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
     std::vector<std::pair<index_type, std::string>> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
-        //todo как лучше по пути или по имени
         std::vector<std::pair<index_type, std::string>> result;
         try {
             trasnactionType txn(*conn_);
@@ -541,14 +540,19 @@ namespace db_services {
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
     template<verbose_level verbose>
-    conPtr dbManager<segment_size>::connectToDb() {
+    int dbManager<segment_size>::connectToDb() {
         if (conn_ && conn_->is_open()) {
-            return conn_;
+            return return_codes::return_sucess;
         }
         LOG_IF(WARNING, verbose >= 1) << "Failed to listen with current connection, attempt to reconnect via cString\n";
-        conn_ = connect_if_possible<verbose>(cString_);//todo error return via expected
-        return conn_;
+        auto result= connect_if_possible<verbose>(cString_);
+
+        conn_=result.value_or(nullptr);
+        return result.error();
+        //return return_codes::return_sucess;
     }
+
+
 
 
     template<unsigned long segment_size>
@@ -558,9 +562,12 @@ namespace db_services {
         conn_ = nullptr;
         auto tString = cString_;
         tString.set_dbname(sample_temp_db);
-        auto temp_connection = connect_if_possible<verbose>(tString);
 
-        if (!temp_connection || !temp_connection->is_open()) {
+        auto result= connect_if_possible<verbose>(tString);
+
+        auto temp_connection=result.value_or(nullptr);
+
+        if (!result.has_value()) {
             LOG_IF(WARNING, verbose >= 1)
                             << vformat("Unable to connect by url \"%s\"\n", (tString).operator std::string().c_str());
             return return_codes::error_occured;
@@ -568,8 +575,7 @@ namespace db_services {
         LOG_IF(INFO, verbose >= 1) << vformat("Connected to database %s\n", tString.getDbname().c_str());
 
 
-        pqxx::nontransaction no_trans_exec(*temp_connection);
-        //todo use type template
+        nonTransType no_trans_exec(*temp_connection);
 
         try {
             ResType r = no_trans_exec.exec("SELECT 1 FROM pg_database WHERE datname = $1;",
@@ -577,8 +583,8 @@ namespace db_services {
             r.no_rows();
 
 
-            no_trans_exec.exec(vformat("CREATE DATABASE %s;",
-                                       no_trans_exec.esc(cString_.getDbname()).c_str()));//todo use "" to save db
+            no_trans_exec.exec(vformat("CREATE DATABASE \"%s\";",
+                                       cString_.getDbname().c_str()));
             //не менять, паарметры здесь не подпадают под query
             no_trans_exec.exec(vformat("GRANT ALL ON DATABASE %s TO %s;",
                                        no_trans_exec.esc(cString_.getDbname()).c_str(),
@@ -599,7 +605,7 @@ namespace db_services {
             LOG_IF(WARNING, verbose >= 2) << "    exception message: " << r.what();
             no_trans_exec.abort();
             temp_connection->close();
-            conn_ = connect_if_possible<verbose>(cString_);
+            conn_ = connect_if_possible<verbose>(cString_).value_or(nullptr);
             return return_codes::already_exists;
         }
         catch (const std::exception &e) {
@@ -609,7 +615,7 @@ namespace db_services {
 
 
         temp_connection->close();
-        conn_ = connect_if_possible<verbose>(cString_);
+        conn_ = connect_if_possible<verbose>(cString_).value_or(nullptr);
         return return_codes::return_sucess;
     }
 
