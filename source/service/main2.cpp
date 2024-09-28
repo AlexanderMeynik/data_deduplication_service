@@ -18,17 +18,23 @@ void func_1(CLOCK &cl)
 }
 void func_2(CLOCK &cl)
 {
-    cl.tik();
     std::this_thread::sleep_for(250ms);
     cl.tak();
 }
 int main(){
     CLOCK cl;
+    cl.tik();
     for (int i = 0; i < 3; ++i) {
-        func_1(cl);
+        cl.tik();
+        std::this_thread::sleep_for(250ms);
+        cl.tak();
+        cl.tik();
+        std::this_thread::sleep_for(120ms);
+        cl.tak();
     }
+    cl.tak();
 
-func_2(cl);
+/*func_2(cl);*/
 for(const auto& p:cl)
     std::cout<<p.first[0]<<'\t'<<p.first[1]<<'\t'<<p.second<<'\n';
 }

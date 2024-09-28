@@ -23,6 +23,12 @@ namespace db_services {
     static const char *const sample_temp_db = "template1";
 
 
+    void printRows_affected(ResType &res)
+    {
+        VLOG(3)<<vformat("Rows affected by latest request %d\n",res.affected_rows());
+    }
+
+
 
 
     static constexpr const char *const sqlLimitBreached_state = "23505";
@@ -110,7 +116,6 @@ namespace db_services {
     };
 
 
-    template<unsigned short verbose = 0>
     tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
 
     template<typename s1>
@@ -148,7 +153,6 @@ namespace db_services {
         return res;
     }
 
-    template<verbose_level verbose>
     tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString) {
         conPtr c;
         std::string css = cString.data();

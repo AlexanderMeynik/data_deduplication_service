@@ -14,9 +14,9 @@ namespace db_services {
     public:
         static constexpr unsigned long long block_size = total_block_size / segment_size;
 
-        dbManager() = default;
+        dbManager():cString_(db_services::default_configuration()),conn_(nullptr){};
 
-        explicit dbManager(my_conn_string& ss):cString_(ss){};
+        explicit dbManager(my_conn_string& ss):cString_(ss),conn_(nullptr){};
 
         /*template<typename ss>
         requires to_str_to_c_str<ss>
@@ -30,7 +30,9 @@ namespace db_services {
 
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
         
-        index_type create();
+        index_type create_database();
+
+        index_type drop_database(std::string_view dbName);
 
         template<hash_function hash = SHA_256>
         requires is_divisible<segment_size, hash_function_size[hash]>
@@ -55,7 +57,7 @@ namespace db_services {
         int delete_file(std::string_view file_name, index_type file_id = return_codes::already_exists);
 
         template<delete_strategy del = cascade>
-        int delete_directory(std::string_view directory_path, index_type dir_id = return_codes::already_exists);
+        int delete_directory(std::string_view directory_path, index_type dir_id = index_vals::empty_parameter_value);
 
         
         int get_file_streamed(std::string_view file_name, std::ostream &out);
@@ -72,6 +74,8 @@ namespace db_services {
         my_conn_string cString_;
         conPtr conn_;
     };
+
+
 
 
     template<unsigned long segment_size>
@@ -98,14 +102,14 @@ namespace db_services {
                         "      where dir_id = %d "
                         "      group by dir_id, segment_hash "
                         ") as ss "
-                        "where ss.hhhash=segment_hash;";//todo some strange things happen there
+                        "where ss.hhhash=segment_hash;";
                 qr = vformat(query.c_str(), dir_id);
 
                 auto res1=txn.exec(qr);
 
-                VLOG(2) << vformat("Successfully reduced segments"
+                VLOG(2) << vformat("Successfully reduced segment"
                                                       " counts for directory \"%s\"\n", directory_path.data());
-                VLOG(3) << res1.affected_rows();
+                printRows_affected(res1);
 
 
                 query = "delete from public.data d "
@@ -121,7 +125,7 @@ namespace db_services {
 
                 VLOG(2) << vformat("Successfully deleted data "
                                                       "for directory \"%s\"\n", directory_path.data());
-                VLOG(3) << res1.affected_rows();
+                printRows_affected(res1);
 
 
                 query = "delete from public.files where dir_id=%d;";
@@ -130,14 +134,14 @@ namespace db_services {
 
                 VLOG(2) << vformat("Successfully deleted public.files "
                                                       " for directory \"%s\"\n", directory_path.data());
-                VLOG(3) << res1.affected_rows();
+                printRows_affected(res1);
 
                 query = "delete from public.segments where segment_count=0";
                 res1=txn.exec(query);
 
                 VLOG(2) << vformat("Successfully deleted redundant "
                                                       "segments for \"%s\"\n", directory_path.data());
-                VLOG(3) << res1.affected_rows();
+                printRows_affected(res1);
             }
 
             query = "delete from public.directories where dir_id=%d;";
@@ -560,11 +564,84 @@ namespace db_services {
 
 
 
+    template<unsigned long segment_size>
+    requires is_divisible<total_block_size, segment_size>index_type dbManager<segment_size>::drop_database(std::string_view dbName) {
+        if(conn_&&conn_->is_open())
+        {
+            conn_->close();
+        }
+        conn_= nullptr;
+        cString_.set_dbname(dbName);
+
+        auto tString = cString_;
+        tString.set_dbname(sample_temp_db);
+
+        auto result= connect_if_possible(tString);
+
+        auto temp_connection=result.value_or(nullptr);
+
+        if (!result.has_value()) {
+            VLOG(1)
+                            << vformat("Unable to connect by url \"%s\"\n", (tString).operator std::string().c_str());
+            return return_codes::error_occured;
+        }
+        VLOG(1) << vformat("Connected to database %s\n", tString.getDbname().c_str());
+
+
+        nonTransType no_trans_exec(*temp_connection);
+
+        try {
+            auto qq=vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';",cString_.getDbname().c_str());
+            ResType r = no_trans_exec.exec(qq);
+                                          // pqxx::params(no_trans_exec.esc(cString_.getDbname())));
+            r.one_row();
+            qq=vformat("SELECT pg_terminate_backend(pg_stat_activity.pid)\n"
+                       "FROM pg_stat_activity\n"
+                       "WHERE pg_stat_activity.datname = \'%s\' -- ← change this to your DB\n"
+                       "  AND pid <> pg_backend_pid();",cString_.getDbname().c_str());
+            no_trans_exec.exec(qq);
+                               //pqxx::params(no_trans_exec.esc(cString_.getDbname())));
+
+            VLOG(2) << vformat("All connections to %s terminated!" ,cString_.getDbname().c_str());
+
+
+            qq=vformat("DROP DATABASE \"%s\";",
+                       cString_.getDbname().c_str());
+            no_trans_exec.exec(qq);
+
+            no_trans_exec.commit();
+
+            VLOG(2) << "Database deleted successfully: " << cString_.getDbname() << '\n';
+
+
+        } catch (const pqxx::sql_error &e) {
+            VLOG(1) << "SQL Error: " << e.what()
+                    << "Query: " << e.query()
+                    << "SQL State: " << e.sqlstate() << '\n';
+            return return_codes::error_occured;
+        }
+        catch (const pqxx::unexpected_rows &r) {
+            VLOG(1) << vformat("No database %s found! Abort drop! ",cString_.getDbname().c_str());
+            VLOG(2) << "    exception message: " << r.what();
+            no_trans_exec.abort();
+            temp_connection->close();
+            conn_ = connect_if_possible(cString_).value_or(nullptr);
+            return return_codes::warning_message;
+        }
+        catch (const std::exception &e) {
+            VLOG(1) << "Error: " << e.what() << '\n';
+            return return_codes::error_occured;
+        }
+
+
+        temp_connection->close();
+
+        return return_sucess;
+    }
 
     template<unsigned long segment_size>
     requires is_divisible<total_block_size, segment_size>
-   
-    index_type dbManager<segment_size>::create() {
+    index_type dbManager<segment_size>::create_database() {
         conn_ = nullptr;
         auto tString = cString_;
         tString.set_dbname(sample_temp_db);
@@ -584,8 +661,8 @@ namespace db_services {
         nonTransType no_trans_exec(*temp_connection);
 
         try {
-            ResType r = no_trans_exec.exec("SELECT 1 FROM pg_database WHERE datname = $1;",
-                                           pqxx::params(no_trans_exec.esc(cString_.getDbname())));
+            ResType r = no_trans_exec.exec(vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';",cString_.getDbname().c_str()));
+                                          // pqxx::params(no_trans_exec.esc(cString_.getDbname())));
             r.no_rows();
 
 

@@ -78,7 +78,7 @@ namespace timing {
             id[2]=to_tak.top()[2];
             to_tak.pop();
             auto res=double_cast((*timeGetter)() , startIngTimers[id]);
-            if(timers.contains(id))
+            if(!timers.contains(id))
             {
                 timers[id] ={res,1};
             }
@@ -124,7 +124,7 @@ namespace timing {
 
         friend std::ostream &operator<<(std::ostream &out,const ClockArray<T,T2,timeGetter,func_name,double_cast>&ts)
         {
-            out<<"Function name\tLine\nTime";
+            out<<"Function name\tLine\tTime\n";
             for (auto& val:ts) {
                 std::cout<<val.first[0]<<'\t'<<val.first[3]<<":"<<val.first[1]<<'\t'<<val.second<<'\n';
             }

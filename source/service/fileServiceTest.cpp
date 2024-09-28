@@ -13,16 +13,21 @@ int main(int argc, char *argv[]) {
 
     FileParsingService<64> fs;
     std::string dbName = "deduplication5";
-    MEASURE_TIME(
+    clk.tik();
+    fs.db_drop(dbName);
     fs.db_load<db_usage_strategy::create>(dbName);
 
     for (int i = 0  ; i < from_dirs.size(); ++i) {
+        clk.tik();//test for simialr cases
         fs.process_directory<data_insetion_strategy::replace_with_new>(from_dirs[i]);
+        clk.tak();
+        clk.tik();
         fs.load_directory<directory_handling_strategy::create_main COMMA data_retrieval_strategy::remove_>(from_dirs[i], to_dirs[i]);
+        clk.tak();
         //fs.delete_directory(from_dirs[0]);
         //fs.delete_file(from_dirs[0]);
     }
-    )
+    clk.tak();
     std::cout<<"\n\n\n"<<clk;
     //fs.delete_directory<2>(from_dirs[0]);//kinda slow find culprit
 

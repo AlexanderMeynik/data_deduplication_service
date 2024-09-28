@@ -7,8 +7,6 @@ find_package(glog 0.7.1 REQUIRED)
 find_package(libpqxx REQUIRED)
 find_package(OpenCV REQUIRED)
 
-include_directories(/home/login/libpqxx/include)
-link_directories(/home/login/libpqxx/src)
 
 file(GLOB resourse CONFIGURE_DEPENDS
         "res/*.*"

@@ -22,10 +22,10 @@
     - [x] Источник данных директория(любая)
     - [ ] Подобрать данные для проверки работы сервиса
 - [x] реализовать сервис для сбора данных из директорий/архивов и их восстановления, внутри будет использован dbService
-    - [ ] Доработать набор запросов для взаимодействия с файлами/директориями
+    - [x] Доработать набор запросов для взаимодействия с файлами/директориями
     - [x] Доделать реализации для стратегий работы с бд
-    - [ ] Использовать более безопасный вариант подлючения к бд
-        - [ ] Подключения и все связанные с ним ресурсы должны быть освобождены после заврешеняи рабоыт программы
+    - [x] Использовать более безопасный вариант подлючения к бд
+        - [x] Подключения и все связанные с ним ресурсы должны быть освобождены после заврешеняи рабоыт программы
         - [ ] Незавершённые транзакции должны быть отменены/завершены
 - [x] определить стек технологий
     - [ ] Доработать стек ниже
@@ -75,7 +75,7 @@ assigned`192.*.*.*`so we'll use these when configuring the firewall and Postgres
 4. Select `TCP` and for `Specific local ports` enter `5432`
 5. Select `Allow the connection`. Connecting from WSL2 won't be secure so don't select the secure option
 6. Select at least `Public`. Can select `Domain` and `Private` as well. I could only connect if `Public` was selected
-7. Name the rule e.g. `Postgres - connect from WSL2` and create it
+7. Name the rule e.g. `Postgres - connect from WSL2` and create_database it
 8. Right click newly created rule and select `Properties` then click on the `Scope` tab
 9. Under`Remote IP address`, select`These IP addresses`then click`Add...`and enter range`172.0.0.1` to `172.254.254.254`
 10. Repeat step 9 for IP address range`192.0.0.1`to`192.254.254.254`

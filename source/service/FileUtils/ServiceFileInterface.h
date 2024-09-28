@@ -35,7 +35,6 @@ enum directory_handling_strategy {
 using db_services::dbManager;
 
 
-template<verbose_level verbose>
 tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
     std::string file;
     try {
@@ -61,7 +60,6 @@ tl::expected<std::string, int> check_file_existence(std::string_view file_path) 
 }
 
 
-template<verbose_level verbose>
 tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
     std::string directory;
     try {
@@ -105,6 +103,12 @@ public:
     template<db_usage_strategy str = use, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
     int db_load(std::string &dbName);
+
+    int db_drop(std::string_view dbName)
+    {
+        auto res=manager_.drop_database(dbName);
+        return res;
+    };
 
     template<data_insetion_strategy strategy = preserve_old>
     int process_directory(std::string_view dir_path);
@@ -309,7 +313,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
 
     if constexpr (str == create) {
 
-        auto reusult = manager_.create();
+        auto reusult = manager_.create_database();
 
         if (reusult == return_codes::error_occured) {
             VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
@@ -343,7 +347,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     namespace fs = std::filesystem;
     std::string file;
     if constexpr (existence_checks) {
-        auto result = check_file_existence<2>(file_path);//todo remake
+        auto result = check_file_existence(file_path);
         if (!result.has_value()) {
             return return_codes::error_occured;
         }
@@ -412,7 +416,7 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     namespace fs = std::filesystem;
     fs::path pp;
 
-    auto result = check_directory_existence<2>(dir_path);//todo remake
+    auto result = check_directory_existence(dir_path);
     if (!result.has_value()) {
         return return_codes::error_occured;
     }
