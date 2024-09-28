@@ -46,6 +46,7 @@
 2. libpqxx 7.9
 3. libglog
 4. gtest/gmock 1.15.2
+5. FFF(Fake Function Framework)
 
 todo:
 

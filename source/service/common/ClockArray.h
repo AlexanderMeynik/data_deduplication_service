@@ -15,6 +15,17 @@
 #include <source_location>
 
 using location_type=std::array<std::string,4>;
+template<typename T, size_t sz>
+requires std::is_convertible_v<T,std::string>
+std::ostream& operator<< (std::ostream&out,std::array<T,sz>&arr)
+{
+    int i = 0;
+    for (; i < sz-1; ++i) {
+        out<<arr[i]<<'\t';
+    }
+    out<<arr[i]<<'\n';
+    return out;
+}
 template<>
 struct std::hash<location_type>
 {
@@ -25,9 +36,13 @@ struct std::hash<location_type>
 };
 namespace timing {
 
+    struct location_wrapper
+    {
+        const std::source_location& ref{};
+    };
 
 
-    location_type get_file_state(const std::source_location& location
+    inline location_type get_file_state(std::source_location location
     = std::source_location::current())
     {
         std::string name=location.function_name();
@@ -46,8 +61,8 @@ namespace timing {
         return  std::chrono::duration_cast<to_dur>(curr-prev).count();
     }
 
-    template<typename T,typename T2, T2(*timeGetter)(), location_type (*func_name)(const std::source_location& location),
-    T(*double_cast)(std::chrono::system_clock::time_point curr,std::chrono::system_clock::time_point prev)>
+    template<typename T,typename T2, T2(*timeGetter)(), location_type (*func_name)(std::source_location location),
+    T(*double_cast)(T2 curr,T2 prev)>
     class ClockArray {
     public:
 
@@ -72,7 +87,10 @@ namespace timing {
             auto id = (*func_name)(location);
             if(to_tak.empty()||to_tak.top()[0]!=id[0])
             {
-                return;
+                std::string msg="No paired tik statement found in queue\t"
+                                "Tak values"+id[3]+":"+id[1]+"\t"
+                                +id[0]+'\t'+id[2];
+                throw std::logic_error(msg);
             }
             id[1]=to_tak.top()[1];
             id[2]=to_tak.top()[2];
@@ -89,17 +107,25 @@ namespace timing {
             }
         }
 
+        location_type tik_loc(const std::source_location& location
+        = std::source_location::current())
+        {
+            tik(location);
+            return func_name(location);
+
+        }
+
+        std::pair<std::source_location,location_type> tik_loc_(const std::source_location& location
+        = std::source_location::current())
+        {
+            return std::make_pair(location,tik_loc(location));
+        }
         void tik(const std::source_location& location
         = std::source_location::current()) {
-            auto id=(*func_name)(location);
-            startIngTimers[id] = (*timeGetter)();
+            auto id=func_name(location);
+            startIngTimers[id] = timeGetter();
 
-            std::string name=location.function_name();
-            auto iddd=name.find(' ');
-            auto id2=name.find('(');
-
-            to_tak.push({name.substr(iddd+1,id2-iddd-1),std::to_string(location.line()),std::to_string(location.column())});
-
+            to_tak.push(id);
         }
 
         decltype(auto) begin() const
@@ -130,6 +156,14 @@ namespace timing {
             }
             return out;
         }
+        auto& operator[](location_type&loc)
+        {
+            return timers[loc];
+        }
+        bool contains(location_type&loc)
+        {
+            return timers.contains(loc);
+        }
 
 
         //decltype()
@@ -146,12 +180,6 @@ namespace timing {
         return location.function_name();
     }
 
-
-    auto chrono_dur()
-    {
-      //  auto res=std::chrono::high_resolution_clock::now();
-        return std::chrono::high_resolution_clock::now();
-    }
 
     template<typename dur>
     using chrono_clock_template = timing::ClockArray<double,std::chrono::system_clock::time_point
