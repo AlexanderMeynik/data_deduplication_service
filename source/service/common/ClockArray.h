@@ -15,6 +15,13 @@
 #include <source_location>
 
 using location_type=std::array<std::string,4>;
+template<>
+struct ::std::hash<location_type> {
+    std::size_t operator()(const location_type &s) const noexcept {
+        return std::hash<std::string>{}(s[0] + s[1] + s[2] + s[3]);
+    }
+};
+
 template<typename T, size_t sz>
 requires std::is_convertible_v<T,std::string>
 std::ostream& operator<< (std::ostream&out,std::array<T,sz>&arr)
@@ -26,20 +33,23 @@ std::ostream& operator<< (std::ostream&out,std::array<T,sz>&arr)
     out<<arr[i]<<'\n';
     return out;
 }
-template<>
-struct std::hash<location_type>
+
+template<typename T, size_t sz>
+bool operator==(const std::array<T,sz>&arr1,const std::array<T,sz>&arr2)
 {
-    std::size_t operator()(const location_type & s) const noexcept
-    {
-        return std::hash<std::string>{}(s[0]+s[1]+s[2]+s[3]);
-    }
-};
+    std::equal(arr1.begin(), arr1.end(),arr2);
+}
+
 namespace timing {
 
-    struct location_wrapper
-    {
-        const std::source_location& ref{};
-    };
+
+    using  timepoint_type=std::chrono::system_clock::time_point;
+
+    using location_type=std::array<std::string,4>;
+
+    template<typename T,typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(std::source_location location),
+            T(*double_cast)(T2 curr,T2 prev)>
+    class ClockArray;
 
 
     inline location_type get_file_state(std::source_location location
@@ -55,13 +65,30 @@ namespace timing {
 
     }
 
+
+
     template<typename to_dur=std::chrono::nanoseconds,typename T>
-    T double_cat_chrono(std::chrono::system_clock::time_point curr, std::chrono::system_clock::time_point prev)
+    T double_cat_chrono(timepoint_type curr, timepoint_type prev)
     {
         return  std::chrono::duration_cast<to_dur>(curr-prev).count();
     }
 
-    template<typename T,typename T2, T2(*timeGetter)(), location_type (*func_name)(std::source_location location),
+    constexpr const char* get_function_name(const std::source_location& location
+    = std::source_location::current())
+    {
+        return location.function_name();
+    }
+
+
+
+
+    template<typename dur>
+    using chrono_clock_template = timing::ClockArray<double, timepoint_type
+            , &std::chrono::high_resolution_clock::now, &get_file_state,&double_cat_chrono<dur>>;
+
+
+
+    template<typename T,typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(std::source_location location),
     T(*double_cast)(T2 curr,T2 prev)>
     class ClockArray {
     public:
@@ -84,7 +111,7 @@ namespace timing {
 
         void tak(const std::source_location& location
         = std::source_location::current()) {
-            auto id = (*func_name)(location);
+            auto id = (*src_to_loc_type)(location);
             if(to_tak.empty()||to_tak.top()[0]!=id[0])
             {
                 std::string msg="No paired tik statement found in queue\t"
@@ -111,7 +138,7 @@ namespace timing {
         = std::source_location::current())
         {
             tik(location);
-            return func_name(location);
+            return src_to_loc_type(location);
 
         }
 
@@ -122,7 +149,7 @@ namespace timing {
         }
         void tik(const std::source_location& location
         = std::source_location::current()) {
-            auto id=func_name(location);
+            auto id=src_to_loc_type(location);
             startIngTimers[id] = timeGetter();
 
             to_tak.push(id);
@@ -148,7 +175,7 @@ namespace timing {
             return timers.cend();
         }
 
-        friend std::ostream &operator<<(std::ostream &out,const ClockArray<T,T2,timeGetter,func_name,double_cast>&ts)
+        friend std::ostream &operator<<(std::ostream &out,const ClockArray<T,T2,timeGetter,src_to_loc_type,double_cast>&ts)
         {
             out<<"Function name\tLine\tTime\n";
             for (auto& val:ts) {
@@ -173,17 +200,6 @@ namespace timing {
         std::unordered_map<location_type ,T2>startIngTimers;
         std::stack<location_type> to_tak;
     };
-
-    constexpr const char* get_function_name(const std::source_location& location
-    = std::source_location::current())
-    {
-        return location.function_name();
-    }
-
-
-    template<typename dur>
-    using chrono_clock_template = timing::ClockArray<double,std::chrono::system_clock::time_point
-            , &std::chrono::high_resolution_clock::now, &get_file_state,&double_cat_chrono<dur>>;
 
 }
 

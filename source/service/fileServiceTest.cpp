@@ -12,17 +12,17 @@ int main(int argc, char *argv[]) {
     google::SetVLOGLevel("*",3);//todo proper vlog handling from terminal
 
     FileParsingService<64> fs;
-    std::string dbName = "deduplication5";
+    std::string dbName = "deduplication";
     clk.tik();
     fs.db_drop(dbName);
     fs.db_load<db_usage_strategy::create>(dbName);
 
-    for (int i = 0  ; i < from_dirs.size(); ++i) {
+    for (int i =from_dirs.size()  ; i < from_dirs.size(); ++i) {
         clk.tik();//test for simialr cases
-        fs.process_directory<data_insetion_strategy::replace_with_new>(from_dirs[i]);
+        fs.process_directory(from_dirs[i]);
         clk.tak();
         clk.tik();
-        fs.load_directory<directory_handling_strategy::create_main COMMA data_retrieval_strategy::remove_>(from_dirs[i], to_dirs[i]);
+        fs.load_directory<directory_handling_strategy::create_main>(from_dirs[i], to_dirs[i]);
         clk.tak();
         //fs.delete_directory(from_dirs[0]);
         //fs.delete_file(from_dirs[0]);
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     //fs.delete_directory<2>(from_dirs[0]);//kinda slow find culprit
 
     fs.process_file("cmake_install.cmake");
-    fs.load_file<directory_handling_strategy::create_main,remove_>("cmake_install.cmake", "../../clone/cmake_install.cmake");
+    fs.load_file<directory_handling_strategy::create_main>("cmake_install.cmake", "../../clone/cmake_install.cmake");
 
 
 }

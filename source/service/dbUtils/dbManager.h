@@ -258,8 +258,9 @@ namespace db_services {
                                         "        inner join public.files f on f.file_id = public.data.file_id "
                                         "where file_name=\'%s\'::tsvector "
                                         "order by segment_num", file_name.data());
-            for (auto [name]: txn.stream<pqxx::bytes>(query)) {
-                out << hex_to_string(pqxx::to_string(name).substr(2));//this one is too slow
+            for (auto [name]: txn.stream<std::string>(query)) {
+                //out<<name;
+                out << hex_to_string(pqxx::to_string(name).substr(2));//this get string bytes without conversion
             }
             txn.commit();
 
@@ -295,7 +296,6 @@ namespace db_services {
 
                 buffer[count++] = cc;
                 if (count == segment_size) {
-                    auto str = string_to_hex(buffer);//todo fix/speed up?
                     copy_stream
                             << std::make_tuple(
                                     block_index,

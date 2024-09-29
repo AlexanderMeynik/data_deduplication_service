@@ -1,62 +1,94 @@
 #include "commont.h"
 
-/*#include <functional>
-
-*//* Configure FFF to use std::function, which enables capturing lambdas *//*
-#define CUSTOM_FFF_FUNCTION_TEMPLATE(RETURN, FUNCNAME, ...) \
-    std::function<RETURN (__VA_ARGS__)> FUNCNAME*/
-
+#define FAKE_FUNC_CLOCK_ARR
 DEFINE_FFF_GLOBALS;
-FAKE_VALUE_FUNC(double,time_getter);
+FAKE_VALUE_FUNC(timepoint_type,time_getter);
 
 
-FAKE_VALUE_FUNC(location_type ,func_name,std::source_location);
-//todo move this to common
-//todo set up scripts
+FAKE_VALUE_FUNC(location_type ,src_to_loc_type,std::source_location);
 
-FAKE_VALUE_FUNC(double ,double_cast,double,double);
+FAKE_VALUE_FUNC(double ,double_cast,timepoint_type,timepoint_type);
 
 
 #define FFF_FAKES_LIST(FAKE)            \
   FAKE(double_cast)                    \
-  FAKE(func_name)                   \
+  FAKE(src_to_loc_type)                   \
   FAKE(time_getter)
 
-using custom_clog=timing::ClockArray<double,double,time_getter,func_name,double_cast>;
 
 
-TEST_F(ClockArrayTest, tik_function_call_chain)
+class ClockArrayInterfaceTest : public ::testing::Test {
+public:
+public:
+    void SetUp() override
+    {
+        FFF_FAKES_LIST(RESET_FAKE);
+        FFF_RESET_HISTORY();
+    }
+protected:
+    using custom_clog=timing::ClockArray<double,timepoint_type ,time_getter,src_to_loc_type,double_cast>;
+
+    custom_clog clk;
+
+};
+
+TEST_F(ClockArrayInterfaceTest, tik_function_call_chain)
 {
 
     custom_clog clk;
     clk.tik();
-    ASSERT_EQ(func_name_fake.call_count,1);
+    ASSERT_EQ(src_to_loc_type_fake.call_count,1);
     ASSERT_EQ(time_getter_fake.call_count,1);
-    FFF_FAKES_LIST(RESET_FAKE);
-    FFF_RESET_HISTORY();
+
+    ASSERT_HISTORY_EQ(0, src_to_loc_type);
+    ASSERT_HISTORY_EQ(1, time_getter);
 }
 
-TEST_F(ClockArrayTest, tik_loc_function_call_chain)
+TEST_F(ClockArrayInterfaceTest, tik_loc_function_call_chain)
 {
 
     custom_clog clk;
     clk.tik_loc();
-    ASSERT_EQ(func_name_fake.call_count,2);
+    ASSERT_EQ(src_to_loc_type_fake.call_count,2);
     ASSERT_EQ(time_getter_fake.call_count,1);
-    FFF_FAKES_LIST(RESET_FAKE);
-    FFF_RESET_HISTORY();
-}
+    ASSERT_HISTORY_EQ(0, src_to_loc_type);
+    ASSERT_HISTORY_EQ(1, time_getter);
+    ASSERT_HISTORY_EQ(2, src_to_loc_type);
+
+   }
 
 
-TEST_F(ClockArrayTest, tak_function_call_chain)
+TEST_F(ClockArrayInterfaceTest, tak_function_call_chain)
 {
 
     custom_clog clk;
-    clk.tik();//todo check call history
+    clk.tik();
     clk.tak();
-    ASSERT_EQ(func_name_fake.call_count,2);
+    ASSERT_EQ(src_to_loc_type_fake.call_count,2);
     ASSERT_EQ(time_getter_fake.call_count,2);
     ASSERT_EQ(double_cast_fake.call_count,1);
-    FFF_FAKES_LIST(RESET_FAKE);
-    FFF_RESET_HISTORY();
+
+
+    ASSERT_HISTORY_EQ(0, src_to_loc_type);
+    ASSERT_HISTORY_EQ(1, time_getter);
+    ASSERT_HISTORY_EQ(2, src_to_loc_type);
+    ASSERT_HISTORY_EQ(3, time_getter);
+    ASSERT_HISTORY_EQ(4, double_cast);
+}
+
+
+TEST_F(ClockArrayInterfaceTest, file_location_proper_pass)
+{
+    src_to_loc_type_fake.custom_fake=get_file_state;
+    auto source_location=clk.tik_loc();
+
+
+
+    auto return_vals=src_to_loc_type_fake.return_val_history[1];
+    auto arguments_val=src_to_loc_type_fake.arg0_history[1];
+
+    ASSERT_EQ(source_location, return_vals);
+    ASSERT_EQ(source_location, get_file_state(arguments_val));
+    src_to_loc_type_reset();
+
 }
