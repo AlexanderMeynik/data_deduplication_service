@@ -9,27 +9,24 @@
 namespace db_services {
 
 
-    template<unsigned long segment_size = 64> requires is_divisible<total_block_size, segment_size>
+    template<unsigned long segment_size = 64>
     class dbManager {
     public:
         static constexpr unsigned long long block_size = total_block_size / segment_size;
 
-        dbManager():cString_(db_services::default_configuration()),conn_(nullptr){};
+        dbManager():cString_(db_services::default_configuration()),conn_(nullptr){};//todo default configuration wokrs bad
 
         explicit dbManager(my_conn_string& ss):cString_(ss),conn_(nullptr){};
 
-        /*template<typename ss>
-        requires to_str_to_c_str<ss>
-        explicit dbManager(ss &&cstring): cString_(std::forward<ss>(cstring)) {
+        void setCString(my_conn_string& ss)
+        {
+            cString_=ss;
+        }
 
-        }*/
 
-        
         int connectToDb();
 
-
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
-        
         index_type create_database();
 
         index_type drop_database(std::string_view dbName);
@@ -38,16 +35,16 @@ namespace db_services {
         requires is_divisible<segment_size, hash_function_size[hash]>
         int fill_schemas();
 
-        
+
         index_type create_directory(std::string_view dir_path);
 
-        
+
         std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
 
-        
+
         index_type create_file(std::string_view file_path, index_type dir_id, int file_size = 0);
 
-        
+
         index_type create_file_temp(std::string_view file_path);
 
         template<hash_function hash = SHA_256>
@@ -59,14 +56,14 @@ namespace db_services {
         template<delete_strategy del = cascade>
         int delete_directory(std::string_view directory_path, index_type dir_id = index_vals::empty_parameter_value);
 
-        
+
         int get_file_streamed(std::string_view file_name, std::ostream &out);
 
-        
+
         int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
-        bool checkConnection() {
+        bool checkConnection() {//todo if exixts
             return conn_->is_open();
         }
 
@@ -79,7 +76,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
     template<delete_strategy del>
     int dbManager<segment_size>::delete_directory(std::string_view directory_path, index_type dir_id) {
         try {
@@ -171,7 +167,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
     template<delete_strategy del>
     int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
         try {
@@ -247,8 +242,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
             trasnactionType txn(*conn_);
@@ -279,8 +272,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     int dbManager<segment_size>::insert_file_from_stream(std::string_view file_name, std::istream &in) {
         try {
             trasnactionType txn(*conn_);
@@ -327,7 +318,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
     template<hash_function hash>
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
@@ -402,8 +392,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     index_type dbManager<segment_size>::create_file_temp(std::string_view file_path) {
         trasnactionType txn(*conn_);
         index_type rrr = return_codes::error_occured;
@@ -437,8 +425,6 @@ namespace db_services {
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     index_type dbManager<segment_size>::create_file(std::string_view file_path, index_type dir_id, int file_size) {
         trasnactionType txn(*conn_);
         index_type future_file_id = return_codes::error_occured;
@@ -490,8 +476,6 @@ namespace db_services {
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     std::vector<std::pair<index_type, std::string>> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
         std::vector<std::pair<index_type, std::string>> result;
         try {
@@ -520,8 +504,6 @@ namespace db_services {
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     index_type dbManager<segment_size>::create_directory(std::string_view dir_path) {
         index_type result = return_codes::error_occured;
         try {
@@ -548,8 +530,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
-   
     int dbManager<segment_size>::connectToDb() {
         if (conn_ && conn_->is_open()) {
             return return_codes::return_sucess;
@@ -565,7 +545,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>index_type dbManager<segment_size>::drop_database(std::string_view dbName) {
+    index_type dbManager<segment_size>::drop_database(std::string_view dbName) {
         if(conn_&&conn_->is_open())
         {
             conn_->close();
@@ -640,7 +620,6 @@ namespace db_services {
     }
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
     index_type dbManager<segment_size>::create_database() {
         conn_ = nullptr;
         auto tString = cString_;
@@ -704,7 +683,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    requires is_divisible<total_block_size, segment_size>
     template<hash_function hash>
     requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::fill_schemas() {

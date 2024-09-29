@@ -1,7 +1,12 @@
 #include "commont.h"
 
 
-// Test case for getting clock values
+class ClockArrayTest : public ::testing::Test {
+protected:
+    chrono_clock_template<dur_type> clk;
+
+};
+
 TEST_F(ClockArrayTest, simple_linear_calculation)
 {
     dur_type dd{14};

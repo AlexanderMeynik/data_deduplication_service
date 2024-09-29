@@ -35,7 +35,7 @@ enum directory_handling_strategy {
 using db_services::dbManager;
 
 
-tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
+inline tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
     std::string file;
     try {
         file = std::filesystem::canonical(file_path).string();
@@ -60,7 +60,7 @@ tl::expected<std::string, int> check_file_existence(std::string_view file_path) 
 }
 
 
-tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
+inline tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
     std::string directory;
     try {
         directory = std::filesystem::canonical(dir_path).string();
@@ -85,7 +85,7 @@ tl::expected<std::string, int> check_directory_existence(std::string_view dir_pa
     return tl::expected<std::string, int>{directory};
 }
 namespace fs= std::filesystem;
-fs::path get_normal_abs(fs::path  pwd)
+inline fs::path  get_normal_abs(fs::path  pwd)
 {
     return fs::absolute(pwd).lexically_normal();
 }
@@ -102,7 +102,7 @@ public:
 
     template<db_usage_strategy str = use, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
-    int db_load(std::string &dbName);
+    int db_load(std::string &dbName,std::string_view filename="../../res/config.txt");
 
     int db_drop(std::string_view dbName)
     {
@@ -304,8 +304,8 @@ template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template< db_usage_strategy str, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
-int FileParsingService<segment_size>::db_load(std::string &dbName) {
-    auto CString = db_services::default_configuration();
+int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_view filename) {
+    auto CString = db_services::load_configuration(filename.data());
     CString.set_dbname(dbName);
 
     manager_ = dbManager<segment_size>(CString);
@@ -330,7 +330,12 @@ int FileParsingService<segment_size>::db_load(std::string &dbName) {
         }
     } else {
 
-        manager_.connectToDb();
+       auto res= manager_.connectToDb();
+        if (res== return_codes::error_occured) {
+            VLOG(1)
+                            << vformat("Error occurred during database's \"%s\" schema's creation\n", dbName.c_str());
+            return return_codes::error_occured;
+        }
 
     }
     VLOG(2) << ((manager_.checkConnection()) ? "connection established\n" : "cannot connect\n");
@@ -412,7 +417,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template< data_insetion_strategy strategy>
-int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
+inline int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
     namespace fs = std::filesystem;
     fs::path pp;
 

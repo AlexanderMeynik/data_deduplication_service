@@ -22,11 +22,7 @@ static constexpr double rel_err = 1;
     clk.tik();              \
     block                   \
     clk.tak();
-class ClockArrayTest : public ::testing::Test {
-protected:
-    chrono_clock_template<dur_type> clk;
 
-};
 
 
 

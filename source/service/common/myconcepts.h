@@ -91,7 +91,7 @@ concept Index_size=requires(Col &c, size_t index)
 
 
 //from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-std::string vformat(const char *const zcFormat, ...) {
+inline std::string vformat(const char *const zcFormat, ...) {
 
     // initialize use of the variable argument array
     va_list vaArgs;
@@ -114,7 +114,7 @@ std::string vformat(const char *const zcFormat, ...) {
 }
 
 
-std::string string_to_hex(std::string_view in) {
+inline std::string string_to_hex(std::string_view in) {
     std::stringstream ss;
 
     ss << std::hex << std::setfill('0');
@@ -125,7 +125,7 @@ std::string string_to_hex(std::string_view in) {
     return ss.str();
 }
 
-std::string hex_to_string(std::string_view in) {
+inline std::string hex_to_string(std::string_view in) {
     std::string output;
 
     if ((in.length() % 2) != 0) {

@@ -1,6 +1,4 @@
-//
-// Created by Lenovo on 26.09.2024.
-//
+
 
 #ifndef SOURCE_SERVICE_TESTUTILS_H
 #define SOURCE_SERVICE_TESTUTILS_H
@@ -52,48 +50,8 @@ requires (std_array<ARRAYS>&&...)&&
 }
 
 
-template<typename>
-struct is_std_array : std::false_type {};
 
-template<typename T, std::size_t N>
-struct is_std_array<std::array<T,N>> : std::true_type {};
 
-template<typename T, std::size_t N>
-struct is_std_array<const std::array<T,N>> : std::true_type {};
-
-template<typename T>
-concept std_array = is_std_array<T>::value;
-
-template<typename T,typename...ARRAYS>
-constexpr auto cartesian_product_arr_impl (ARRAYS...arrays)
-requires (std_array<ARRAYS>&&...)&&
-(std::is_same_v<typename ARRAYS::value_type,T>&&...)//type equality checks
-{
-using type =std::array<T,sizeof...(ARRAYS)>;//since I decided to have arrays with
-// same value type, we can use array
-constexpr std::size_t N = (1 * ... * arrays.size());
-constexpr std::size_t outer_arr_size=sizeof...(arrays);
-
-std::array<std::size_t,outer_arr_size> dims { arrays.size()... };
-for (std::size_t i=1; i<dims.size(); ++i)  { dims[i] *= dims[i-1]; }
-
-return [&] ()
-{
-std::array<type, N> result{};
-
-for (std::size_t i=0; i<result.size(); ++i)
-{
-[&]<std::size_t... Is>(std::index_sequence<Is...>)
-{
-std::array<std::size_t,outer_arr_size> idx = { ( (i*dims[Is]) / N) % arrays.size() ...};
-result[i] ={arrays[idx[Is]]...};
-
-}(std::make_index_sequence<outer_arr_size>{});
-}
-
-return result;
-}();
-}
 
 template<typename...ARRAYS>
 constexpr auto cartesian_product_arr (ARRAYS...arrays)//

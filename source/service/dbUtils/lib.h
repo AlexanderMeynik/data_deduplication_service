@@ -23,7 +23,7 @@ namespace db_services {
     static const char *const sample_temp_db = "template1";
 
 
-    void printRows_affected(ResType &res)
+    inline void printRows_affected(ResType &res)
     {
         VLOG(3)<<vformat("Rows affected by latest request %d\n",res.affected_rows());
     }
@@ -116,7 +116,7 @@ namespace db_services {
     };
 
 
-    tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
+    inline tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
@@ -124,11 +124,12 @@ namespace db_services {
 
     using namespace std::placeholders;
 
-    std::string res_dir_path = "../../res/";
-    std::string cfile_name = res_dir_path.append("config.txt");
+    static std::string res_dir_path = "../../res/";
+    static std::string cfile_name = res_dir_path.append("config.txt");
 
 
     auto default_configuration = [](unsigned int port = 5501) {
+        //todo error oocurence place
         return load_configuration(cfile_name, std::forward<decltype(port)>(port));
     };
 
@@ -141,11 +142,25 @@ namespace db_services {
         return res;
     }
 
+#include <filesystem>
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
     my_conn_string load_configuration(s1 &&filenam, unsigned port) {
         std::ifstream conf(filenam);
+        if(!conf.is_open())
+        {
+            int count=0;
+            for (auto& entry:std::filesystem::recursive_directory_iterator(std::filesystem::current_path().parent_path())) {
+                count++;
+                VLOG(1)<<entry.path();
+                if(count>20)
+                {
+                    break;
+                }
+            }
+            //return  {};
+        }
         std::string dbname1, user, password;
         conf >> dbname1 >> user >> password;
         auto res = my_conn_string(user, password, "localhost", dbname1, port);
