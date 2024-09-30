@@ -1,8 +1,8 @@
 #ifndef SOURCE_SERVICE_COMMONT_H
 #define SOURCE_SERVICE_COMMONT_H
 #include <gtest/gtest.h>
-#include "../../service/common/ClockArray.h"
-#include "../../../fff/fff.h"
+#include "ClockArray.h"
+#include <fff.h>
 using namespace timing;
 using namespace std::chrono_literals;
 #define SLEEP(dur) std::this_thread::sleep_for(dur)

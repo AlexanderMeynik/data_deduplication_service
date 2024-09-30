@@ -21,7 +21,7 @@ concept std_array = is_std_array<T>::value;
 template<typename T,typename...ARRAYS>
 constexpr auto cartesian_product_arr_impl (ARRAYS...arrays)
 requires (std_array<ARRAYS>&&...)&&
-    (std::is_same_v<typename ARRAYS::value_type,T>&&...)//type equality checks
+(std::is_same_v<typename ARRAYS::value_type,T>&&...)//type equality checks
 {
     using type =std::array<T,sizeof...(ARRAYS)>;//since I decided to have arrays with
     // same value type, we can use array

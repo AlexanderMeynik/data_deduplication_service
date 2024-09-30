@@ -1,6 +1,6 @@
 #include<iostream>
 #include<array>
-#include "common/ClockArray.h"
+#include "ClockArray.h"
 #include <unordered_map>
 #include <vector>
 #include <thread>

@@ -1,7 +1,7 @@
 #include <pqxx/pqxx>
 #include <iostream>
 #include "lib.h"
-#include "../common/myconcepts.h"
+#include "myconcepts.h"
 
 #ifndef SERVICE_DBMANAGER_H
 #define SERVICE_DBMANAGER_H
@@ -14,7 +14,7 @@ namespace db_services {
     public:
         static constexpr unsigned long long block_size = total_block_size / segment_size;
 
-        dbManager():cString_(db_services::default_configuration()),conn_(nullptr){};//todo default configuration wokrs bad
+        dbManager():cString_(db_services::default_configuration()),conn_(nullptr){};
 
         explicit dbManager(my_conn_string& ss):cString_(ss),conn_(nullptr){};
 
@@ -63,8 +63,9 @@ namespace db_services {
         int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
-        bool checkConnection() {//todo if exixts
-            return conn_->is_open();
+        bool checkConnection() {
+
+            return conn_&&conn_->is_open();
         }
 
     private:

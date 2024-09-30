@@ -1,8 +1,8 @@
 #ifndef SERVICE_LIB_H
 #define SERVICE_LIB_H
 
-#include "../common/myconcepts.h"
-#include "../common/expected.hpp"
+#include "myconcepts.h"
+#include "expected.hpp"
 #include <fstream>
 #include <pqxx/pqxx>
 #include <functional>
@@ -116,20 +116,25 @@ namespace db_services {
     };
 
 
-    inline tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
+    tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
     my_conn_string load_configuration(s1 &&filenam, unsigned port = 5501);
 
     using namespace std::placeholders;
+#ifdef IT_test
 
-    static std::string res_dir_path = "../../res/";
+    static std::string res_dir_path = "../../conf/";
+#else
+    static std::string res_dir_path = "../../conf/";
+#endif
+
     static std::string cfile_name = res_dir_path.append("config.txt");
 
 
     auto default_configuration = [](unsigned int port = 5501) {
-        //todo error oocurence place
+        //todo add verbose messages
         return load_configuration(cfile_name, std::forward<decltype(port)>(port));
     };
 
@@ -168,30 +173,6 @@ namespace db_services {
         return res;
     }
 
-    tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString) {
-        conPtr c;
-        std::string css = cString.data();
-        try {
-            c = std::make_shared<pqxx::connection>(css);
-            if (!c->is_open()) {
-                VLOG(1) << vformat("Unable to connect by url \"%s\"\n", cString.data());
-                return tl::unexpected(return_codes::error_occured);
-
-            } else {
-
-                VLOG(2) << "Opened database successfully: " << c->dbname() << '\n';
-            }
-        } catch (const pqxx::sql_error &e) {
-            VLOG(1) << "SQL Error: " << e.what()
-                                        << "Query: " << e.query()
-                                        << "SQL State: " << e.sqlstate() << '\n';
-            return tl::unexpected(return_codes::error_occured);
-        } catch (const std::exception &e) {
-            VLOG(1) << "Error: " << e.what() << '\n';
-            return tl::unexpected(return_codes::error_occured);
-        }
-        return tl::expected<conPtr,return_codes>{c};
-    }
 }
 
 

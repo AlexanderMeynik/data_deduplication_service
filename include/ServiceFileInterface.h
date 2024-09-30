@@ -6,12 +6,12 @@
 #include <string>
 #include <iostream>
 #include <openssl/sha.h>
-#include "../common/myconcepts.h"
-#include "../dbUtils/dbManager.h"
+#include "myconcepts.h"
+#include "dbManager.h"
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
-#include "../common/expected.hpp"
+#include "expected.hpp"
 
 enum db_usage_strategy {
     use,
@@ -35,55 +35,11 @@ enum directory_handling_strategy {
 using db_services::dbManager;
 
 
-inline tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
-    std::string file;
-    try {
-        file = std::filesystem::canonical(file_path).string();
-
-        if (!std::filesystem::exists(file_path)) {
-            VLOG(1) << vformat("\"%s\" no such file or directory\n", file_path.data());
-            return tl::unexpected{return_codes::error_occured};
-
-        }
-        if (std::filesystem::is_directory(file_path)) {
-            VLOG(1)
-                            << vformat("\"%s\" is not a file, use processDirectory for directories!\n",
-                                       file_path.data());
-            return tl::unexpected{return_codes::error_occured};
-        }
-
-    } catch (const std::filesystem::filesystem_error &e) {
-        VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
-        return tl::unexpected{return_codes::error_occured};
-    }
-    return tl::expected<std::string, int>{file};
-}
+tl::expected<std::string, int> check_file_existence(std::string_view file_path);
 
 
-inline tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
-    std::string directory;
-    try {
-        directory = std::filesystem::canonical(dir_path).string();
+tl::expected<std::string, int> check_directory_existence(std::string_view dir_path);
 
-
-        if (!std::filesystem::exists(dir_path)) {
-            VLOG(1) << vformat("\"%s\" no such file or directory\n", dir_path.data());
-            return tl::unexpected{return_codes::error_occured};
-
-        }
-        if (!std::filesystem::is_directory(dir_path)) {
-            VLOG(1)
-                            << vformat("\"%s\" is not a directory use procesFile for files!\n", dir_path.data());
-            return tl::unexpected{return_codes::error_occured};
-        }
-
-
-    } catch (const std::filesystem::filesystem_error &e) {
-        VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
-        return tl::unexpected{return_codes::error_occured};
-    }
-    return tl::expected<std::string, int>{directory};
-}
 namespace fs= std::filesystem;
 inline fs::path  get_normal_abs(fs::path  pwd)
 {
@@ -295,7 +251,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
     }
 
     if constexpr (rr == data_retrieval_strategy::remove_) {
-        manager_.delete_directory(from_dir_path.string());//todo leave be or replace
+        manager_.delete_directory(from_dir_path.string());
     }
     return 0;
 }
@@ -305,7 +261,7 @@ requires is_divisible<total_block_size, segment_size>
 template< db_usage_strategy str, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_view filename) {
-    auto CString = db_services::load_configuration(filename.data());
+    auto CString = db_services::default_configuration();
     CString.set_dbname(dbName);
 
     manager_ = dbManager<segment_size>(CString);
@@ -371,7 +327,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
             return return_codes::already_exists;
         }
 
-        auto res = manager_.delete_file(file, file_id);//todo replace or presereve
+        auto res = manager_.delete_file(file, file_id);
 
 
         if (res == return_codes::error_occured) {
@@ -417,7 +373,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template< data_insetion_strategy strategy>
-inline int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
+int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
     namespace fs = std::filesystem;
     fs::path pp;
 

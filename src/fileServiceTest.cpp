@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#include "FileUtils/ServiceFileInterface.h"
+#include "ServiceFileInterface.h"
 
 
 std::vector<std::string> from_dirs = {"../../../documentation", "../../../test1", "../../../res"};
@@ -12,9 +12,9 @@ int main(int argc, char *argv[]) {
     google::SetVLOGLevel("*",3);//todo proper vlog handling from terminal
 
     FileParsingService<64> fs;
-    std::string dbName = "deduplication";
+    std::string dbName = "deduplication3";
     clk.tik();
-    fs.db_drop(dbName);
+
     fs.db_load<db_usage_strategy::create>(dbName);
 
     for (int i =from_dirs.size()  ; i < from_dirs.size(); ++i) {
@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
     std::cout<<"\n\n\n"<<clk;
     //fs.delete_directory<2>(from_dirs[0]);//kinda slow find culprit
 
-    fs.process_file("cmake_install.cmake");
-    fs.load_file<directory_handling_strategy::create_main>("cmake_install.cmake", "../../clone/cmake_install.cmake");
-
+    fs.process_file("../build.ninja");
+    fs.load_file<directory_handling_strategy::create_main>("../build.ninja", "ninja");
+    fs.db_drop(dbName);
 
 }

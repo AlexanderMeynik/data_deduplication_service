@@ -1,3 +1,0 @@
-deduplication
-testuser
-password

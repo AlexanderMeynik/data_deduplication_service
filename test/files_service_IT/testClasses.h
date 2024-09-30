@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "../../service/FileUtils/ServiceFileInterface.h"
+#include "ServiceFileInterface.h"
 
 using namespace db_services;
 #ifndef SOURCE_SERVICE_TESTCLASSES_H
@@ -11,16 +11,17 @@ class DbManagerTest : public ::testing::Test {
 public:
     void SetUp() override
     {
-        auto c_string= load_configuration("res/config.txt");
+        auto c_string= default_configuration();
+        c_string.set_dbname(dbName);
         manager_.setCString(c_string);
         auto res =manager_.create_database();
 
     }
     void TearDown() override
     {
-
         manager_.drop_database(dbName);
-        dbName=dbName_+std::to_string(++time);
+        time+=1;
+        dbName=dbName_+std::to_string(time);
     }
 protected:
     dbManager<64> manager_;
@@ -35,7 +36,7 @@ public:
     void SetUp() override
     {
         auto res=serv.db_load<create>(dbName,"res/config.txt");
-        std::ifstream in("res/config.txt");
+        std::ifstream in("../res/config.txt");
 
     }
     void TearDown() override

@@ -1,4 +1,4 @@
-create table public.segments
+create table public.segments --todo remove
 (
     segment_hash  bytea  NOT NULL GENERATED ALWAYS AS (sha256(segment_data::bytea)) STORED primary key,
     segment_data  bytea  NOT NULL,
