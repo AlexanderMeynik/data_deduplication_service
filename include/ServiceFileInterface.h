@@ -73,7 +73,7 @@ public:
     requires is_divisible<segment_size, hash_function_size[hash]>
     int process_file(std::string_view file_path, index_type dir_id = index_vals::empty_parameter_value);
 
-
+//todo use path type
     template<directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist>
     int load_directory(std::string_view from_dir, std::string_view to_dir);
 
@@ -259,7 +259,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template< db_usage_strategy str, hash_function hash>
-requires is_divisible<segment_size, hash_function_size[hash]>
+requires is_divisible<segment_size, hash_function_size[hash]>//todo 1 par string view
 int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_view filename) {
     auto CString = db_services::default_configuration();
     CString.set_dbname(dbName);
@@ -269,7 +269,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_vi
 
     if constexpr (str == create) {
 
-        auto reusult = manager_.create_database();
+        auto reusult = manager_.create_database(dbName);
 
         if (reusult == return_codes::error_occured) {
             VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
@@ -348,18 +348,18 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     }
     std::basic_ifstream<symbol_type> in(file);
 
-
+    clk.tik();
     auto res1 = manager_.insert_file_from_stream(file, in);
-
+    clk.tak();
 
     if (res1 == return_codes::error_occured) {
         VLOG(1)
                         << vformat("Error occurred during file contents streaming.\n File path \"%s\"!", file.c_str());
         return res1;
     }
-
+    clk.tik();
     res1 = manager_.template finish_file_processing<hash>(file, file_id);
-
+    clk.tak();
 
     if (res1 == return_codes::error_occured) {
         VLOG(1)
@@ -396,7 +396,9 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     for (const auto &entry: fs::recursive_directory_iterator(pp)) {
         if (!fs::is_directory(entry)) {
             auto file = fs::canonical(entry.path()).string();
+            clk.tik();
             auto results = this->template process_file<strategy, false>(file, dir_id);
+            clk.tak();
             if (results == return_codes::already_exists) {
                 continue;
             } else if (results == return_codes::error_occured) {

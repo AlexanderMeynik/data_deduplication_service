@@ -6,6 +6,9 @@
 #include <array>
 #include <type_traits>
 #include <iostream>
+using namespace std::chrono_literals;
+#define SLEEP(dur) std::this_thread::sleep_for(dur)
+
 template<typename>
 struct is_std_array : std::false_type {};
 

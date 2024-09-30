@@ -15,10 +15,10 @@ file(GLOB TEST_SOURCES_2 files_service_IT/*.cpp)
 add_executable(FileServiceTests ${TEST_SOURCES_2})
 
 target_link_libraries(FileServiceTests PRIVATE
-        gtest gmock #[[gtest_main]]
-        FileUtilsLib
+        gtest gmock #[[gtest_main]] dbUtilsLib
 )
 
 add_test(NAME FileServiceTests COMMAND FileServiceTests)
 add_test(NAME clock_array_tests COMMAND clock_array_tests)
 
+file(COPY fixture DESTINATION ${CMAKE_BINARY_DIR}/fixture)

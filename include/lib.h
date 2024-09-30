@@ -11,7 +11,8 @@ namespace db_services {
 
     using index_type = long long;
     using trasnactionType = pqxx::work;
-    using conPtr = std::shared_ptr<pqxx::connection>;
+    using connection_type=pqxx::connection;
+    using conPtr = std::shared_ptr<connection_type>;
     using ResType=pqxx::result;
     using nonTransType= pqxx::nontransaction;
 

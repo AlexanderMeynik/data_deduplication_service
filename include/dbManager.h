@@ -1,17 +1,26 @@
+
+
+#ifndef SERVICE_DBMANAGER_H
+#define SERVICE_DBMANAGER_H
 #include <pqxx/pqxx>
 #include <iostream>
 #include "lib.h"
 #include "myconcepts.h"
-
-#ifndef SERVICE_DBMANAGER_H
-#define SERVICE_DBMANAGER_H
-
 namespace db_services {
 
+    bool inline checkConnection(const conPtr&conn )
+    {
+        return conn&&conn->is_open();
+    }
 
-    template<unsigned long segment_size = 64>
+
+
+
+
+    template<unsigned long segment_size>
     class dbManager {
     public:
+
         static constexpr unsigned long long block_size = total_block_size / segment_size;
 
         dbManager():cString_(db_services::default_configuration()),conn_(nullptr){};
@@ -21,13 +30,25 @@ namespace db_services {
         void setCString(my_conn_string& ss)
         {
             cString_=ss;
+            disconnect();
+        }
+        [[nodiscard]] const my_conn_string &getCString() const {
+            return cString_;
         }
 
 
         int connectToDb();
 
+        void disconnect()
+        {
+            if(conn_) {
+                conn_->close();
+                conn_ = nullptr;
+            }
+        }
+
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
-        index_type create_database();
+        index_type create_database(std::string_view dbName);
 
         index_type drop_database(std::string_view dbName);
 
@@ -45,8 +66,6 @@ namespace db_services {
         index_type create_file(std::string_view file_path, index_type dir_id, int file_size = 0);
 
 
-        index_type create_file_temp(std::string_view file_path);
-
         template<hash_function hash = SHA_256>
         int finish_file_processing(std::string_view file_path, index_type file_id);
 
@@ -60,20 +79,59 @@ namespace db_services {
         int get_file_streamed(std::string_view file_name, std::ostream &out);
 
 
+        int compare_file(std::string_view file_name, std::ifstream &inf);
+
+
         int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
         bool checkConnection() {
-
-            return conn_&&conn_->is_open();
+            return db_services::checkConnection(conn_);
+           // return conn_&&conn_->is_open();
+        }
+        ~dbManager()
+        {
+            disconnect();
         }
 
+        ResType terminateAllDbConnections(nonTransType &no_trans_exec);
+
+        ResType checkDatabaseExistence( nonTransType &no_trans_exec);
+
+        ResType checkSchemas(trasnactionType &txn);
     private:
         my_conn_string cString_;
         conPtr conn_;
+
+
     };
 
 
+
+    template<unsigned long segment_size>
+    ResType dbManager<segment_size>::checkSchemas(trasnactionType &txn) {
+        return txn.exec("select tablename "
+                        "from pg_tables "
+                        "where schemaname = 'public';");
+    }
+
+    template<unsigned long segment_size>
+    ResType dbManager<segment_size>::checkDatabaseExistence( nonTransType &no_trans_exec) {
+        std::string qq=vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';", cString_.getDbname().c_str());
+        return no_trans_exec.exec(qq);
+    }
+
+    template<unsigned long segment_size>
+    ResType dbManager<segment_size>::terminateAllDbConnections(nonTransType &no_trans_exec) {
+        std::string qq=vformat("SELECT pg_terminate_backend(pg_stat_activity.pid)\n"
+                       "FROM pg_stat_activity\n"
+                       "WHERE pg_stat_activity.datname = \'%s\' -- ← change this to your DB\n"
+                       "  AND pid <> pg_backend_pid();", cString_.getDbname().c_str());
+        ResType r=no_trans_exec.exec(qq);
+
+        VLOG(2) << vformat("All connections to %s were terminated!" , cString_.getDbname().c_str());
+        return r;
+    }
 
 
     template<unsigned long segment_size>
@@ -243,6 +301,37 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
+    int dbManager<segment_size>::compare_file(std::string_view file_name, std::ifstream &inf) {//todo extract this one
+        try {
+            char buf[segment_size];
+            trasnactionType txn(*conn_);
+            std::string query = vformat("select s.segment_data "
+                                        "from public.data"
+                                        "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
+                                        "        inner join public.files f on f.file_id = public.data.file_id "
+                                        "where file_name=\'%s\'::tsvector "
+                                        "order by segment_num", file_name.data());
+            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
+                //out<<name;
+                inf.readsome(buf,segment_size);
+                compareArr(name.str().c_str(),buf);//todo
+                //out << hex_to_string(pqxx::to_string(name).substr(2));//this get string bytes without conversion
+            }
+            txn.commit();
+
+
+        } catch (const pqxx::sql_error &e) {
+            VLOG(1) << "SQL Error: " << e.what()
+                    << "Query: " << e.query()
+                    << "SQL State: " << e.sqlstate() << '\n';
+            return return_codes::error_occured;
+        } catch (const std::exception &e) {
+            VLOG(1) << "Error inserting block data:" << e.what() << '\n';
+            return return_codes::error_occured;
+        }
+        return return_codes::return_sucess;
+    }
+    template<unsigned long segment_size>
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
             trasnactionType txn(*conn_);
@@ -252,9 +341,10 @@ namespace db_services {
                                         "        inner join public.files f on f.file_id = public.data.file_id "
                                         "where file_name=\'%s\'::tsvector "
                                         "order by segment_num", file_name.data());
-            for (auto [name]: txn.stream<std::string>(query)) {
+            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
                 //out<<name;
-                out << hex_to_string(pqxx::to_string(name).substr(2));//this get string bytes without conversion
+                out<<name.str();
+                //out << hex_to_string(pqxx::to_string(name).substr(2));//this get string bytes without conversion
             }
             txn.commit();
 
@@ -272,6 +362,8 @@ namespace db_services {
     }
 
 
+
+
     template<unsigned long segment_size>
     int dbManager<segment_size>::insert_file_from_stream(std::string_view file_name, std::istream &in) {
         try {
@@ -282,7 +374,7 @@ namespace db_services {
             int count = 0;
             int block_index = 1;
             std::string buffer(segment_size, '\0');
-            while (!in.eof() && in.peek() != -1)//todo get file size
+            while (!in.eof() && in.peek() != -1)//todo get file_size,readsome
             {
                 in.get(cc);
 
@@ -330,12 +422,15 @@ namespace db_services {
             std::string aggregation_table_name = vformat("\"new_segments_%s\"", file_path.data());
             ResType r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = %s", table_name_.c_str());
+            clk.tik();
             txn.exec(q).one_row();
-
-            q = vformat("CREATE TABLE  %s AS SELECT DISTINCT t.data, COUNT(t.data) AS count "
+            clk.tak();
+            q = vformat("CREATE TABLE  %s AS SELECT t.data, COUNT(t.data) AS count "
                         "FROM %s t "
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
+            clk.tik();
             txn.exec(q);
+            clk.tak();
             VLOG(2) << vformat(
                     "Segment data was aggregated into %s for file %s.",//todo some strange things happen there \"%s\"."
                     aggregation_table_name.c_str(),
@@ -349,11 +444,15 @@ namespace db_services {
                         "DO UPDATE "
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
                         aggregation_table_name.c_str());
+            clk.tik();
             txn.exec(q);
+            clk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", file_path.data());
 
             q = vformat("drop table %s;", aggregation_table_name.c_str());
+            clk.tik();
             txn.exec(q);
+            clk.tak();
             VLOG(2)
                             << vformat("Temporary aggregation table %s was deleted.", aggregation_table_name.c_str());
 
@@ -364,12 +463,16 @@ namespace db_services {
                         file_id,
                         table_name.c_str()
             );
+            clk.tik();
             txn.exec(q);
+            clk.tak();
             VLOG(2) << vformat("Segment data of %s was inserted.", table_name.c_str());
 
 
             q = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
+            clk.tik();
             txn.exec(q);
+            clk.tak();
             VLOG(2) << vformat("Temp data table %s was deleted.", table_name.c_str());
 
             txn.commit();
@@ -388,42 +491,10 @@ namespace db_services {
             VLOG(1) << "Error processing file data:" << e.what() << '\n';
             return return_codes::error_occured;
         }
-        return 0;
+        return return_codes::return_sucess;
     }
 
 
-    template<unsigned long segment_size>
-    index_type dbManager<segment_size>::create_file_temp(std::string_view file_path) {
-        trasnactionType txn(*conn_);
-        index_type rrr = return_codes::error_occured;
-
-        std::string query;
-
-        try {
-            std::string table_name = vformat("temp_file_%s", file_path.data());
-            std::string q1 = vformat(
-                    "CREATE TABLE \"%s\" (pos bigint, data bytea);",
-                    txn.esc(table_name).c_str()
-            );
-            ResType r2 = txn.exec(q1);
-            txn.commit();
-
-            VLOG(2) << vformat("Temp data table %s was created.", table_name.c_str());
-        }
-        catch (const pqxx::sql_error &e) {
-            if (e.sqlstate() == sqlLimitBreached_state) {
-                VLOG(1) << vformat("File %s already exists\n", file_path.data());
-                return return_codes::already_exists;
-            }
-            VLOG(1) << "SQL Error: " << e.what()
-                                        << "Query: " << e.query()
-                                        << "SQL State: " << e.sqlstate() << '\n';
-        }
-        catch (const std::exception &e) {
-            VLOG(1) << "File already exists";
-        }
-        return rrr;
-    }
 
     template<unsigned long segment_size>
     index_type dbManager<segment_size>::create_file(std::string_view file_path, index_type dir_id, int file_size) {
@@ -532,25 +603,30 @@ namespace db_services {
 
     template<unsigned long segment_size>
     int dbManager<segment_size>::connectToDb() {
-        if (conn_ && conn_->is_open()) {
+        if (checkConnection()) {
             return return_codes::return_sucess;
         }
         VLOG(1) << "Failed to listen with current connection, attempt to reconnect via cString\n";
         auto result= connect_if_possible(cString_);
 
         conn_=result.value_or(nullptr);
-        return result.error();
-        //return return_codes::return_sucess;
+        if(!result.has_value())
+        {
+            return result.error();
+        }
+        //return result.error();
+        return return_codes::return_sucess;
     }
 
 
 
     template<unsigned long segment_size>
     index_type dbManager<segment_size>::drop_database(std::string_view dbName) {
-        if(conn_&&conn_->is_open())
+        if(checkConnection())
         {
             conn_->close();
         }
+        //todo variant with no dbName
         conn_= nullptr;
         cString_.set_dbname(dbName);
 
@@ -570,20 +646,11 @@ namespace db_services {
 
 
         nonTransType no_trans_exec(*temp_connection);
-
+        std::string qq;
         try {
-            auto qq=vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';",cString_.getDbname().c_str());
-            ResType r = no_trans_exec.exec(qq);
-                                          // pqxx::params(no_trans_exec.esc(cString_.getDbname())));
-            r.one_row();
-            qq=vformat("SELECT pg_terminate_backend(pg_stat_activity.pid)\n"
-                       "FROM pg_stat_activity\n"
-                       "WHERE pg_stat_activity.datname = \'%s\' -- ← change this to your DB\n"
-                       "  AND pid <> pg_backend_pid();",cString_.getDbname().c_str());
-            no_trans_exec.exec(qq);
-                               //pqxx::params(no_trans_exec.esc(cString_.getDbname())));
+            checkDatabaseExistence(no_trans_exec).one_row();
 
-            VLOG(2) << vformat("All connections to %s terminated!" ,cString_.getDbname().c_str());
+            terminateAllDbConnections(no_trans_exec);
 
 
             qq=vformat("DROP DATABASE \"%s\";",
@@ -592,7 +659,7 @@ namespace db_services {
 
             no_trans_exec.commit();
 
-            VLOG(2) << "Database deleted successfully: " << cString_.getDbname() << '\n';
+            VLOG(2) << "Database deleted successfully: " << cString_.getDbname();
 
 
         } catch (const pqxx::sql_error &e) {
@@ -620,13 +687,19 @@ namespace db_services {
         return return_sucess;
     }
 
+
+
+
     template<unsigned long segment_size>
-    index_type dbManager<segment_size>::create_database() {
+    index_type dbManager<segment_size>::create_database(std::string_view dbName) {
         conn_ = nullptr;
+
+        cString_.set_dbname(dbName);
+
         auto tString = cString_;
         tString.set_dbname(sample_temp_db);
 
-        auto result= connect_if_possible(tString);
+        auto result= connect_if_possible(tString);//todo since we change only database name do we need to pass whole string
 
         auto temp_connection=result.value_or(nullptr);
 
@@ -641,10 +714,7 @@ namespace db_services {
         nonTransType no_trans_exec(*temp_connection);
 
         try {
-            ResType r = no_trans_exec.exec(vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';",cString_.getDbname().c_str()));
-                                          // pqxx::params(no_trans_exec.esc(cString_.getDbname())));
-            r.no_rows();
-
+            checkDatabaseExistence(no_trans_exec).no_rows();
 
             no_trans_exec.exec(vformat("CREATE DATABASE \"%s\";",
                                        cString_.getDbname().c_str()));
@@ -687,12 +757,11 @@ namespace db_services {
     template<hash_function hash>
     requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::fill_schemas() {
+        //todo check schemas
         try {
 
             trasnactionType txn(*conn_);
-            txn.exec("select tablename "
-                     "from pg_tables "
-                     "where schemaname = 'public';").no_rows();
+            checkSchemas(txn).no_rows();
 
             std::string query = vformat("create schema if not exists public;"
                                         "create table public.segments"
@@ -738,8 +807,8 @@ namespace db_services {
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 
-            //unique_data_constr
-            //
+
+
             query = "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
                     "ALTER TABLE public.directories ADD CONSTRAINT unique_dir_constr UNIQUE(dir_path);";
             txn.exec(query);
@@ -762,6 +831,8 @@ namespace db_services {
         }
         return return_sucess;
     }
+
+
 }
 
 
