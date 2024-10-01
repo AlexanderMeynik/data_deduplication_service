@@ -50,20 +50,23 @@ TEST_F(DbMangement_tests, testDb_disconnect)
 
 TEST_F(DbMangement_tests, test_schema_creation)
 {
+    conPtr conn_= connect_if_possible(c_str).value_or(nullptr);
+    ASSERT_TRUE(checkConnection(conn_));
     auto res=manager_.connectToDb();
     ASSERT_EQ(res, return_codes::return_sucess);
 
-    auto pqres= wrap_trans_function(c_str,&check_schemas);
+    auto pqres= wrap_trans_function(conn_,&check_schemas);
     ASSERT_TRUE(pqres.has_value());
     ASSERT_EQ(pqres.value().size(), 0);
 
     manager_.fill_schemas();
 
-    pqres = wrap_trans_function(c_str,&check_schemas);
+    pqres = wrap_trans_function(conn_,&check_schemas);
     ASSERT_TRUE(pqres.has_value());
     ASSERT_THROW(pqres.value().no_rows(),pqxx::unexpected_rows);
 
     manager_.disconnect();
+    db_services::diconnect(conn_);
 
 }
 

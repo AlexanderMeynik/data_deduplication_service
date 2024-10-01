@@ -43,12 +43,10 @@ namespace db_services {
 
     ResType check_schemas(trasnactionType &txn);
 
-    template<bool with_temp = true>
     ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
 
     ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);
 
-//todo get data from temp_table
     static const char *const sample_temp_db = "template1";
 
 
@@ -192,22 +190,6 @@ namespace db_services {
         return res;
     }
 
-    template<bool with_temp>
-    db_services::ResType check_file_existence(db_services::trasnactionType &txn, std::string_view file_name) {
-        if constexpr (with_temp) {
-            std::string table_name = vformat("temp_file_%s", file_name.data());
-            std::string query = "select files.* from files,pg_tables "
-                                "where file_name=\'%s\' "
-                                "and (tablename=\'%s\' and schemaname='public');";
-            auto r_q = vformat(query.c_str(), file_name.data(), table_name.c_str());
-            return txn.exec(r_q);
-        } else {
-            std::string query = "select files.* from files "
-                                "where file_name=\'%s\';";
-            auto r_q = vformat(query.c_str(), file_name.data());
-            return txn.exec(r_q);
-        }
-    }
 
 }
 

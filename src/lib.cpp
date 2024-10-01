@@ -59,5 +59,10 @@ db_services::check_directory_existence(db_services::trasnactionType &txn, std::s
 
     return txn.exec(r_q);
 }
-
+db_services::ResType db_services::check_file_existence(db_services::trasnactionType &txn, std::string_view file_name) {
+    std::string query = "select files.* from files "
+                        "where file_name=\'%s\';";
+    auto r_q = vformat(query.c_str(), file_name.data());
+    return txn.exec(r_q);
+}
 

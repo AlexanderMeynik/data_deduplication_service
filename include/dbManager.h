@@ -9,10 +9,12 @@
 namespace db_services {
 
 
-
-
-
-
+    inline void diconnect(conPtr &conn_) {
+        if(conn_) {
+            conn_->close();
+            conn_ = nullptr;
+        }
+    }
 
     template<unsigned long segment_size>
     class dbManager {
@@ -38,10 +40,7 @@ namespace db_services {
 
         void disconnect()
         {
-            if(conn_) {
-                conn_->close();
-                conn_ = nullptr;
-            }
+            db_services::diconnect(conn_);
         }
 
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
@@ -76,15 +75,11 @@ namespace db_services {
         int get_file_streamed(std::string_view file_name, std::ostream &out);
 
 
-        int compare_file(std::string_view file_name, std::ifstream &inf);
-
-
         int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
         bool check_connection() {
             return db_services::checkConnection(conn_);
-           // return conn_&&conn_->is_open();
         }
         ~dbManager()
         {
@@ -280,37 +275,7 @@ namespace db_services {
     }
 
 
-    template<unsigned long segment_size>
-    int dbManager<segment_size>::compare_file(std::string_view file_name, std::ifstream &inf) {//todo extract this one
-        try {
-            char buf[segment_size];
-            trasnactionType txn(*conn_);
-            std::string query = vformat("select s.segment_data "
-                                        "from public.data"
-                                        "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
-                                        "        inner join public.files f on f.file_id = public.data.file_id "
-                                        "where file_name=\'%s\'::tsvector "
-                                        "order by segment_num", file_name.data());
-            for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
-                //out<<name;
-                inf.readsome(buf,segment_size);
-                compareArr(name.str().c_str(),buf);//todo
-                //out << hex_to_string(pqxx::to_string(name).substr(2));//this get string bytes without conversion
-            }
-            txn.commit();
 
-
-        } catch (const pqxx::sql_error &e) {
-            VLOG(1) << "SQL Error: " << e.what()
-                    << "Query: " << e.query()
-                    << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
-        } catch (const std::exception &e) {
-            VLOG(1) << "Error inserting block data:" << e.what() << '\n';
-            return return_codes::error_occured;
-        }
-        return return_codes::return_sucess;
-    }
     template<unsigned long segment_size>
     int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
         try {
