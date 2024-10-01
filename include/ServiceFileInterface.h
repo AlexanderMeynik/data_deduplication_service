@@ -294,7 +294,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_vi
         }
 
     }
-    VLOG(2) << ((manager_.checkConnection()) ? "connection established\n" : "cannot connect\n");
+    VLOG(2) << ((manager_.check_connection()) ? "connection established\n" : "cannot connect\n");
     return 0;
 }
 

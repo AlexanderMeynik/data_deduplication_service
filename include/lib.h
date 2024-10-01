@@ -8,32 +8,55 @@
 #include <functional>
 
 namespace db_services {
+    using namespace std::placeholders;
+    #ifdef IT_test
+
+    static std::string res_dir_path = "../../conf/";
+    #else
+    static std::string res_dir_path = "../../conf/";
+    #endif
+
+    static std::string cfile_name = res_dir_path.append("config.txt");
+    static constexpr const char *const sqlLimitBreached_state = "23505";
+    static constexpr const char *const sqlFqConstraight = "23503";
+
 
     using index_type = long long;
     using trasnactionType = pqxx::work;
-    using connection_type=pqxx::connection;
+    using connection_type = pqxx::connection;
     using conPtr = std::shared_ptr<connection_type>;
-    using ResType=pqxx::result;
-    using nonTransType= pqxx::nontransaction;
+    using ResType = pqxx::result;
+    using nonTransType = pqxx::nontransaction;
 
     enum delete_strategy {
         cascade,
         only_record
     };
 
+    bool inline checkConnection(const conPtr &conn) {
+        return conn && conn->is_open();
+    }
+
+    ResType terminate_all_db_connections(nonTransType &no_trans_exec, std::string_view db_name);
+
+    ResType check_database_existence(nonTransType &no_trans_exec, std::string_view db_name);
+
+    ResType check_schemas(trasnactionType &txn);
+
+    template<bool with_temp = true>
+    ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
+
+    ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);
+
+//todo get data from temp_table
     static const char *const sample_temp_db = "template1";
 
 
-    inline void printRows_affected(ResType &res)
-    {
-        VLOG(3)<<vformat("Rows affected by latest request %d\n",res.affected_rows());
+    inline void printRows_affected(ResType &res) {
+        VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
     }
 
 
-
-
-    static constexpr const char *const sqlLimitBreached_state = "23505";
-    static constexpr const char *const sqlFqConstraight = "23503";
 
     struct my_conn_string {
         my_conn_string() : port(5432) {}
@@ -52,9 +75,11 @@ namespace db_services {
         operator std::string() {
             return formatted_string;
         }
+
         operator std::string_view() {
             return formatted_string.c_str();
         }
+
         [[nodiscard]] const char *c_str() const {
             return formatted_string.c_str();
         }
@@ -117,21 +142,13 @@ namespace db_services {
     };
 
 
-    tl::expected<conPtr,return_codes> connect_if_possible(std::string_view cString);
+    tl::expected<conPtr, return_codes> connect_if_possible(std::string_view cString);
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
     my_conn_string load_configuration(s1 &&filenam, unsigned port = 5501);
 
-    using namespace std::placeholders;
-#ifdef IT_test
 
-    static std::string res_dir_path = "../../conf/";
-#else
-    static std::string res_dir_path = "../../conf/";
-#endif
-
-    static std::string cfile_name = res_dir_path.append("config.txt");
 
 
     auto default_configuration = [](unsigned int port = 5501) {
@@ -150,18 +167,19 @@ namespace db_services {
 
 #include <filesystem>
 
+
+
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
     my_conn_string load_configuration(s1 &&filenam, unsigned port) {
         std::ifstream conf(filenam);
-        if(!conf.is_open())
-        {
-            int count=0;
-            for (auto& entry:std::filesystem::recursive_directory_iterator(std::filesystem::current_path().parent_path())) {
+        if (!conf.is_open()) {
+            int count = 0;
+            for (auto &entry: std::filesystem::recursive_directory_iterator(
+                    std::filesystem::current_path().parent_path())) {
                 count++;
-                VLOG(1)<<entry.path();
-                if(count>20)
-                {
+                VLOG(1) << entry.path();
+                if (count > 20) {
                     break;
                 }
             }
@@ -172,6 +190,23 @@ namespace db_services {
         auto res = my_conn_string(user, password, "localhost", dbname1, port);
         //res.update_format();
         return res;
+    }
+
+    template<bool with_temp>
+    db_services::ResType check_file_existence(db_services::trasnactionType &txn, std::string_view file_name) {
+        if constexpr (with_temp) {
+            std::string table_name = vformat("temp_file_%s", file_name.data());
+            std::string query = "select files.* from files,pg_tables "
+                                "where file_name=\'%s\' "
+                                "and (tablename=\'%s\' and schemaname='public');";
+            auto r_q = vformat(query.c_str(), file_name.data(), table_name.c_str());
+            return txn.exec(r_q);
+        } else {
+            std::string query = "select files.* from files "
+                                "where file_name=\'%s\';";
+            auto r_q = vformat(query.c_str(), file_name.data());
+            return txn.exec(r_q);
+        }
     }
 
 }

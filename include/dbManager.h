@@ -8,10 +8,7 @@
 #include "myconcepts.h"
 namespace db_services {
 
-    bool inline checkConnection(const conPtr&conn )
-    {
-        return conn&&conn->is_open();
-    }
+
 
 
 
@@ -63,7 +60,7 @@ namespace db_services {
         std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
 
 
-        index_type create_file(std::string_view file_path, index_type dir_id, int file_size = 0);
+        index_type create_file(std::string_view file_path, index_type dir_id , int file_size = 0);
 
 
         template<hash_function hash = SHA_256>
@@ -85,7 +82,7 @@ namespace db_services {
         int insert_file_from_stream(std::string_view file_name, std::istream &in);
 
 
-        bool checkConnection() {
+        bool check_connection() {
             return db_services::checkConnection(conn_);
            // return conn_&&conn_->is_open();
         }
@@ -94,11 +91,7 @@ namespace db_services {
             disconnect();
         }
 
-        ResType terminateAllDbConnections(nonTransType &no_trans_exec);
 
-        ResType checkDatabaseExistence( nonTransType &no_trans_exec);
-
-        ResType checkSchemas(trasnactionType &txn);
     private:
         my_conn_string cString_;
         conPtr conn_;
@@ -108,30 +101,11 @@ namespace db_services {
 
 
 
-    template<unsigned long segment_size>
-    ResType dbManager<segment_size>::checkSchemas(trasnactionType &txn) {
-        return txn.exec("select tablename "
-                        "from pg_tables "
-                        "where schemaname = 'public';");
-    }
 
-    template<unsigned long segment_size>
-    ResType dbManager<segment_size>::checkDatabaseExistence( nonTransType &no_trans_exec) {
-        std::string qq=vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';", cString_.getDbname().c_str());
-        return no_trans_exec.exec(qq);
-    }
 
-    template<unsigned long segment_size>
-    ResType dbManager<segment_size>::terminateAllDbConnections(nonTransType &no_trans_exec) {
-        std::string qq=vformat("SELECT pg_terminate_backend(pg_stat_activity.pid)\n"
-                       "FROM pg_stat_activity\n"
-                       "WHERE pg_stat_activity.datname = \'%s\' -- ← change this to your DB\n"
-                       "  AND pid <> pg_backend_pid();", cString_.getDbname().c_str());
-        ResType r=no_trans_exec.exec(qq);
 
-        VLOG(2) << vformat("All connections to %s were terminated!" , cString_.getDbname().c_str());
-        return r;
-    }
+
+
 
 
     template<unsigned long segment_size>
@@ -229,14 +203,20 @@ namespace db_services {
     template<delete_strategy del>
     int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
         try {
+
             trasnactionType txn(*conn_);
-            if (file_id == return_codes::already_exists) {
+            if (file_id == return_codes::already_exists) {//todo optinal value
                 std::string query = "select file_id from public.files where file_name = \'%s\';";
                 auto qx1 = vformat(query.c_str(), file_name.data());
                 file_id = txn.query_value<index_type>(qx1);
             }
             std::string query, qr;
             ResType res;
+
+            std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
+            qr = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
+            res=txn.exec(qr);
+            VLOG(3)<<res.query();
             if constexpr (del == cascade) {
 
                 query = "update public.segments s "
@@ -470,6 +450,7 @@ namespace db_services {
 
 
             q = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
+            //todo if exists is redundant
             clk.tik();
             txn.exec(q);
             clk.tak();
@@ -521,7 +502,7 @@ namespace db_services {
                                                   dir_id,
                                                   file_size);
 
-            std::string table_name = vformat("temp_file_%s", file_path.data());
+            std::string table_name = vformat("temp_file_%s", file_path.data());//todo do we need new table for each file?
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
                     txn.esc(table_name).c_str()
@@ -603,7 +584,7 @@ namespace db_services {
 
     template<unsigned long segment_size>
     int dbManager<segment_size>::connectToDb() {
-        if (checkConnection()) {
+        if (check_connection()) {
             return return_codes::return_sucess;
         }
         VLOG(1) << "Failed to listen with current connection, attempt to reconnect via cString\n";
@@ -622,7 +603,7 @@ namespace db_services {
 
     template<unsigned long segment_size>
     index_type dbManager<segment_size>::drop_database(std::string_view dbName) {
-        if(checkConnection())
+        if(check_connection())
         {
             conn_->close();
         }
@@ -648,9 +629,9 @@ namespace db_services {
         nonTransType no_trans_exec(*temp_connection);
         std::string qq;
         try {
-            checkDatabaseExistence(no_trans_exec).one_row();
+            check_database_existence(no_trans_exec,cString_.getDbname()).one_row();
 
-            terminateAllDbConnections(no_trans_exec);
+            terminate_all_db_connections(no_trans_exec,cString_.getDbname());
 
 
             qq=vformat("DROP DATABASE \"%s\";",
@@ -714,7 +695,7 @@ namespace db_services {
         nonTransType no_trans_exec(*temp_connection);
 
         try {
-            checkDatabaseExistence(no_trans_exec).no_rows();
+            check_database_existence(no_trans_exec,cString_.getDbname()).no_rows();
 
             no_trans_exec.exec(vformat("CREATE DATABASE \"%s\";",
                                        cString_.getDbname().c_str()));
@@ -761,7 +742,7 @@ namespace db_services {
         try {
 
             trasnactionType txn(*conn_);
-            checkSchemas(txn).no_rows();
+            check_schemas(txn).no_rows();
 
             std::string query = vformat("create schema if not exists public;"
                                         "create table public.segments"
