@@ -35,7 +35,7 @@ jobs:
           cd glog
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang-19" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++-19" ..
+          cmake -G Ninja ..
           cmake --build .
           sudo ninja install
           cd ../..
