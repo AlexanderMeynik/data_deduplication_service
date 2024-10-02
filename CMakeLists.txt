@@ -14,7 +14,6 @@ find_package(OpenSSL REQUIRED)
 
 find_package(glog 0.7.1 REQUIRED)
 
-find_package(libpqxx REQUIRED)
 find_package(OpenCV REQUIRED)
 
 
@@ -22,20 +21,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-#[[set_target_properties( targets...
-        PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)]]
-
 include_directories(include)
 
 add_library(commonLibrary src/myconcepts.cpp src/ClockArray.cpp)
 target_link_libraries(commonLibrary glog::glog)
 
 add_library(dbUtilsLib src/dbManager.cpp src/lib.cpp)
-target_link_libraries(dbUtilsLib libpqxx::pqxx pq commonLibrary)
+target_link_libraries(dbUtilsLib pqxx pq commonLibrary)
 
 add_library(FileUtilsLib src/ServiceFileInterface.cpp)
 target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)#[[remove lcrypto]]
