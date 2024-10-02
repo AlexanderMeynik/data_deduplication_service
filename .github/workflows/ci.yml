@@ -31,43 +31,46 @@ jobs:
 
       - name: Build and install glog
         run: |
+          cd /home
+          mkdir deps
+          cd deps
           git clone https://github.com/google/glog.git
           cd glog
           mkdir build
           cd build
-          cmake -G Ninja ..
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/lib/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/lib/clang++" ..
           cmake --build .
           sudo ninja install
-          cd ../..
 
       - name: Build and install libpqxx
         run: |
+          cd /home/deps
           git clone https://github.com/jtv/libpqxx.git
           cd libpqxx
           sudo apt install -y automake
           ./configure --enable-maintainer-mode --enable-audit CXXFLAGS=-O3
           make -j$(nproc)
           sudo make install
-          cd ../..
 
       - name: Build and install googletest
         run: |
+          cd /home/deps
           git clone https://github.com/google/googletest
           cd googletest
           mkdir build
           cd build
-          cmake -G Ninja ..
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/lib/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/lib/clang++" ..
           cmake --build .
           sudo ninja install
-          cd ../..
+          cd /home/runner/work/data_deduplication_service/data_deduplication_service/
 
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build and test your project
+      - name: Build and test service
         run: |
           mkdir build && cd build
-          cmake -G Ninja ..
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/lib/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/lib/clang++" ..
           ninja
           cd test
           ctest --output-on-failure
