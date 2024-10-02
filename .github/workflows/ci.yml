@@ -32,7 +32,8 @@ jobs:
       - name: Build and install glog
         run: |
           cd /home
-          mkdir deps
+          sudo mkdir deps
+          sudo chmod -R 777 deps
           cd deps
           git clone https://github.com/google/glog.git
           cd glog
