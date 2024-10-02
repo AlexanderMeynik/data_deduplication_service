@@ -1,0 +1,73 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15.8
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: deduplication
+        ports:
+          - "5501:5432"
+        healthcheck:
+          test: [ "CMD-SHELL", "pg_isready -U testuser -d deduplication" ]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+          start_period: 10s
+    steps:
+      - name: Install dependencies
+        run: |
+          apt update
+          apt install -y clang ninja-build libpq-dev
+
+      - name: Build and install glog
+        run: |
+          git clone https://github.com/google/glog.git
+          cd glog
+          mkdir build
+          cd build
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang-19" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++-19" ..
+          cmake --build .
+          ninja install
+          cd ../..
+
+      - name: Build and install libpqxx
+        run: |
+          git clone https://github.com/jtv/libpqxx.git
+          cd libpqxx
+          apt install -y automake
+          ./configure --enable-maintainer-mode --enable-audit CXXFLAGS=-O3
+          make -j$(nproc)
+          make install
+          cd ../..
+
+      - name: Build and install googletest
+        run: |
+          git clone https://github.com/google/googletest
+          cd googletest
+          mkdir build
+          cd build
+          cmake -G Ninja ..
+          cmake --build .
+          ninja install
+          cd ../..
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and test your project
+        run: |
+          mkdir build && cd build
+          cmake -G Ninja ..
+          ninja
+          cd test
+          ctest --output-on-failure
