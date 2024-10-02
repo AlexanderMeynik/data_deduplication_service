@@ -26,8 +26,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          apt update
-          apt install -y clang ninja-build libpq-dev
+          sudo apt update
+          sudo apt install -y clang ninja-build libpq-dev
 
       - name: Build and install glog
         run: |
@@ -37,17 +37,17 @@ jobs:
           cd build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang-19" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++-19" ..
           cmake --build .
-          ninja install
+          sudo ninja install
           cd ../..
 
       - name: Build and install libpqxx
         run: |
           git clone https://github.com/jtv/libpqxx.git
           cd libpqxx
-          apt install -y automake
+          sudo apt install -y automake
           ./configure --enable-maintainer-mode --enable-audit CXXFLAGS=-O3
           make -j$(nproc)
-          make install
+          sudo make install
           cd ../..
 
       - name: Build and install googletest
@@ -58,7 +58,7 @@ jobs:
           cd build
           cmake -G Ninja ..
           cmake --build .
-          ninja install
+          sudo ninja install
           cd ../..
 
       - name: Checkout code
