@@ -9,12 +9,12 @@ add_subdirectory(test)
     add_subdirectory(test)
 endif()]]
 
-
-find_package(OpenSSL REQUIRED)
+find_package(libpqxx REQUIRED)
+#[[find_package(OpenSSL REQUIRED)]]
 
 find_package(glog 0.7.1 REQUIRED)
 
-find_package(OpenCV REQUIRED)
+#[[find_package(OpenCV REQUIRED)]]
 
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -30,7 +30,7 @@ add_library(dbUtilsLib src/dbManager.cpp src/lib.cpp)
 target_link_libraries(dbUtilsLib pqxx pq commonLibrary)
 
 add_library(FileUtilsLib src/ServiceFileInterface.cpp)
-target_link_libraries(FileUtilsLib OpenSSL::SSL -lcrypto commonLibrary dbUtilsLib)#[[remove lcrypto]]
+target_link_libraries(FileUtilsLib #[[OpenSSL::SSL -lcrypto]] commonLibrary dbUtilsLib)#[[remove lcrypto]]
 
 
 add_executable(file_service src/fileServiceTest.cpp)
