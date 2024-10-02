@@ -32,6 +32,8 @@ void get_file_from_temp_table(trasnactionType &txn,fs::path & original_file,fs::
 
     std::string table_name = vformat("temp_file_%s", file_path.c_str());
 
+    //todo this one is limited by  63 symbols
+
     int index_num=0;
     auto block_count=file_size/size;
     std::string query;
@@ -103,8 +105,8 @@ void get_file_from_temp_table2(trasnactionType &txn,fs::path & original_file,fs:
     }
 }
 
-static fs::path fix_dir="../fixture/fixture/";
-static fs::path res_dir="../fixture/res/";
+static fs::path fix_dir="../test_data/fixture/";
+static fs::path res_dir="../test_data/res/";
 
 
 template<size_t size=64>
@@ -124,7 +126,7 @@ void compare_files(fs::path &f1,fs::path& f2)
     int j = 0;
     for (; j < seg_count; ++j) {
 
-        i1.readsome(a1, size);//todo try to do it for readfile
+        i1.readsome(a1, size);
         i2.readsome(a2, size);
 
         SCOPED_TRACE(j);
@@ -210,7 +212,7 @@ TEST_F(DbFile_Dir_tests,create_delete_dir_test)
             return_codes::return_sucess);
     result= wrap_trans_function(conn_,&db_services::check_directory_existence, dirname);
     ASSERT_TRUE(result.has_value());
-    ASSERT_THROW(result->one_row(),pqxx::unexpected_rows);
+    ASSERT_NO_THROW(result->no_rows());
 
 }
 
@@ -228,13 +230,13 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(DbFile_Dir_tests,insert_segments)
 {
     auto f_path= GetParam();
-    auto f_in=get_normal_abs(fix_dir/f_path);
-    auto  f_out=get_normal_abs(res_dir/f_path);
+    auto f_in=/*get_normal_abs*/(fix_dir/f_path);
+    auto  f_out=/*get_normal_abs*/(res_dir/f_path);
 
     manager_.create_file(f_in.c_str(),index_vals::empty_parameter_value,fs::file_size(f_in));
     std::ifstream in(f_in);
 
-    manager_.insert_file_from_stream(f_in.c_str(),in);
+    manager_.insert_file_from_stream(f_in.c_str(),in,fs::file_size(f_in));
     in.close();
     wrap_trans_function(conn_,&get_file_from_temp_table,f_in,f_out);
     manager_.delete_file<delete_strategy::only_record>(f_in.c_str());
@@ -248,33 +250,23 @@ TEST_P(DbFile_Dir_tests,insert_segments)
 }
 
 
-/*INSTANTIATE_TEST_SUITE_P(
-        insert_segments_process_retrieve,
-        DbFile_Dir_tests,
-        ::testing::Values(
-                "block_size/0_5_block.txt",
-                "block_size/1block.txt",
-                "block_size/1_5_block.txt",
-                "block_size/32blocks.txt"
-        ));*/
 
 TEST_P(DbFile_Dir_tests,insert_segments_process_retrieve)
 {
     auto f_path= GetParam();
-    auto f_in=get_normal_abs(fix_dir/f_path);
-    auto  f_out=get_normal_abs(res_dir/f_path);
+    auto f_in=/*get_normal_abs*/(fix_dir/f_path);
+    auto  f_out=/*get_normal_abs*/(res_dir/f_path);
 
     auto file_id=manager_.create_file(f_in.c_str(),index_vals::empty_parameter_value,fs::file_size(f_in));
     std::ifstream in(f_in);
 
-    manager_.insert_file_from_stream(f_in.c_str(),in);
+    manager_.insert_file_from_stream(f_in.c_str(),in,fs::file_size(f_in));
     in.close();
 
     manager_.finish_file_processing(f_in.c_str(),file_id);
 
     wrap_trans_function(conn_,&get_file_from_temp_table<check_from::concolidate_from_saved>,f_in,f_out);
 
-    //manager_.delete_file<delete_strategy::only_record>(f_in.c_str());//todo variant when delete fails
     manager_.delete_file(f_in.c_str());
 
     auto result= wrap_trans_function(conn_,&db_services::check_file_existence,{f_in.string()});
@@ -283,22 +275,28 @@ TEST_P(DbFile_Dir_tests,insert_segments_process_retrieve)
 }
 
 
+
+
+
+
+
+
 TEST_P(DbFile_Dir_tests,insert_segments_process_load)
 {
     auto f_path= GetParam();
-    auto f_in=get_normal_abs(fix_dir/f_path);
-    auto  f_out=get_normal_abs(res_dir/f_path);
+    auto f_in=/*get_normal_abs*/(fix_dir/f_path);
+    auto  f_out=/*get_normal_abs*/(res_dir/f_path);
 
     auto file_id=manager_.create_file(f_in.c_str(),index_vals::empty_parameter_value,fs::file_size(f_in));
     std::ifstream in(f_in);
 
-    manager_.insert_file_from_stream(f_in.c_str(),in);
+    manager_.insert_file_from_stream(f_in.c_str(),in,fs::file_size(f_in));
     in.close();
 
     manager_.finish_file_processing(f_in.c_str(),file_id);
 
     std::ofstream out(f_out);
-    manager_.get_file_streamed(f_in.c_str(),out);//todo variant with record deletion
+    manager_.get_file_streamed(f_in.c_str(),out);
     out.close();
 
     compare_files(f_in,f_out);
@@ -310,9 +308,88 @@ TEST_P(DbFile_Dir_tests,insert_segments_process_load)
 }
 
 
+TEST_F(DbFile_Dir_tests,insert_files_from_directory)
+{
+    auto d_path="block_size";
+    auto dd_path=fix_dir/d_path;
+    auto f_path= "block_size/32blocks.txt";
+    std::vector< fs::path> files= {"block_size/0_5_block.txt",
+                                   "block_size/1block.txt",
+                                   "block_size/1_5_block.txt",
+                                   "block_size/32blocks.txt"};
 
+    auto dir_id=manager_.create_directory(dd_path.string());
+    for (auto&entry:files) {
+
+        auto f_in=/*get_normal_abs*/(fix_dir/entry);
+
+        auto file_id=manager_.create_file(f_in.c_str(),dir_id,fs::file_size(f_in));
+        std::ifstream in(f_in);
+
+        manager_.insert_file_from_stream(f_in.c_str(),in,fs::file_size(f_in));
+        in.close();
+
+        manager_.finish_file_processing(f_in.string(),file_id);
+
+
+
+    }
+
+    auto dirs=manager_.get_all_files(dd_path.c_str());
+
+    for (int j = 0; j < dirs.size(); ++j) {
+        EXPECT_EQ(dirs[j].second,/*get_normal_abs*/((fix_dir/files[j])));
+        SCOPED_TRACE(j);
+    }
+
+
+    auto ress=manager_.delete_directory<delete_strategy::only_record>(dd_path.string());//todo split
+    ASSERT_EQ(ress,warning_message);
+
+    auto result=wrap_trans_function(conn_,&db_services::check_directory_existence,{dd_path.string()});
+
+    ASSERT_TRUE(result.has_value());
+    ASSERT_NO_THROW(result->one_row());
+    ASSERT_NE(manager_.get_all_files(dd_path.c_str()).size(),0);
+
+    manager_.delete_directory(dd_path.string());
+
+    result=wrap_trans_function(conn_,&db_services::check_directory_existence,{dd_path.string()});
+    ASSERT_TRUE(result.has_value());
+    ASSERT_NO_THROW(result->no_rows());
+}
+
+
+TEST_F(DbFile_Dir_tests,insert_segments_process_delete_err)
+{
+    auto f_path= "block_size/32blocks.txt";//todo fix
+    auto f_in=(fix_dir/f_path);
+
+    auto file_id=manager_.create_file((f_in).c_str(),index_vals::empty_parameter_value,fs::file_size(f_in));
+    //todo new table name
+    //manager_.create_file(f_in.c_str(),index_vals::empty_parameter_value,fs::file_size(f_in))
+    std::ifstream in(f_in);
+
+
+    manager_.insert_file_from_stream(f_in.string(),in,fs::file_size(f_in));
+    in.close();
+
+    manager_.finish_file_processing(f_in.c_str(),file_id);
+
+    auto ress=manager_.delete_file<delete_strategy::only_record>(f_in.c_str());
+    ASSERT_EQ(ress,warning_message);
+
+    auto result= wrap_trans_function(conn_,&db_services::check_file_existence,{f_in.string()});
+    ASSERT_TRUE(result.has_value());
+    ASSERT_NO_THROW(result->one_row());
+
+    manager_.delete_file(f_in.c_str());
+
+    result=wrap_trans_function(conn_,&db_services::check_file_existence,{f_in.string()});
+    ASSERT_TRUE(result.has_value());
+    ASSERT_NO_THROW(result->no_rows());
+}
 
 
 //todo negative tests
 //todo create fixture to test
-//todo test all options(delete/cascade...)

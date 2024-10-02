@@ -349,7 +349,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     std::basic_ifstream<symbol_type> in(file);
 
     clk.tik();
-    auto res1 = manager_.insert_file_from_stream(file, in);
+    auto res1 = manager_.insert_file_from_stream(file, in,size);
     clk.tak();
 
     if (res1 == return_codes::error_occured) {

@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
     std::string dbName = "deduplication4";
     clk.tik();
 
+    fs.db_drop(dbName);
+
     fs.db_load<db_usage_strategy::create>(dbName);
 
     for (int i =0  ; i < from_dirs.size(); ++i) {
@@ -43,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     fs.process_file("../build.ninja");
     fs.load_file<directory_handling_strategy::create_main>("../build.ninja", "ninja");
-    fs.db_drop(dbName);
+    /*fs.db_drop(dbName);*/
     clk.tak();
     std::cout<<clk;
 

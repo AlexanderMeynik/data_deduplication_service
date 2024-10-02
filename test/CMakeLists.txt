@@ -21,4 +21,4 @@ target_link_libraries(FileServiceTests PRIVATE
 add_test(NAME FileServiceTests COMMAND FileServiceTests)
 add_test(NAME clock_array_tests COMMAND clock_array_tests)
 
-file(COPY fixture DESTINATION ${CMAKE_BINARY_DIR}/fixture)
+file(COPY test_data DESTINATION ${CMAKE_BINARY_DIR})
