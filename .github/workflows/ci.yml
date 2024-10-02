@@ -37,8 +37,7 @@ jobs:
           cd deps
           git clone https://github.com/google/glog.git
           cd glog
-          mkdir build
-          cd build
+          mkdir build&&cd build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
           cmake --build .
           sudo ninja install
@@ -48,10 +47,10 @@ jobs:
           cd /home/deps
           git clone https://github.com/jtv/libpqxx.git
           cd libpqxx
-          sudo apt install -y automake
-          ./configure --enable-maintainer-mode --enable-audit CXXFLAGS=-O3
-          make -j$(nproc)
-          sudo make install
+          mkdir build&&cd build
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
+          cmake --build .
+          sudo ninja install
 
       - name: Build and install googletest
         run: |
