@@ -39,7 +39,7 @@ jobs:
           cd glog
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/lib/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/lib/clang++" ..
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
           cmake --build .
           sudo ninja install
 
@@ -60,7 +60,7 @@ jobs:
           cd googletest
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/lib/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/lib/clang++" ..
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
           cmake --build .
           sudo ninja install
           cd /home/runner/work/data_deduplication_service/data_deduplication_service/
@@ -71,7 +71,7 @@ jobs:
       - name: Build and test service
         run: |
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/lib/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/lib/clang++" ..
+          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
           ninja
           cd test
           ctest --output-on-failure
