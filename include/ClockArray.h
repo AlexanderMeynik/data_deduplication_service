@@ -16,7 +16,8 @@
 
 using location_type=std::array<std::string,4>;
 template<>
-struct ::std::hash<location_type> {
+struct ::std::hash<location_type>
+{
     std::size_t operator()(const location_type &s) const noexcept {
         return std::hash<std::string>{}(s[0] + s[1] + s[2] + s[3]);
     }
@@ -37,7 +38,7 @@ std::ostream& operator<< (std::ostream&out,std::array<T,sz>&arr)
 template<typename T, size_t sz>
 bool operator==(const std::array<T,sz>&arr1,const std::array<T,sz>&arr2)
 {
-    std::equal(arr1.begin(), arr1.end(),arr2);
+   return std::equal(arr1.begin(), arr1.end(),arr2);
 }
 
 namespace timing {

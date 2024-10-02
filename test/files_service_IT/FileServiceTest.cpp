@@ -4,7 +4,7 @@
 //todo compare files/directories
 
 
-class ServiceFileTest : public ::testing::Test {
+/*class ServiceFileTest : public ::testing::Test {
 public:
     void SetUp() override
     {
@@ -29,7 +29,7 @@ protected:
 TEST_F(ServiceFileTest,test_created_db_acess)
 {
 
-}
+}*/
 
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);

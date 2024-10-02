@@ -1,3 +1,6 @@
+enable_testing()
+
+
 find_package(GTest REQUIRED)
 find_package(libpqxx REQUIRED)
 include_directories(../include)
@@ -18,7 +21,9 @@ target_link_libraries(FileServiceTests PRIVATE
         gtest gmock #[[gtest_main]] dbUtilsLib
 )
 
-add_test(NAME FileServiceTests COMMAND FileServiceTests)
-add_test(NAME clock_array_tests COMMAND clock_array_tests)
+
 
 file(COPY test_data DESTINATION ${CMAKE_BINARY_DIR})
+
+
+gtest_discover_tests(FileServiceTests)

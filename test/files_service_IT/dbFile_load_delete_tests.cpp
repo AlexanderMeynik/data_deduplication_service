@@ -392,4 +392,3 @@ TEST_F(DbFile_Dir_tests,insert_segments_process_delete_err)
 
 
 //todo negative tests
-//todo create fixture to test
