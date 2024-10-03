@@ -201,8 +201,11 @@ namespace db_services {
             std::string query, qr;
             ResType res;
 
-            std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
-            qr = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
+
+            auto hash_str=get_table_name(txn,file_name);
+            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
+            //std::string table_name = vformat("\"temp_file_%s\"", file_name.data());//todo check
+            qr = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
             res = txn.exec(qr);
             VLOG(3) << res.query();
             if constexpr (del == cascade) {
@@ -304,7 +307,10 @@ namespace db_services {
                                                          std::size_t file_size) {
         try {
             trasnactionType txn(*conn_);
-            std::string table_name = vformat("\"temp_file_%s\"", file_name.data());
+
+            auto hash_str=get_table_name(txn,file_name);
+            std::string table_name=vformat("\"temp_file_%s\"",hash_str.c_str());
+            /*std::string table_name = vformat("\"temp_file_%s\"", file_name.data());*///todo check2
             pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
             int block_index = 1;
 
@@ -350,32 +356,33 @@ namespace db_services {
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
+            auto hash_str=get_table_name(txn,file_path);
+            std::string table_name=vformat("temp_file_%s",hash_str.c_str()); //todo check
+            /*std::string table_name = vformat("temp_file_%s", file_path.data());
+            std::string table_name_ = vformat("temp_file_%s", file_path.data());*/
 
-            std::string table_name = vformat("\"temp_file_%s\"", file_path.data());
-            std::string table_name_ = vformat("\'temp_file_%s\'", file_path.data());
-            //todo this one can be at most 63 bytes long
 
-            std::string aggregation_table_name = vformat("\"new_segments_%s\"", file_path.data());
+            std::string aggregation_table_name = vformat("new_segments_%s", hash_str.c_str());//todo check 2
             ResType r;
-            std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = %s", table_name_.c_str());
+            std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = \'%s\'", table_name.c_str());
             clk.tik();
             txn.exec(q).one_row();
             clk.tak();
-            q = vformat("CREATE TABLE  %s AS SELECT t.data, COUNT(t.data) AS count "
-                        "FROM %s t "
+            q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count "
+                        "FROM \"%s\" t "
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
             clk.tik();
             txn.exec(q);
             clk.tak();
             VLOG(2) << vformat(
-                    "Segment data was aggregated into %s for file %s.",//todo some strange things happen there \"%s\"."
+                    "Segment data was aggregated into %s for file %s.",
                     aggregation_table_name.c_str(),
                     file_path.data());
 
 
             q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
                         "SELECT ns.data, ns.count "
-                        "FROM %s ns "
+                        "FROM \"%s\" ns "
                         "ON CONFLICT (segment_hash) "
                         "DO UPDATE "
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
@@ -385,7 +392,7 @@ namespace db_services {
             clk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", file_path.data());
 
-            q = vformat("drop table %s;", aggregation_table_name.c_str());
+            q = vformat("drop table \"%s\";", aggregation_table_name.c_str());
             clk.tik();
             txn.exec(q);
             clk.tak();
@@ -395,7 +402,7 @@ namespace db_services {
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
                         "SELECT tt.pos, %s(tt.data),  %d "
-                        "FROM  %s tt ", hash_function_name[hash],
+                        "FROM  \"%s\" tt ", hash_function_name[hash],
                         file_id,
                         table_name.c_str()
             );
@@ -405,7 +412,7 @@ namespace db_services {
             VLOG(2) << vformat("Segment data of %s was inserted.", table_name.c_str());
 
 
-            q = vformat("DROP TABLE IF EXISTS  %s;", table_name.c_str());
+            q = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
             //todo if exists is redundant
             clk.tik();
             txn.exec(q);
@@ -456,18 +463,20 @@ namespace db_services {
                                file_path.data(),
                                dir_id,
                                file_size);
-            //todo this one can be at most 63 bytes long
-            std::string table_name = vformat("temp_file_%s",
-                                             file_path.data());//todo do we need new table for each file?
+            auto hash_str=get_table_name(txn,file_path);
+            std::string table_name=vformat("temp_file_%s",hash_str.c_str());//todo check 4
+            /*std::string table_name = vformat("temp_file_%s",
+                                             file_path.data());
+            */
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
-                    txn.esc(table_name).c_str()
+                    table_name.c_str()//todo removed esc
             );
             txn.exec(q1);
 
             txn.commit();
 
-            VLOG(2) << vformat("Temp data table \"%s\" was created.", table_name.c_str());
+            VLOG(2) << vformat("Temp data table %s was created.", table_name.c_str());
         }
         catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlLimitBreached_state) {

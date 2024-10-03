@@ -60,7 +60,6 @@ namespace timing {
         auto id=name.find(' ');
         auto id2=name.find('(');
 
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now()-std::chrono::high_resolution_clock::now());
         std::string fname=location.file_name();
         return {name.substr(id+1,id2-id-1),std::to_string(location.line()),std::to_string(location.column()),fname.substr(fname.rfind('/')+1)};
 

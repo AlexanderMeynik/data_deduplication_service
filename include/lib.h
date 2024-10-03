@@ -54,6 +54,28 @@ namespace db_services {
         VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
     }
 
+    ResType inline get_table(trasnactionType& txn,std::string_view file_name)
+    {
+        std::string query=vformat("select LEFT(md5(\'%s\'),32)",file_name.data());
+        return txn.exec(query);
+
+    }
+    std::string inline get_table_name(trasnactionType& txn,std::string_view file_name)
+    {
+        return get_table(txn,file_name).one_row()[0].as<std::string>();
+    }
+
+
+    ResType inline check_t_existence(db_services::trasnactionType &txn, std::string_view file_name) {
+            auto hash_str=get_table_name(txn,file_name);
+            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
+            //std::string t_name= get_table_name(txn,file_name);
+            std::string query = "select 1 from pg_tables "
+                                "where tablename=\'%s\' and schemaname='public';";
+            auto r_q = vformat(query.c_str(), table_name.data(), table_name.c_str());
+            return txn.exec(r_q);
+    }
+
 
 
     struct my_conn_string {

@@ -105,7 +105,6 @@ int wrap_trans_function(conPtr& conn,void (*call)(trasnactionType&, Args ...), A
         VLOG(1) << "SQL Error: " << e.what()
                 << "Query: " << e.query()
                 << "SQL State: " << e.sqlstate() << '\n';
-        return return_codes::error_occured;
     }
     catch (const pqxx::unexpected_rows &r) {
         VLOG(1) << "Unexpected rows";

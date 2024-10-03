@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: alexandermey/data-deduplication-service:enviroment_sl
     services:
       postgres:
         image: postgres:15.8
@@ -24,44 +24,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - name: Install dependencies
+      - name: cd_dir
         run: |
-          sudo apt update
-          sudo apt install -y clang ninja-build libpq-dev
-
-      - name: Build and install glog
-        run: |
-          cd /home
-          sudo mkdir deps
-          sudo chmod -R 777 deps
-          cd deps
-          git clone https://github.com/google/glog.git
-          cd glog
-          mkdir build&&cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
-          cmake --build .
-          sudo ninja install
-
-      - name: Build and install libpqxx
-        run: |
-          cd /home/deps
-          git clone https://github.com/jtv/libpqxx.git
-          cd libpqxx
-          mkdir build&&cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
-          cmake --build .
-          sudo ninja install
-
-      - name: Build and install googletest
-        run: |
-          cd /home/deps
-          git clone https://github.com/google/googletest
-          cd googletest
-          mkdir build
-          cd build
-          cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" ..
-          cmake --build .
-          sudo ninja install
           cd /home/runner/work/data_deduplication_service/data_deduplication_service/
 
       - name: Checkout code

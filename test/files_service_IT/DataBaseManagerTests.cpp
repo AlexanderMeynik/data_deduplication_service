@@ -13,6 +13,7 @@ public:
         c_str=default_configuration();
         c_str.set_dbname(dbName);
         manager_.create_database(dbName);
+        ASSERT_TRUE(manager_.check_connection());
 
     }
     static auto get_c_str()
