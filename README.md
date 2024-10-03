@@ -57,11 +57,11 @@ todo:
 
 [source](https://stackoverflow.com/questions/56824788/how-to-connect-to-windows-postgres-database-from-wsl)
 
-WSL2 assigns IP address to the Windows host dynamically and the IP addresses can change without even rebooting Windows (
+WSL2 assigns IP address to the Windows host_def dynamically and the IP addresses can change without even rebooting Windows (
 see Notes below). So to reliably connect we'll need to:
 
 1. Allow Windows and Postgres to accept connections from the WSL2 IP address range (not allowed by default)
-2. From WSL2, determine the Windows/Postgresql host's IP address (which is dynamic) when connecting via`psql`. We'll
+2. From WSL2, determine the Windows/Postgresql host_def's IP address (which is dynamic) when connecting via`psql`. We'll
    make this convenient via`.bashrc`and`alias`.
 
 Unfortunately I couldn't find the exact specification for the WSL2 IP address range. From several tests/reboots it
