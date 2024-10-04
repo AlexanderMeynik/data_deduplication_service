@@ -48,5 +48,4 @@ jobs:
 
       - name: run tests
         run: |
-          cd test
-          cd /__w/data_deduplication_service/data_deduplication_service/build/test && GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+          cd test && GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
