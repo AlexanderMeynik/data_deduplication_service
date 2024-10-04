@@ -45,16 +45,14 @@ jobs:
           ../src/
           ninja
           cd test
-          GLOG_log_dir=${GITHUB_WORKSPACE}/logs GLOG_logtostderr=0 GLOG_stderrthreshold=0 ./FileServiceTests
+          GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
           echo "logs"
-          ls ${GITHUB_WORKSPACE}/logs
-          echo "logspath"
-          ls -la ${GITHUB_WORKSPACE}/logs
+          ls /__w/data_deduplication_service/data_deduplication_service/logs
 
       - name: Save log files
         uses: actions/upload-artifact@v4
         with:
           name: logs
-          path: ${GITHUB_WORKSPACE}/logs
+          path: /__w/data_deduplication_service/data_deduplication_service/logs
           if-no-files-found: warn
           include-hidden-files: true
