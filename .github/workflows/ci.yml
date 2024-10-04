@@ -35,7 +35,7 @@ jobs:
       - name: Build application
         run: |
           ls /__w/data_deduplication_service/data_deduplication_service/src
-          cd ../build
+          mkdir ../build && cd ../build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
