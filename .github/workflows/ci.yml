@@ -34,9 +34,9 @@ jobs:
       - name: Build application
         run: |
           ls
-          echo "src"
+          echo "src list"
           ls src
-          echo "build"
+          echo "build start"
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
