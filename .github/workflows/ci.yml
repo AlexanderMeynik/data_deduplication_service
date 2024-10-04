@@ -35,7 +35,8 @@ jobs:
         run: |
           ls
           echo "src"
-          ls /src
+          ls src
+          echo "build"
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
