@@ -29,12 +29,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          path: /usr/application/src
+          path: ./src
           sparse-checkout: .
 
       - name: Build application
         run: |
-          ls /usr/application/src
+          ls /__w/data_deduplication_service/data_deduplication_service/src
           cd ../build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
@@ -44,4 +44,4 @@ jobs:
       - name: run tests
         run: |
           cd test
-          cd /usr/application/build/test && GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+          cd /__w/data_deduplication_service/data_deduplication_service/build/test && GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
