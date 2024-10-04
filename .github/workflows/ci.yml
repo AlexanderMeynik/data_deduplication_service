@@ -32,7 +32,7 @@ jobs:
           submodules: true
           path: ./src
 
-      - name: Build application
+      - name: Build and run tests
         run: |
           ls
           echo "src list"
@@ -45,7 +45,7 @@ jobs:
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
           ninja
-
-      - name: run tests
-        run: |
-          cd test && GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+          ls 
+          echo "start testing"
+          cd test
+          GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
