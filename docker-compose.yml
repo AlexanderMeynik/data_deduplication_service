@@ -27,11 +27,6 @@ services:
     volumes:
       - .:/usr/application/src
       - build-data:/usr/application/build
-  runner:
-    image: builder
-    profiles: [run]
-    volumes:
-      - build-data:/usr/application/build
 volumes:
   stored-data:
   build-data:
