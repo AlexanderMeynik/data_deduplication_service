@@ -35,7 +35,8 @@ jobs:
 
       - name: Build and run tests
         run: |
-          mkdir logs
+          mkdir ${GITHUB_WORKSPACE}/logs
+          sudo chmod -R 777 ${GITHUB_WORKSPACE}/logs
           mkdir build && cd build
           cp -r ../src/conf/ ../conf 
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
@@ -44,10 +45,11 @@ jobs:
           ninja
           cd test
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs;GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+          ls ${GITHUB_WORKSPACE}/logs
 
       - name: Save log files
         uses: actions/upload-artifact@v4
         with:
-          name: dist-without-markdown
+          name: logs
           path: |
             ${GITHUB_WORKSPACE}/logs
