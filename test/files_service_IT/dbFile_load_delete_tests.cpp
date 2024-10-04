@@ -133,9 +133,7 @@ protected:
 };
 TEST_F(DbFile_Dir_tests,test_file_eq)
 {
-    fs::path filename="../../testDirectories/documentation/architecture.md";
-
-    //std::string filename2="../../testDirectoriesRes/documentation/architecture.md";
+    fs::path filename="../test_data/fixture/block_size/32blocks.txt";
 
     compare_files(filename,filename);
 }

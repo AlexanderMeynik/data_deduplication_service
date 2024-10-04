@@ -36,14 +36,10 @@ jobs:
         run: |
           echo "build start"
           mkdir build && cd build
-          cp -r ../src/conf/ ../conf
-          echo "conf_file"
-          ls ../conf
+          cp -r ../src/conf/ ../conf 
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
           ninja
-          ls 
-          echo "start testing"
           cd test
           GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
