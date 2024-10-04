@@ -34,13 +34,11 @@ jobs:
 
       - name: Build and run tests
         run: |
-          ls
-          echo "src list"
-          ls src
-          echo "fff/list"
-          ls src/fff
           echo "build start"
           mkdir build && cd build
+          cp -r ../src/conf/ ../conf
+          echo "conf_file"
+          ls ../conf
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
