@@ -259,7 +259,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template< db_usage_strategy str, hash_function hash>
-requires is_divisible<segment_size, hash_function_size[hash]>//todo 1 par string view
+requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_view filename) {
     auto CString = db_services::default_configuration();
     CString.set_dbname(dbName);

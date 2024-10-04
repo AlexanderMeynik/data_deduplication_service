@@ -166,14 +166,14 @@ namespace db_services {
 
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
-    my_conn_string load_configuration(s1 &&filenam, unsigned port = 5501);
+    my_conn_string load_configuration(s1 &&filenam);
 
 
 
 
-    auto default_configuration = [](unsigned int port = 5501) {
+    auto default_configuration = []() {
         //todo add verbose messages
-        return load_configuration(cfile_name, std::forward<decltype(port)>(port));
+        return load_configuration(cfile_name);
     };
 
     template<typename T, unsigned long size>
@@ -189,9 +189,10 @@ namespace db_services {
 
 
 
+
     template<typename s1>
     requires std::is_convertible_v<s1, std::string>
-    my_conn_string load_configuration(s1 &&filenam, unsigned port) {
+    my_conn_string load_configuration(s1 &&filenam) {
         std::ifstream conf(filenam);
         if (!conf.is_open()) {
             int count = 0;
@@ -207,7 +208,12 @@ namespace db_services {
         }
         std::string dbname1, user, password;
         conf >> dbname1 >> user >> password;
-        auto res = my_conn_string(user, password, "localhost", dbname1, port);
+        std::string host;
+        unsigned port1;
+        if(!conf.eof())
+            conf>>host>>port1;
+
+        auto res = my_conn_string(user, password, host, dbname1, port1);
         //res.update_format();
         return res;
     }

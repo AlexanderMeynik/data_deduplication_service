@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:15.8
@@ -23,6 +22,16 @@ services:
         limits:
           cpus: '1'
           memory: 4G
-
+  service:
+    image: builder
+    volumes:
+      - .:/usr/application/src
+      - build-data:/usr/application/build
+  runner:
+    image: builder
+    profiles: [run]
+    volumes:
+      - build-data:/usr/application/build
 volumes:
   stored-data:
+  build-data:

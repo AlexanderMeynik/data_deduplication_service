@@ -1,3 +1,5 @@
 deduplication
 testuser
 password
+postgres
+5432
