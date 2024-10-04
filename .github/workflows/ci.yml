@@ -2,12 +2,10 @@ name: Build and Test
 
 on:
   push:
-    paths:
-      -src/**
-      -include/**
-      -test/**
-      -CMakeLists.txt
-      -.github/**
+    paths-ignore:
+      - sripts/**
+      - README.md
+      - documentation/**
 
 jobs:
   build-and-test:
