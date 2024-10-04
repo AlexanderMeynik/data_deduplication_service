@@ -48,6 +48,8 @@ jobs:
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs GLOG_logtostderr=0 GLOG_stderrthreshold=0 ./FileServiceTests
           echo "logs"
           ls ${GITHUB_WORKSPACE}/logs
+          echo "logspath"
+          ls -la ${GITHUB_WORKSPACE}/logs
 
       - name: Save log files
         uses: actions/upload-artifact@v4
