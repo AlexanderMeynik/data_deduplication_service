@@ -30,12 +30,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ./src
-          sparse-checkout: .
 
       - name: Build application
         run: |
           ls
-          ls /__w/data_deduplication_service/data_deduplication_service/src
+          echo "src"
+          ls /src
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
