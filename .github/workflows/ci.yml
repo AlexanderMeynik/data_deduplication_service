@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and run tests
         run: |
-          mkdir ${GITHUB_WORKSPACE}/logs
+          mkdir logs
           chmod -R 777 ${GITHUB_WORKSPACE}/logs
           mkdir build && cd build
           cp -r ../src/conf/ ../conf 
@@ -44,12 +44,13 @@ jobs:
           ../src/
           ninja
           cd test
-          GLOG_log_dir=${GITHUB_WORKSPACE}/logs;GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
-          ls ${GITHUB_WORKSPACE}/logs
+          GLOG_log_dir=../../logs;GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+          echo "logs"
+          ls ../../logs
 
       - name: Save log files
         uses: actions/upload-artifact@v4
         with:
           name: logs
           path: |
-            ${GITHUB_WORKSPACE}/logs
+            ../../logs
