@@ -29,6 +29,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          submodules: true
           path: ./src
 
       - name: Build application
@@ -36,6 +37,8 @@ jobs:
           ls
           echo "src list"
           ls src
+          echo "fff/list"
+          ls src/fff
           echo "build start"
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
