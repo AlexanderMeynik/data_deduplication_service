@@ -32,27 +32,24 @@ jobs:
         with:
           submodules: true
           path: ./src
-
-      - name: Build and run tests
+      - name: Build and set logginf directory
         run: |
           mkdir ${GITHUB_WORKSPACE}/logs
-          chmod -R 755 ${GITHUB_WORKSPACE}/logs
-          
           mkdir build && cd build
           cp -r ../src/conf/ ../conf 
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
           ninja
-          cd test
+      - name: Run tests
+        run: |
+          cd ${GITHUB_WORKSPACE}/build/test
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
-          echo "logs"
-          ls /__w/data_deduplication_service/data_deduplication_service/logs
-
       - name: Save log files
         uses: actions/upload-artifact@v4
         with:
           name: logs
           path: /__w/data_deduplication_service/data_deduplication_service/logs
+#          i seems like "uses" steps can't deduce ${GITHUB_WORKSPACE}/logs
           if-no-files-found: warn
           include-hidden-files: true
