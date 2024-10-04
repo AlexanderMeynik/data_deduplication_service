@@ -2,9 +2,12 @@ name: Build and Test
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    paths:
+      -src/**
+      -include/**
+      -test/**
+      -CMakeLists.txt
+      -.github/**
 
 jobs:
   build-and-test:
@@ -34,7 +37,7 @@ jobs:
 
       - name: Build and run tests
         run: |
-          echo "build start"
+          mkdir logs
           mkdir build && cd build
           cp -r ../src/conf/ ../conf 
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
@@ -42,4 +45,11 @@ jobs:
           ../src/
           ninja
           cd test
-          GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+          GLOG_log_dir=${GITHUB_WORKSPACE}/logs;GLOG_logtostderr=0;GLOG_stderrthreshold=0 ./FileServiceTests
+
+      - name: Save log files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-without-markdown
+          path: |
+            ${GITHUB_WORKSPACE}/logs
