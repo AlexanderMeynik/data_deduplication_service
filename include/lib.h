@@ -9,12 +9,12 @@
 
 namespace db_services {
     using namespace std::placeholders;
-    #ifdef IT_test
+#ifdef IT_test
 
     static std::string res_dir_path = "../../conf/";
-    #else
+#else
     static std::string res_dir_path = "../../conf/";
-    #endif
+#endif
 
     static std::string cfile_name = res_dir_path.append("config.txt");
     static constexpr const char *const sqlLimitBreached_state = "23505";
@@ -48,21 +48,7 @@ namespace db_services {
     ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);//todo rename all
 
 
-    ResType inline check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path>& files)
-    {
-        std::string query = "SELECT * "
-                            "FROM files "
-                            "WHERE files.file_name IN (%s)";
-        std::stringstream ss;
-        int i=0;
-        for (;i<files.size()-1;i++) {
-            ss<<'\''<<files[i].string()<<"\',";
-        }
-        ss<<'\''<<files[i].string()<<"\'";
-        auto r_q = vformat(query.c_str(), ss.str().c_str());
-
-        return txn.exec(r_q);
-    }
+    ResType check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path> &files);
 
 
     static const char *const sample_temp_db = "template1";
@@ -72,28 +58,27 @@ namespace db_services {
         VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
     }
 
-    ResType inline get_table(trasnactionType& txn,std::string_view file_name)
-    {
-        std::string query=vformat("select LEFT(md5(\'%s\'),32)",file_name.data());
+    ResType inline get_hash_res(trasnactionType &txn, std::string_view file_name) {
+        //todo maybe we can generate it with openssl
+        std::string query = vformat("select LEFT(md5(\'%s\'),32)", file_name.data());
         return txn.exec(query);
 
     }
-    std::string inline get_table_name(trasnactionType& txn,std::string_view file_name)
-    {
-        return get_table(txn,file_name).one_row()[0].as<std::string>();
+
+    std::string inline get_hash_str(trasnactionType &txn, std::string_view file_name) {
+        return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
     }
 
 
     ResType inline check_t_existence(db_services::trasnactionType &txn, std::string_view file_name) {
-            auto hash_str=get_table_name(txn,file_name);
-            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
-            //std::string t_name= get_table_name(txn,file_name);
-            std::string query = "select 1 from pg_tables "
-                                "where tablename=\'%s\' and schemaname='public';";
-            auto r_q = vformat(query.c_str(), table_name.data(), table_name.c_str());
-            return txn.exec(r_q);
+        auto hash_str = get_hash_str(txn, file_name);
+        std::string table_name = vformat("temp_file_%s", hash_str.c_str());
+        //std::string t_name= get_table_name(txn,file_name);
+        std::string query = "select 1 from pg_tables "
+                            "where tablename=\'%s\' and schemaname='public';";
+        auto r_q = vformat(query.c_str(), table_name.data(), table_name.c_str());
+        return txn.exec(r_q);
     }
-
 
 
     struct my_conn_string {
@@ -185,8 +170,6 @@ namespace db_services {
     my_conn_string load_configuration(std::string_view filename);
 
 
-
-
     auto default_configuration = []() {
         //todo add verbose messages
         return load_configuration(cfile_name);
@@ -200,8 +183,6 @@ namespace db_services {
         }
         return res;
     }
-
-
 
 
 }

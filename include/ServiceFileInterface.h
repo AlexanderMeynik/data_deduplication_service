@@ -40,17 +40,20 @@ tl::expected<std::string, int> check_file_existence_(std::string_view file_path)
 
 tl::expected<std::string, int> check_directory_existence_(std::string_view dir_path);
 
-namespace fs= std::filesystem;
-inline fs::path  get_normal_abs(fs::path & pwd)
-{
+namespace fs = std::filesystem;
+
+inline fs::path get_normal_abs(fs::path &pwd) {
     return fs::absolute(pwd).lexically_normal();
 }
-namespace fs= std::filesystem;
-inline fs::path  get_normal_abs(fs::path && pwd)
-{
+
+namespace fs = std::filesystem;
+
+inline fs::path get_normal_abs(fs::path &&pwd) {
     return fs::absolute(pwd).lexically_normal();
 }
-using ds=db_services::delete_strategy;
+
+using ds = db_services::delete_strategy;
+
 template<unsigned long segment_size> requires is_divisible<total_block_size, segment_size>
 class FileParsingService {
 public:
@@ -63,16 +66,15 @@ public:
 
     template<db_usage_strategy str = use, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
-    int db_load(std::string &dbName,std::string_view filename="../../res/config.txt");
+    int db_load(std::string &dbName, std::string_view filename = "../../res/config.txt");
 
-    int db_drop(std::string_view dbName)
-    {
-        auto res=manager_.drop_database(dbName);
+    int db_drop(std::string_view dbName) {
+        auto res = manager_.drop_database(dbName);
         return res;
     };
 
     template<data_insetion_strategy strategy = preserve_old>
-    int process_directory(std::string_view dir_path,index_type* dir_idd= nullptr);
+    int process_directory(std::string_view dir_path, index_type *dir_idd = nullptr);
 
     template<data_insetion_strategy strategy = preserve_old, bool existence_checks = true, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
@@ -86,15 +88,16 @@ public:
     template<directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist, bool from_load_dir = false>
     int load_file(std::string_view from_file, std::string_view to_file);
 
-    template<ds delS=ds::cascade>
+    template<ds delS = ds::cascade>
     int delete_file(std::string_view file_path);
-    template<ds delS=ds::cascade>
+
+    template<ds delS = ds::cascade>
     int delete_directory(std::string_view dir_path);
 
-    bool check_connection()
-    {
+    bool check_connection() {
         return manager_.check_connection();
     }
+
 private:
     dbManager<segment_size> manager_;
 };
@@ -103,13 +106,12 @@ template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template<ds delS>
 int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
-    fs::path file_abs_path= get_normal_abs(file_path);
+    fs::path file_abs_path = get_normal_abs(file_path);
 
-    auto res=manager_.template delete_file<delS>(file_abs_path.string());
+    auto res = manager_.template delete_file<delS>(file_abs_path.string());
 
-    if(res==return_codes::error_occured)
-    {
-        VLOG(1)<<vformat("Error occurred during directory \"%s\" removal.\n",file_abs_path.c_str());
+    if (res == return_codes::error_occured) {
+        VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", file_abs_path.c_str());
     }
     return res;
 }
@@ -118,18 +120,16 @@ template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template<ds delS>
 int FileParsingService<segment_size>::delete_directory(std::string_view dir_path) {
-    fs::path dir_abs_path= get_normal_abs(dir_path);
+    fs::path dir_abs_path = get_normal_abs(dir_path);
 
 
-    auto res=manager_.template delete_directory<delS>(dir_abs_path.string());
+    auto res = manager_.template delete_directory<delS>(dir_abs_path.string());
 
-    if(res==return_codes::error_occured)
-    {
-        VLOG(1)<<vformat("Error occurred during directory \"%s\" removal.\n",dir_abs_path.c_str());
+    if (res == return_codes::error_occured) {
+        VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", dir_abs_path.c_str());
     }
     return res;
 }
-
 
 
 template<unsigned long segment_size>
@@ -161,7 +161,7 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
 
             if (!fs::is_directory(parent_dir_path)) {
                 VLOG(1) << vformat("\"%s\" is not a directory use procesFile for files\n",
-                                                       parent_dir_path.c_str());
+                                   parent_dir_path.c_str());
                 return return_codes::error_occured;
             }
         }
@@ -182,8 +182,8 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
 
     if (stream_res == return_codes::error_occured) {
         VLOG(1) << vformat("Error occurred during "
-                                               "file \"%s\" streaming",
-                                               from_file_path.c_str());
+                           "file \"%s\" streaming",
+                           from_file_path.c_str());
         return stream_res;
     }
 
@@ -194,8 +194,8 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
 
         if (del_res == return_codes::error_occured) {
             VLOG(1) << vformat("Error occurred during "
-                                                   "file \"%s\" deletion",
-                                                   from_file_path.c_str());
+                               "file \"%s\" deletion",
+                               from_file_path.c_str());
             return del_res;
         }
     }
@@ -227,7 +227,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 
             if (!fs::is_directory(to_dir)) {
                 VLOG(1) << vformat("\"%s\" is not a directory use procesFile for files\n",
-                                                       to_dir.data());
+                                   to_dir.data());
                 return return_codes::error_occured;
             }
         }
@@ -249,11 +249,11 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 
 
         auto result = this->template load_file<directory_handling_strategy::create_main, rr, true>(pair.second,
-                                                                                                            p_t_s.string());
+                                                                                                   p_t_s.string());
         if (result == return_codes::error_occured) {
             VLOG(1) << vformat("Error occurred during "
-                                                   "file \"%s\" retrieval",
-                                                   from_dir_path.c_str());
+                               "file \"%s\" retrieval",
+                               from_dir_path.c_str());
             continue;
         }
     }
@@ -266,9 +266,9 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template< db_usage_strategy str, hash_function hash>
+template<db_usage_strategy str, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
-int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_view filename) {
+int FileParsingService<segment_size>::db_load(std::string &dbName, std::string_view filename) {
     auto CString = db_services::default_configuration();
     CString.set_dbname(dbName);
 
@@ -294,8 +294,8 @@ int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_vi
         }
     } else {
 
-       auto res= manager_.connectToDb();
-        if (res== return_codes::error_occured) {
+        auto res = manager_.connectToDb();
+        if (res == return_codes::error_occured) {
             VLOG(1)
                             << vformat("Error occurred during database's \"%s\" schema's creation\n", dbName.c_str());
             return return_codes::error_occured;
@@ -309,7 +309,7 @@ int FileParsingService<segment_size>::db_load(std::string &dbName,std::string_vi
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template< data_insetion_strategy strategy, bool existence_checks, hash_function hash>
+template<data_insetion_strategy strategy, bool existence_checks, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::process_file(std::string_view file_path, index_type dir_id) {
 
@@ -357,7 +357,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     std::basic_ifstream<symbol_type> in(file);
 
     clk.tik();
-    auto res1 = manager_.insert_file_from_stream(file, in,size);
+    auto res1 = manager_.insert_file_from_stream(file, in, size);
     clk.tak();
 
     if (res1 == return_codes::error_occured) {
@@ -380,8 +380,8 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template< data_insetion_strategy strategy>
-int FileParsingService<segment_size>::process_directory(std::string_view dir_path,index_type* dir_idd) {
+template<data_insetion_strategy strategy>
+int FileParsingService<segment_size>::process_directory(std::string_view dir_path, index_type *dir_idd) {
     namespace fs = std::filesystem;
     fs::path pp;
 
@@ -396,12 +396,11 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
 
     if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
         VLOG(1) << vformat("Error occurred during directory creation. Directory path \"%s\"!",
-                                               dir_path.data());
+                           dir_path.data());
         return dir_id;
     }
-    if(dir_idd)
-    {
-        *dir_idd=dir_id;
+    if (dir_idd) {
+        *dir_idd = dir_id;
     }
 
 

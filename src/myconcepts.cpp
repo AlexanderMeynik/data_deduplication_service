@@ -1,4 +1,5 @@
 #include "myconcepts.h"
+
 std::string vformat(const char *const zcFormat, ...) {
 
     // initialize use of the variable argument array

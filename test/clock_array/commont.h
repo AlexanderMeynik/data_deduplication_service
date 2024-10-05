@@ -1,5 +1,6 @@
 #ifndef SOURCE_SERVICE_COMMONT_H
 #define SOURCE_SERVICE_COMMONT_H
+
 #include <gtest/gtest.h>
 #include "ClockArray.h"
 #include <fff.h>
@@ -13,7 +14,7 @@ using namespace std::chrono_literals;
 
 
 #define COMMA ,
-using dur_type=std::chrono::duration<int64_t, std::milli>;
+using dur_type = std::chrono::duration<int64_t, std::milli>;
 
 
 static constexpr double abs_err = 1e-2;
@@ -23,8 +24,6 @@ static constexpr double rel_err = 1;
     clk.tik();              \
     block                   \
     clk.tak();
-
-
 
 
 #endif //SOURCE_SERVICE_COMMONT_H

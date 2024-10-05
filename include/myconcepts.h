@@ -17,8 +17,8 @@
 
 static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 
-using CLOCK =timing::chrono_clock_template<std::chrono::milliseconds>;
-static CLOCK  clk;
+using CLOCK = timing::chrono_clock_template<std::chrono::milliseconds>;
+static CLOCK clk;
 #define COMMA ,
 //crutch
 #define MEASURE_TIME(block) \

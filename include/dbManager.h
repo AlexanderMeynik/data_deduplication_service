@@ -202,8 +202,8 @@ namespace db_services {
             ResType res;
 
 
-            auto hash_str=get_table_name(txn,file_name);
-            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
+            auto hash_str = get_hash_str(txn, file_name);
+            std::string table_name = vformat("temp_file_%s", hash_str.c_str());
             qr = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
             res = txn.exec(qr);
             VLOG(3) << res.query();
@@ -307,8 +307,8 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
 
-            auto hash_str=get_table_name(txn,file_name);
-            std::string table_name=vformat("\"temp_file_%s\"",hash_str.c_str());
+            auto hash_str = get_hash_str(txn, file_name);
+            std::string table_name = vformat("\"temp_file_%s\"", hash_str.c_str());
             pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
             int block_index = 1;
 
@@ -327,8 +327,8 @@ namespace db_services {
 
             }
             if (l_block_size != 0) {
-                std::string bff(l_block_size,'\0');
-                in.read(bff.data(),segment_size);
+                std::string bff(l_block_size, '\0');
+                in.read(bff.data(), segment_size);
                 copy_stream
                         << std::make_tuple(
                                 block_index,
@@ -354,8 +354,8 @@ namespace db_services {
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
-            auto hash_str=get_table_name(txn,file_path);
-            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
+            auto hash_str = get_hash_str(txn, file_path);
+            std::string table_name = vformat("temp_file_%s", hash_str.c_str());
 
 
             std::string aggregation_table_name = vformat("new_segments_%s", hash_str.c_str());
@@ -459,8 +459,8 @@ namespace db_services {
                                file_path.data(),
                                dir_id,
                                file_size);
-            auto hash_str=get_table_name(txn,file_path);
-            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
+            auto hash_str = get_hash_str(txn, file_path);
+            std::string table_name = vformat("temp_file_%s", hash_str.c_str());
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
                     table_name.c_str()

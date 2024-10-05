@@ -46,6 +46,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/build/test
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
       - name: Save log files
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: logs
