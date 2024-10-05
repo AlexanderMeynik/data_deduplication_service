@@ -3,108 +3,9 @@
 #include <fstream>
 #include <filesystem>
 
-template<typename T,typename A>
-requires std::is_same_v<T,A>||
-        std::is_same_v<T,typename std::remove_const<A>::type>||
-        std::is_same_v<A,typename std::remove_const<T>::type>
-void compareArr(size_t size,T *arr,A* arr2)
-{
-    for (int arr_elem = 0; arr_elem < size; ++arr_elem) {
-        EXPECT_EQ(arr[arr_elem], arr2[arr_elem]);
-        SCOPED_TRACE(arr_elem);
-    }
-}
-enum check_from
-{
-    temporary_table,
-    concolidate_from_saved
-};
-template<size_t size=64,check_from cs>
-void get_file_from_temp_table(trasnactionType &txn,fs::path & original_file,fs::path &  file_path)
-{
-    char buff[size];
-    std::ifstream in(original_file.c_str());
-    auto res=db_services::check_file_existence(txn,original_file.c_str());
-
-    auto file_size=res.one_row()["size_in_bytes"].as<index_type>();
-
-    ASSERT_EQ(fs::file_size(original_file),file_size);
-
-    auto hash_str=get_table_name(txn,original_file.c_str());
-    std::string table_name=vformat("temp_file_%s",hash_str.c_str());
-
-
-
-    int index_num=0;
-    auto block_count=file_size/size;
-    std::string query;
-    if constexpr (cs==temporary_table) {
-        query = vformat("select t.data from \"%s\" t "
-                        "ORDER by t.pos", table_name.c_str());
-    }
-    else
-    {
-        query= vformat("select s.segment_data "
-                                    "from public.data"
-                                    "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
-                                    "        inner join public.files f on f.file_id = public.data.file_id "
-                                    "where file_name=\'%s\'::tsvector "
-                                    "order by segment_num", file_path.c_str());
-    }
-    for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
-        //out<<name;
-        auto size_1=in.readsome(buff, size);
-        if(index_num<block_count) {
-            compareArr(size,buff,name.str().c_str());
-        }
-        else
-        {
-            compareArr(size_1,buff,name.str().c_str());
-        }
-        SCOPED_TRACE(index_num);
-        index_num++;
-    }
-}
-
-
 
 static fs::path fix_dir="../test_data/fixture/";
 static fs::path res_dir="../test_data/res/";
-
-
-template<size_t size=64>
-void compare_files(fs::path &f1,fs::path& f2)
-{
-    ASSERT_TRUE(exists(f1));
-    ASSERT_TRUE(exists(f2));
-    auto fs=file_size(f1);
-    ASSERT_EQ(fs,file_size(f2));
-    size_t seg_count= fs / size;
-    //https://stackoverflow.com/questions/50491833/how-do-you-read-n-bytes-from-a-file-and-put-them-into-a-vectoruint8-t-using-it
-
-
-    std::ifstream i1(f1),i2(f2);
-    char a1[size];
-    char a2[size];
-    int j = 0;
-    for (; j < seg_count; ++j) {
-
-        i1.readsome(a1, size);
-        i2.readsome(a2, size);
-
-        SCOPED_TRACE(j);
-        compareArr(size,a1, a2);
-    }
-
-    auto sz=i1.readsome(a1, size);
-    i2.readsome(a2, size);
-    SCOPED_TRACE(j);
-    compareArr(sz,a1, a2);
-
-
-
-}
-
 
 class DbFile_Dir_tests : public ::testing::TestWithParam<fs::path> {
 public:
@@ -143,7 +44,7 @@ TEST_F(DbFile_Dir_tests,create_delete_file_test)
     std::string_view filename="sample_file_name";
 
     auto file_id =manager_.create_file(filename,index_vals::empty_parameter_value);
-    auto result= wrap_trans_function(conn_,&db_services::check_file_existence, filename);
+    auto result= wrap_trans_function(conn_,&db_services::check_file_existence,std::move(filename));
 
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->one_row());
@@ -153,7 +54,7 @@ TEST_F(DbFile_Dir_tests,create_delete_file_test)
     ASSERT_EQ(manager_.delete_file<delete_strategy::only_record>(filename),
               return_codes::return_sucess);
 
-    result= wrap_trans_function(conn_,&db_services::check_file_existence, filename);
+    result= wrap_trans_function(conn_,&db_services::check_file_existence, std::move(filename));
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->no_rows());
 }
@@ -163,16 +64,16 @@ TEST_F(DbFile_Dir_tests,create_delete_dir_test)
     std::string_view dirname="sample_dir_name";
 
     auto dir_id=manager_.create_directory(dirname);
-    auto result= wrap_trans_function(conn_,&db_services::check_directory_existence, dirname);
+    auto result= wrap_trans_function(conn_,&db_services::check_directory_existence, std::move(dirname));//todo find betetr solution for wrapper
 
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->one_row());
 
     ASSERT_EQ(dir_id,result.value()[0][0].as<index_type>());
 
-    ASSERT_EQ(manager_.delete_directory<delete_strategy::only_record>(dirname),
+    ASSERT_EQ(manager_.delete_directory<delete_strategy::only_record>(std::move(dirname)),
             return_codes::return_sucess);
-    result= wrap_trans_function(conn_,&db_services::check_directory_existence, dirname);
+    result= wrap_trans_function(conn_,&db_services::check_directory_existence, std::move(dirname));
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->no_rows());
 
@@ -193,7 +94,6 @@ TEST_P(DbFile_Dir_tests,insert_segments)
 {
     auto f_path= GetParam();
     auto f_in=/*get_normal_abs*/(fix_dir/f_path);
-    auto  f_out=/*get_normal_abs*/(res_dir/f_path);
 
     manager_.create_file(f_in.c_str(),index_vals::empty_parameter_value,fs::file_size(f_in));
     std::ifstream in(f_in);
@@ -201,7 +101,7 @@ TEST_P(DbFile_Dir_tests,insert_segments)
     manager_.insert_file_from_stream(f_in.c_str(),in,fs::file_size(f_in));
     in.close();
 
-    ASSERT_EQ(wrap_trans_function(conn_,&get_file_from_temp_table<64,check_from::temporary_table>,f_in,f_out),return_codes::return_sucess);
+    ASSERT_EQ(wrap_trans_function(conn_,&get_file_from_temp_table<64,check_from::temporary_table>,f_in),return_codes::return_sucess);
     manager_.delete_file<delete_strategy::only_record>(f_in.c_str());
 
     auto result= wrap_trans_function(conn_,&db_services::check_file_existence,{f_in.string()});
@@ -229,7 +129,9 @@ TEST_P(DbFile_Dir_tests,insert_segments_process_retrieve)
     manager_.finish_file_processing(f_in.c_str(),file_id);
 
 
-    ASSERT_EQ(wrap_trans_function(conn_,&get_file_from_temp_table<64,check_from::concolidate_from_saved>,f_in,f_out),return_codes::return_sucess);
+    ASSERT_EQ(wrap_trans_function(conn_,&get_file_from_temp_table<64,check_from::concolidate_from_saved>
+            ,f_in),
+              return_codes::return_sucess);
 
     manager_.delete_file(f_in.c_str());
 
@@ -237,20 +139,7 @@ TEST_P(DbFile_Dir_tests,insert_segments_process_retrieve)
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->no_rows());
 }
-template<size_t N>
-std::string trimNsymbols(std::string&&trimmee)
-{
-    if(trimmee.size()<=2*N) {
-        VLOG(1) << vformat("Trim Value %d is to large for string %s!", N, trimmee.c_str());
-        return "";
-    }
-    return trimmee.substr(N,trimmee.length()-(1+N));
-}
-template<>
-std::string trimNsymbols<0>(std::string&&trimmee)
-{
-    return trimmee;
-}
+
 TEST_P(DbFile_Dir_tests,check_very_long_file_pathes)
 {
     auto d_path= "very/very/long/directory/path/containing/more/than/57/symbols/or/more";
@@ -262,7 +151,7 @@ TEST_P(DbFile_Dir_tests,check_very_long_file_pathes)
 
     auto file_id=manager_.create_file(f_path.c_str(),index_vals::empty_parameter_value,index_vals::empty_parameter_value);
 
-    auto res=wrap_trans_function(conn_,&check_file_existence,{f_path.c_str()});
+    auto res=wrap_trans_function(conn_, &check_file_existence, {f_path.c_str()});
 
     ASSERT_TRUE(res.has_value());
     ASSERT_EQ(trimNsymbols<1>(res.value()[0][1].as<std::string>()),f_path);
@@ -306,7 +195,7 @@ TEST_P(DbFile_Dir_tests,insert_segments_process_load)
 
     manager_.finish_file_processing(f_in.c_str(),file_id);
 
-    std::ofstream out(f_out);
+    std::ofstream out=std::move(get_file_dir(f_out.c_str()));//todo check
     manager_.get_file_streamed(f_in.c_str(),out);
     out.close();
 

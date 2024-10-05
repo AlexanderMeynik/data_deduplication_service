@@ -66,3 +66,34 @@ db_services::ResType db_services::check_file_existence(db_services::trasnactionT
     return txn.exec(r_q);
 }
 
+
+
+
+
+
+db_services::my_conn_string db_services::load_configuration(std::string_view filename) {
+    std::ifstream conf(filename.data());
+    if (!conf.is_open()) {
+        int count = 0;
+        for (auto &entry: std::filesystem::recursive_directory_iterator(
+                std::filesystem::current_path().parent_path())) {
+            count++;
+            VLOG(1) << entry.path();
+            if (count > 20) {
+                break;
+            }
+        }
+    }
+    std::string dbname1, user, password;
+    conf >> dbname1 >> user >> password;
+    std::string host;
+    unsigned port1=5432;
+    if(!conf.eof())
+        conf>>host>>port1;
+
+    auto res = db_services::my_conn_string(user, password, host, dbname1, port1);
+    VLOG(2)<<vformat("Configuration was loaded from file %s",filename.data());
+
+    return res;
+}
+

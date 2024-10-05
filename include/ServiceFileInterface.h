@@ -35,13 +35,18 @@ enum directory_handling_strategy {
 using db_services::dbManager;
 
 
-tl::expected<std::string, int> check_file_existence(std::string_view file_path);
+tl::expected<std::string, int> check_file_existence_(std::string_view file_path);
 
 
-tl::expected<std::string, int> check_directory_existence(std::string_view dir_path);
+tl::expected<std::string, int> check_directory_existence_(std::string_view dir_path);
 
 namespace fs= std::filesystem;
-inline fs::path  get_normal_abs(fs::path  pwd)
+inline fs::path  get_normal_abs(fs::path & pwd)
+{
+    return fs::absolute(pwd).lexically_normal();
+}
+namespace fs= std::filesystem;
+inline fs::path  get_normal_abs(fs::path && pwd)
 {
     return fs::absolute(pwd).lexically_normal();
 }
@@ -67,7 +72,7 @@ public:
     };
 
     template<data_insetion_strategy strategy = preserve_old>
-    int process_directory(std::string_view dir_path);
+    int process_directory(std::string_view dir_path,index_type* dir_idd= nullptr);
 
     template<data_insetion_strategy strategy = preserve_old, bool existence_checks = true, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
@@ -86,7 +91,10 @@ public:
     template<ds delS=ds::cascade>
     int delete_directory(std::string_view dir_path);
 
-
+    bool check_connection()
+    {
+        return manager_.check_connection();
+    }
 private:
     dbManager<segment_size> manager_;
 };
@@ -308,7 +316,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
     namespace fs = std::filesystem;
     std::string file;
     if constexpr (existence_checks) {
-        auto result = check_file_existence(file_path);
+        auto result = check_file_existence_(file_path);
         if (!result.has_value()) {
             return return_codes::error_occured;
         }
@@ -373,11 +381,11 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template< data_insetion_strategy strategy>
-int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
+int FileParsingService<segment_size>::process_directory(std::string_view dir_path,index_type* dir_idd) {
     namespace fs = std::filesystem;
     fs::path pp;
 
-    auto result = check_directory_existence(dir_path);
+    auto result = check_directory_existence_(dir_path);
     if (!result.has_value()) {
         return return_codes::error_occured;
     }
@@ -390,6 +398,10 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
         VLOG(1) << vformat("Error occurred during directory creation. Directory path \"%s\"!",
                                                dir_path.data());
         return dir_id;
+    }
+    if(dir_idd)
+    {
+        *dir_idd=dir_id;
     }
 
 

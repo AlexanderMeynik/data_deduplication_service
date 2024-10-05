@@ -55,8 +55,8 @@ tl::expected<Ret,int> wrap_non_trans_function(Ret (*call)(nonTransType&, Args ..
 
 
 template <typename ResType1,typename ... Args>
-requires  (!std::is_void_v<ResType1>)//todo perfect forwarding
-tl::expected<ResType1 ,int> wrap_trans_function(conPtr& conn,ResType1 (*call)(trasnactionType&, Args ...), Args ... args)
+requires  (!std::is_void_v<ResType1>)
+tl::expected<ResType1 ,int> wrap_trans_function(conPtr& conn,ResType1 (*call)(trasnactionType&, Args ...), Args &&... args)
 {
     if (!checkConnection(conn)) {
         VLOG(1)
@@ -67,7 +67,7 @@ tl::expected<ResType1 ,int> wrap_trans_function(conPtr& conn,ResType1 (*call)(tr
         ResType1 res;
 
         try {
-            res = call(no_trans_exec, args ...);
+            res = call(no_trans_exec, std::forward<Args>(args) ...);
 
         } catch (const pqxx::sql_error &e) {
             VLOG(1) << "SQL Error: " << e.what()

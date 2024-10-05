@@ -45,7 +45,25 @@ namespace db_services {
 
     ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
 
-    ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);
+    ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);//todo rename all
+
+
+    ResType inline check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path>& files)
+    {
+        std::string query = "SELECT * "
+                            "FROM files "
+                            "WHERE files.file_name IN (%s)";
+        std::stringstream ss;
+        int i=0;
+        for (;i<files.size()-1;i++) {
+            ss<<'\''<<files[i].string()<<"\',";
+        }
+        ss<<'\''<<files[i].string()<<"\'";
+        auto r_q = vformat(query.c_str(), ss.str().c_str());
+
+        return txn.exec(r_q);
+    }
+
 
     static const char *const sample_temp_db = "template1";
 
@@ -164,9 +182,7 @@ namespace db_services {
 
     tl::expected<conPtr, return_codes> connect_if_possible(std::string_view cString);
 
-    template<typename s1>
-    requires std::is_convertible_v<s1, std::string>
-    my_conn_string load_configuration(s1 &&filenam);
+    my_conn_string load_configuration(std::string_view filename);
 
 
 
@@ -185,38 +201,7 @@ namespace db_services {
         return res;
     }
 
-#include <filesystem>
 
-
-
-
-    template<typename s1>
-    requires std::is_convertible_v<s1, std::string>
-    my_conn_string load_configuration(s1 &&filenam) {
-        std::ifstream conf(filenam);
-        if (!conf.is_open()) {
-            int count = 0;
-            for (auto &entry: std::filesystem::recursive_directory_iterator(
-                    std::filesystem::current_path().parent_path())) {
-                count++;
-                VLOG(1) << entry.path();
-                if (count > 20) {
-                    break;
-                }
-            }
-            //return  {};
-        }
-        std::string dbname1, user, password;
-        conf >> dbname1 >> user >> password;
-        std::string host;
-        unsigned port1;
-        if(!conf.eof())
-            conf>>host>>port1;
-
-        auto res = my_conn_string(user, password, host, dbname1, port1);
-        //res.update_format();
-        return res;
-    }
 
 
 }

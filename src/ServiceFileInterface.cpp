@@ -1,8 +1,5 @@
-
-
 #include "ServiceFileInterface.h"
-
-tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
+tl::expected<std::string, int> check_file_existence_(std::string_view file_path) {
     std::string file;
     try {
         file = std::filesystem::canonical(file_path).string();
@@ -26,27 +23,28 @@ tl::expected<std::string, int> check_file_existence(std::string_view file_path) 
     return tl::expected<std::string, int>{file};
 }
 
-tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
-    std::string directory;
-    try {
-        directory = std::filesystem::canonical(dir_path).string();
+tl::expected<std::string, int> check_directory_existence_(std::string_view dir_path) {
+        std::string directory;
+        try {
+            directory = std::filesystem::canonical(dir_path).string();
 
 
-        if (!std::filesystem::exists(dir_path)) {
-            VLOG(1) << vformat("\"%s\" no such file or directory\n", dir_path.data());
+            if (!std::filesystem::exists(dir_path)) {
+                VLOG(1) << vformat("\"%s\" no such file or directory\n", dir_path.data());
+                return tl::unexpected{return_codes::error_occured};
+
+            }
+            if (!std::filesystem::is_directory(dir_path)) {
+                VLOG(1)
+                                << vformat("\"%s\" is not a directory use procesFile for files!\n", dir_path.data());
+                return tl::unexpected{return_codes::error_occured};
+            }
+
+
+        } catch (const std::filesystem::filesystem_error &e) {
+            VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
             return tl::unexpected{return_codes::error_occured};
-
         }
-        if (!std::filesystem::is_directory(dir_path)) {
-            VLOG(1)
-                            << vformat("\"%s\" is not a directory use procesFile for files!\n", dir_path.data());
-            return tl::unexpected{return_codes::error_occured};
-        }
-
-
-    } catch (const std::filesystem::filesystem_error &e) {
-        VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
-        return tl::unexpected{return_codes::error_occured};
-    }
-    return tl::expected<std::string, int>{directory};
+        return tl::expected<std::string, int>{directory};
 }
+

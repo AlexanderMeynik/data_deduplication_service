@@ -204,7 +204,6 @@ namespace db_services {
 
             auto hash_str=get_table_name(txn,file_name);
             std::string table_name=vformat("temp_file_%s",hash_str.c_str());
-            //std::string table_name = vformat("\"temp_file_%s\"", file_name.data());//todo check
             qr = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
             res = txn.exec(qr);
             VLOG(3) << res.query();
@@ -310,7 +309,6 @@ namespace db_services {
 
             auto hash_str=get_table_name(txn,file_name);
             std::string table_name=vformat("\"temp_file_%s\"",hash_str.c_str());
-            /*std::string table_name = vformat("\"temp_file_%s\"", file_name.data());*///todo check2
             pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
             int block_index = 1;
 
@@ -357,12 +355,10 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
             auto hash_str=get_table_name(txn,file_path);
-            std::string table_name=vformat("temp_file_%s",hash_str.c_str()); //todo check
-            /*std::string table_name = vformat("temp_file_%s", file_path.data());
-            std::string table_name_ = vformat("temp_file_%s", file_path.data());*/
+            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
 
 
-            std::string aggregation_table_name = vformat("new_segments_%s", hash_str.c_str());//todo check 2
+            std::string aggregation_table_name = vformat("new_segments_%s", hash_str.c_str());
             ResType r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = \'%s\'", table_name.c_str());
             clk.tik();
@@ -464,13 +460,10 @@ namespace db_services {
                                dir_id,
                                file_size);
             auto hash_str=get_table_name(txn,file_path);
-            std::string table_name=vformat("temp_file_%s",hash_str.c_str());//todo check 4
-            /*std::string table_name = vformat("temp_file_%s",
-                                             file_path.data());
-            */
+            std::string table_name=vformat("temp_file_%s",hash_str.c_str());
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea);",
-                    table_name.c_str()//todo removed esc
+                    table_name.c_str()
             );
             txn.exec(q1);
 
@@ -699,7 +692,6 @@ namespace db_services {
     template<hash_function hash>
     requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::fill_schemas() {
-        //todo check schemas
         try {
 
             trasnactionType txn(*conn_);
