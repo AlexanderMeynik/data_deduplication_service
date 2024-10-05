@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
         auto res2=db_services::from_dotted_path(res);
         std::cout<<to_dirs[i].string()<<'\t'<<res<<'\t'<<res2<<'\n';
     }
-    return 0;
+    /*return 0;*/
 
 
 
@@ -29,14 +29,14 @@ int main(int argc, char *argv[]) {
     google::SetVLOGLevel("*", 3);//todo proper vlog handling from terminal
 
     FileParsingService<64> fs;
-    std::string dbName = "deduplication4";
+    std::string dbName = "deduplication10";
     clk.tik();
 
     fs.db_drop(dbName);
 
     fs.db_load<db_usage_strategy::create>(dbName);
 
-    for (int i = 0; i < from_dirs.size(); ++i) {
+    for (int i = 1; i < from_dirs.size(); ++i) {
         clk.tik();//test for simialr cases
         fs.process_directory(from_dirs[i].string());
         clk.tak();
@@ -48,11 +48,12 @@ int main(int argc, char *argv[]) {
     }
     clk.tak();
     clk.tik();
+    fs.delete_directory(from_dirs[1].string());//works
 
     //fs.delete_directory<2>(from_dirs[0]);//kinda slow find culprit
 
-    fs.process_file("../build.ninja");
-    fs.load_file<directory_handling_strategy::create_main>("../build.ninja", "ninja");
+    fs.process_file("../../conf/config.txt");//fails due to path containing chracters
+    fs.load_file<directory_handling_strategy::create_main>("../../conf/config.txt", "../../conf/c2.txt");
     /*fs.db_drop(dbName);*/
     clk.tak();
     std::cout << clk;

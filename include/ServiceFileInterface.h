@@ -135,6 +135,7 @@ int FileParsingService<segment_size>::delete_directory(std::string_view dir_path
 
 
     auto res = manager_.template delete_directory<delS>(dir_abs_path.string());
+    //todo replace with other things
 
     if (res == return_codes::error_occured) {
         VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", dir_abs_path.c_str());
@@ -242,7 +243,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
                 return return_codes::error_occured;
             }
         }
-        new_dir_path = get_normal_abs(to_dir);
+        new_dir_path = get_normal_abs(to_dir);//todo is absolute
 
     } catch (const fs::filesystem_error &e) {
         VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
@@ -338,7 +339,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 
     auto size = fs::file_size(file);
 
-    auto file_id = manager_.create_file(file, dir_id, size);
+    auto file_id = manager_.create_file(file, dir_id, size);//todo remove param
 
 
     if (file_id == return_codes::already_exists) {
@@ -403,7 +404,7 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     pp = result.value();
 
 
-    auto dir_id = manager_.create_directory(pp.string());
+    /*auto dir_id = manager_.create_directory(pp.string());
 
     if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
         VLOG(1) << vformat("Error occurred during directory creation. Directory path \"%s\"!",
@@ -412,14 +413,14 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     }
     if (dir_idd) {
         *dir_idd = dir_id;
-    }
+    }*/
 
 
     for (const auto &entry: fs::recursive_directory_iterator(pp)) {
         if (!fs::is_directory(entry)) {
             auto file = fs::canonical(entry.path()).string();
             clk.tik();
-            auto results = this->template process_file<strategy, false>(file, dir_id);
+            auto results = this->template process_file<strategy, false>(file, 1);//todo remove param
             clk.tak();
             if (results == return_codes::already_exists) {
                 continue;
