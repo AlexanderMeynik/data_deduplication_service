@@ -13,9 +13,16 @@ std::vector<fs::path> to_dirs(from_dirs.size(), "");
 int main(int argc, char *argv[]) {
 
     for (int i = 0; i < from_dirs.size(); i++) {
-        to_dirs[i] = new_dir_prefix / from_dirs[i];
-        from_dirs[i] = parent_path / from_dirs[i];
+        to_dirs[i] = get_normal_abs((new_dir_prefix / from_dirs[i]));
+        from_dirs[i] = get_normal_abs(parent_path / from_dirs[i]);
+        auto res=db_services::to_dotted_path(to_dirs[i].string());
+        auto res2=db_services::from_dotted_path(res);
+        std::cout<<to_dirs[i].string()<<'\t'<<res<<'\t'<<res2<<'\n';
     }
+    return 0;
+
+
+
 
 
     google::InitGoogleLogging(argv[0]);

@@ -52,6 +52,17 @@ inline fs::path get_normal_abs(fs::path &&pwd) {
     return fs::absolute(pwd).lexically_normal();
 }
 
+template<unsigned int size>
+requires(size>=1)
+inline std::array<fs::path,size> parentN(fs::path & file)//todo maybe non needed
+{
+    std::array<fs::path,size> res;
+    res[0]=file.parent_path();
+    for (int i = 1; i < size; ++i) {
+        res[i]=res[i-1].parent_path();
+    }
+    return res;
+}
 using ds = db_services::delete_strategy;
 
 template<unsigned long segment_size> requires is_divisible<total_block_size, segment_size>

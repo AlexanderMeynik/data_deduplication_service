@@ -1,4 +1,4 @@
-#include "lib.h"
+#include "dbCommon.h"
 
 tl::expected<db_services::conPtr, return_codes> db_services::connect_if_possible(std::string_view cString) {
     conPtr c;
@@ -53,7 +53,7 @@ db_services::ResType db_services::check_schemas(db_services::trasnactionType &tx
 db_services::ResType
 db_services::check_directory_existence(db_services::trasnactionType &txn, std::string_view dir_path) {
     std::string query = "select * from directories "
-                        "where dir_path=\'%s\';";
+                        "where dir_path=\'%s\';";//todo to dotted path
     auto r_q = vformat(query.c_str(), dir_path.data());
 
     return txn.exec(r_q);
@@ -61,7 +61,7 @@ db_services::check_directory_existence(db_services::trasnactionType &txn, std::s
 
 db_services::ResType db_services::check_file_existence(db_services::trasnactionType &txn, std::string_view file_name) {
     std::string query = "select files.* from files "
-                        "where file_name=\'%s\';";
+                        "where file_name=\'%s\';";//todo to dotted path
     auto r_q = vformat(query.c_str(), file_name.data());
     return txn.exec(r_q);
 }
@@ -97,13 +97,29 @@ db_services::ResType
 db_services::check_files_existence(db_services::trasnactionType &txn, std::vector<std::filesystem::path> &files) {
     std::string query = "SELECT * "
                         "FROM files "
-                        "WHERE files.file_name IN (%s)";
+                        "WHERE files.file_name IN (%s)";//todo to dotted path
     std::stringstream ss;
     int i = 0;
     for (; i < files.size() - 1; i++) {
         ss << '\'' << files[i].string() << "\',";
     }
     ss << '\'' << files[i].string() << "\'";
+    auto r_q = vformat(query.c_str(), ss.str().c_str());
+
+    return txn.exec(r_q);
+}
+
+db_services::ResType db_services::check_directories_existence(db_services::trasnactionType &txn,
+                                                              std::vector<std::filesystem::path> &directories) {
+    std::string query = "SELECT * "
+                        "FROM directories "
+                        "WHERE directories.dir_path IN (%s)";//todo to dotted path
+    std::stringstream ss;
+    int i = 0;
+    for (; i < directories.size() - 1; i++) {
+        ss << '\'' << directories[i].string() << "\',";
+    }
+    ss << '\'' << directories[i].string() << "\'";
     auto r_q = vformat(query.c_str(), ss.str().c_str());
 
     return txn.exec(r_q);

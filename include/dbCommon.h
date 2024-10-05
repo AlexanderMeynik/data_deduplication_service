@@ -49,6 +49,7 @@ namespace db_services {
 
 
     ResType check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path> &files);
+    ResType check_directories_existence(trasnactionType &txn, std::vector<std::filesystem::path> &directories);
 
 
     static const char *const sample_temp_db = "template1";

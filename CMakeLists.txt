@@ -26,7 +26,7 @@ include_directories(include)
 add_library(commonLibrary src/myconcepts.cpp src/ClockArray.cpp)
 target_link_libraries(commonLibrary glog::glog)
 
-add_library(dbUtilsLib src/dbManager.cpp src/lib.cpp)
+add_library(dbUtilsLib src/dbManager.cpp src/dbCommon.cpp)
 target_link_libraries(dbUtilsLib pqxx pq commonLibrary)
 
 add_library(FileUtilsLib src/ServiceFileInterface.cpp)

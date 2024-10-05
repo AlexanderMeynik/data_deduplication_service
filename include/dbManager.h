@@ -5,7 +5,7 @@
 
 #include <pqxx/pqxx>
 #include <iostream>
-#include "lib.h"
+#include "dbCommon.h"
 #include "myconcepts.h"
 
 namespace db_services {
@@ -16,6 +16,21 @@ namespace db_services {
             conn_->close();
             conn_ = nullptr;
         }
+    }
+    std::string inline to_dotted_path(std::string_view path)
+    {
+        std::string res(path.size(),'\0');
+        std::replace_copy_if(path.begin(), path.end(),res.begin(),
+                             [](auto n){ return n=='/'; }, '.');
+        return res.substr(1);
+    }//todo pathes are always absolute
+
+    std::string inline from_dotted_path(std::string_view path)
+    {
+        std::string res(path.size()+1,'/');
+        std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
+                             [](auto n){ return n=='.'; }, '/');
+        return res;
     }
 
     template<unsigned long segment_size>
@@ -130,7 +145,7 @@ namespace db_services {
 
 
                 query = "delete from public.data d "
-                        "       where exists "
+                        "       where exists "//todo mus be optimized
                         "           ("
                         "           select f.file_id "
                         "           from public.files f "
@@ -194,7 +209,7 @@ namespace db_services {
 
             trasnactionType txn(*conn_);
             if (file_id == return_codes::already_exists) {//todo optinal value
-                std::string query = "select file_id from public.files where file_name = \'%s\';";
+                std::string query = "select file_id from public.files where file_name = \'%s\';";//todo to dotted path
                 auto qx1 = vformat(query.c_str(), file_name.data());
                 file_id = txn.query_value<index_type>(qx1);
             }
@@ -444,11 +459,11 @@ namespace db_services {
         ResType res;
         try {
             if (dir_id == index_vals::empty_parameter_value) {
-                query = "insert into public.files (file_name,size_in_bytes)"
+                query = "insert into public.files (file_name,size_in_bytes)"//todo to dotted path+jist uniqe
                         " values ($1,$2) returning file_id;";
                 res = txn.exec(query, {file_path, file_size});
             } else {
-                query = "insert into public.files (file_name,dir_id,size_in_bytes)"
+                query = "insert into public.files (file_name,dir_id,size_in_bytes)"//todo to dotted path
                         " values ($1,$2,$3) returning file_id;";
                 res = txn.exec(query, {file_path, dir_id, file_size});
             }
@@ -492,7 +507,7 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
 
-            std::string query = "select file_id,file_name from public.files "
+            std::string query = "select file_id,file_name from public.files "//todo from dotted path
                                 "    inner join public.directories d "
                                 "        on d.dir_id = public.files.dir_id "
                                 "where dir_path=$1;";
@@ -519,7 +534,7 @@ namespace db_services {
         index_type result = return_codes::error_occured;
         try {
             trasnactionType txn(*conn_);
-            std::string query = "insert into public.directories (dir_path) values ($1) returning dir_id;";
+            std::string query = "insert into public.directories (dir_path) values ($1) returning dir_id;";//todo gist unique
             result = txn.exec(query, pqxx::params(dir_path)).one_row()[0].as<index_type>();
 
             txn.commit();
@@ -707,18 +722,18 @@ namespace db_services {
             txn.exec(query);
             VLOG(2) << vformat("Create segments table with preferred hashing function %s\n",
                                hash_function_name[hash]);
+            //add todo  ltree extention
 
-
-            query = "create table public.directories "
+            query = "create table public.directories "//todo do ve actually need to store them?
                     "("
                     "    dir_id serial primary key NOT NULL,"
-                    "    dir_path tsvector NOT NULL"
+                    "    dir_path tsvector NOT NULL"//todo ltree
                     ");"
                     ""
                     "create table public.files "
                     "("
                     "    file_id serial primary key NOT NULL,"
-                    "    file_name tsvector NOT NULL,"
+                    "    file_name tsvector NOT NULL," //todo ltree
                     "    dir_id int REFERENCES public.directories(dir_id) NULL,"
                     "    size_in_bytes bigint NULL"
                     ");"
@@ -736,13 +751,13 @@ namespace db_services {
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
                     "CREATE INDEX if not exists dir_gin_index on public.directories using gin(dir_path); "
-                    "CREATE INDEX if not exists dir_id_bin on public.files(dir_id); "
-                    "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); ";
+                    "CREATE INDEX if not exists dir_id_bin on public.files(dir_id); "//todo  gist index "https://postgrespro.ru/docs/postgresql/9.6/ltree"
+                    "CREATE INDEX if not exists files_gin_index on public.files using gin(file_name); ";//toodo same
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 
 
-            query = "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "
+            query = "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); "//todo can we remove it since we have GiST
                     "ALTER TABLE public.directories ADD CONSTRAINT unique_dir_constr UNIQUE(dir_path);";
             txn.exec(query);
             VLOG(2) << "Create unique constraints for tables\n";
