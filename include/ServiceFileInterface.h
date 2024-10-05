@@ -145,7 +145,7 @@ int FileParsingService<segment_size>::delete_directory(std::string_view dir_path
 
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
+requires is_divisible<total_block_size, segment_size>//todo create regular expression grabber for files
 template<directory_handling_strategy dir_s, data_retrieval_strategy rr, bool from_load_dir>
 int FileParsingService<segment_size>::load_file(std::string_view from_file, std::string_view to_file) {
     namespace fs = std::filesystem;

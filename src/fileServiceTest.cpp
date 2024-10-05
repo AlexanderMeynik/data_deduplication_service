@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     fs.db_load<db_usage_strategy::create>(dbName);
 
-    for (int i = 1; i < from_dirs.size(); ++i) {
+    for (int i = 0; i < from_dirs.size(); ++i) {
         clk.tik();//test for simialr cases
         fs.process_directory(from_dirs[i].string());
         clk.tak();
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
 
     fs.process_file("../../conf/config.txt");//fails due to path containing chracters
     fs.load_file<directory_handling_strategy::create_main>("../../conf/config.txt", "../../conf/c2.txt");
+    fs.delete_file("../../conf/config.txt");
     /*fs.db_drop(dbName);*/
     clk.tak();
     std::cout << clk;

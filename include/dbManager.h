@@ -142,11 +142,11 @@ namespace db_services {
                         "set segment_count=segment_count-ss.cnt "
                         "from (select segment_hash as hhhash, count(segment_hash) as cnt "
                         "      from public.data inner join public.files f on f.file_id = public.data.file_id "
-                        "      where file_name <@ \'%s\' "
+                        "      where file_name  LIKE \'%s/%%\' "
                         "      group by file_name, segment_hash "
                         ") as ss "
                         "where ss.hhhash=segment_hash;";
-                qr = vformat(query.c_str(), to_dotted_path(directory_path).c_str());//todo check
+                qr = vformat(query.c_str(), directory_path.data());//todo check
 
                 auto res1 = txn.exec(qr);
 
@@ -160,10 +160,10 @@ namespace db_services {
                         "           ("
                         "           select f.file_id "
                         "           from public.files f "
-                        "           where file_name <@ \'%s\' and d.file_id=f.file_id "//todo check
+                        "           where file_name LIKE \'%s/%%\' and d.file_id=f.file_id "//todo check
                         "        );  ";
 
-                qr = vformat(query.c_str(), to_dotted_path(directory_path).c_str());
+                qr = vformat(query.c_str(), directory_path.data());
                 res1 = txn.exec(qr);
 
                 VLOG(2) << vformat("Successfully deleted data "
@@ -171,8 +171,8 @@ namespace db_services {
                 printRows_affected(res1);
 
 
-                query = "delete from public.files where file_name <@ \'%s\';";
-                qr = vformat(query.c_str(), to_dotted_path(directory_path).c_str());
+                query = "delete from public.files where file_name LIKE \'%s/%%\';";
+                qr = vformat(query.c_str(), directory_path.data());
                 res1 = txn.exec(qr);
 
                 VLOG(2) << vformat("Successfully deleted public.files "
@@ -220,8 +220,8 @@ namespace db_services {
 
             trasnactionType txn(*conn_);
             if (file_id == return_codes::already_exists) {//todo optinal value
-                std::string query = "select file_id from public.files where file_name ~ \'%s\';";//todo to dotted path check
-                auto qx1 = vformat(query.c_str(), to_dotted_path(file_name).data());
+                std::string query = "select file_id from public.files where file_name = \'%s\';";//todo to dotted path check
+                auto qx1 = vformat(query.c_str(), file_name.data());
                 file_id = txn.query_value<index_type>(qx1);
             }
             std::string query, qr;
@@ -304,8 +304,8 @@ namespace db_services {
                                         "from public.data"
                                         "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
                                         "        inner join public.files f on f.file_id = public.data.file_id "
-                                        "where file_name~\'%s\' "
-                                        "order by segment_num", to_dotted_path(file_name.data()).data());//todo dotted
+                                        "where file_name LIKE \'%s\' "
+                                        "order by segment_num", file_name.data());//todo dotted
             for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
                 //out<<name;
                 out << name.str();
@@ -472,7 +472,7 @@ namespace db_services {
            /* if (dir_id == index_vals::empty_parameter_value) {*/
                 query = "insert into public.files (file_name,size_in_bytes)"//todo to dotted path+jist uniqe
                         " values ($1,$2) returning file_id;";
-                res = txn.exec(query, {to_dotted_path(file_path), file_size});
+                res = txn.exec(query, {file_path, file_size});
             /*} else {
                 query = "insert into public.files (file_name,dir_id,size_in_bytes)"//todo to dotted path
                         " values ($1,$2,$3) returning file_id;";
@@ -521,13 +521,14 @@ namespace db_services {
             std::string query = "select file_id,file_name from public.files "//todo from dotted path
                                /* "    inner join public.directories d "*//*
                                 "        on d.dir_id = public.files.dir_id "*/
-                                "where file_name <@ $1;";
-            ResType res = txn.exec(query, pqxx::params(to_dotted_path(dir_path)));
+                                "where file_name LIKE \'%s/%\';";
+                                auto qq= vformat(query.c_str(),dir_path.data());
+            ResType res = txn.exec(qq);
             VLOG(2)
                             << vformat("Filenames were successfully retrieved for directory \"%s\".", dir_path.data());
             for (const auto &re: res) {
                 auto tres = re[1].as<std::string>();
-                result.emplace_back(re[0].as<index_type>(),from_dotted_path(tres));//todo check
+                result.emplace_back(re[0].as<index_type>(),tres);//todo check
                 //result.emplace_back(re[0].as<index_type>(), tres.substr(1, tres.size() - 2));
             }
             txn.commit();
@@ -741,7 +742,7 @@ namespace db_services {
                     "create table public.files "
                     "("
                     "    file_id serial primary key NOT NULL,"
-                    "    file_name ltree NOT NULL," //todo ltree
+                    "    file_name text NOT NULL," //todo ltree
                     "    size_in_bytes bigint NULL"
                     ");"
                     ""
@@ -757,7 +758,7 @@ namespace db_services {
 
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
-                    "CREATE INDEX if not exists files_gist_index ON public.files USING GIST (file_name); ";//todo  gist index "https://postgrespro.ru/docs/postgresql/9.6/ltree"
+                    "CREATE INDEX if not exists files_gist_index ON public.files(file_name); ";//todo  bin index "https://postgrespro.ru/docs/postgresql/9.6/ltree"
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 
