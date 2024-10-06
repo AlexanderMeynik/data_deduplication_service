@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
     fs.db_load<db_usage_strategy::create>(dbName);
 
-    for (int i = 0; i < from_dirs.size(); ++i) {
+    for (int i = 3; i < from_dirs.size(); ++i) {
         clk.tik();//test for simialr cases
         fs.process_directory(from_dirs[i].string());
         clk.tak();

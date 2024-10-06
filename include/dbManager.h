@@ -8,6 +8,21 @@
 
 namespace db_services {
 
+    std::string inline to_spaced_path(std::string_view path)
+    {
+        std::string res(path.size(),'\0');
+        std::replace_copy_if(path.begin(), path.end(),res.begin(),
+                             [](auto n){ return n=='/'; }, ' ');
+        return res.substr(1);
+    }
+
+    std::string inline from_spaced_path(std::string_view path)
+    {
+        std::string res(path.size()+1,'/');
+        std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
+                             [](auto n){ return n==' '; }, '/');
+        return res;
+    }
 
     inline void diconnect(conPtr &conn_) {
         if (conn_) {
@@ -113,7 +128,6 @@ namespace db_services {
 
             VLOG(2) << vformat("Successfully reduced segment"
                                " counts for directory \"%s\"\n", directory_path.data());
-            printRows_affected(txn.exec(qr));
 
 
             query = "delete from public.data d "
@@ -677,12 +691,13 @@ namespace db_services {
 
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
-                    "CREATE INDEX if not exists files_gist_index ON public.files(file_name); ";
+                    "create index if not exists gin_f_name ON files USING GIN (to_tsvector('english', file_name));";//todo path to spaced one
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 
 
-            query = "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); ";
+            query =
+                    "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); ";
             //todo can we remove it since we have GiST
             txn.exec(query);
             VLOG(2) << "Create unique constraints for tables\n";
