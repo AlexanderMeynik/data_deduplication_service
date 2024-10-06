@@ -78,7 +78,8 @@ namespace timing {
 
 
     template<typename dur>
-    using chrono_clock_template = timing::ClockArray<double, timepoint_type, &std::chrono::high_resolution_clock::now, &get_file_state, &double_cat_chrono<dur>>;
+    using chrono_clock_template = timing::ClockArray<double, timepoint_type,
+    &std::chrono::high_resolution_clock::now, &get_file_state, &double_cat_chrono<dur>>;
 
 
     template<typename T, typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(

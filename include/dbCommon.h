@@ -1,6 +1,5 @@
-#ifndef SERVICE_LIB_H
-#define SERVICE_LIB_H
-
+#ifndef DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
+#define DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
 #include "myconcepts.h"
 #include "expected.hpp"
 #include <fstream>
@@ -28,10 +27,6 @@ namespace db_services {
     using ResType = pqxx::result;
     using nonTransType = pqxx::nontransaction;
 
-    enum delete_strategy {
-        cascade,
-        only_record
-    };
 
     bool inline checkConnection(const conPtr &conn) {
         return conn && conn->is_open();
@@ -45,11 +40,10 @@ namespace db_services {
 
     ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
 
-    ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);//todo rename all
+    ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);//todo  delete
 
 
     ResType check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path> &files);
-    ResType check_directories_existence(trasnactionType &txn, std::vector<std::filesystem::path> &directories);
 
 
     static const char *const sample_temp_db = "template1";
@@ -57,6 +51,9 @@ namespace db_services {
 
     inline void printRows_affected(ResType &res) {
         VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
+    }
+    inline void printRows_affected(ResType &&res) {
+        printRows_affected(res);
     }
 
     ResType inline get_hash_res(trasnactionType &txn, std::string_view file_name) {
@@ -96,12 +93,12 @@ namespace db_services {
             update_format();
         }
 
-        operator std::string() {
+        explicit operator std::string() {
             return formatted_string;
         }
 
         operator std::string_view() {
-            return formatted_string.c_str();
+            return formatted_string;
         }
 
         [[nodiscard]] const char *c_str() const {
@@ -189,4 +186,4 @@ namespace db_services {
 }
 
 
-#endif //SERVICE_LIB_H
+#endif //DATA_DEDUPLICATION_SERVICE_DBCOMMON_H

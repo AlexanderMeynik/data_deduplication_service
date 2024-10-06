@@ -49,7 +49,7 @@ TEST_F(DbFile_Dir_tests, create_delete_file_test) {
 
     ASSERT_EQ(file_id, result.value()[0][0].as<index_type>());
 
-    ASSERT_EQ(manager_.delete_file<delete_strategy::only_record>(filename),
+    ASSERT_EQ(manager_.delete_file(filename),//todo deletes only record
               return_codes::return_sucess);
 
     result = wrap_trans_function(conn_, &db_services::check_file_existence, std::move(filename));
@@ -60,7 +60,7 @@ TEST_F(DbFile_Dir_tests, create_delete_file_test) {
 TEST_F(DbFile_Dir_tests, create_delete_dir_test) {
     std::string_view dirname = "sample_dir_name";
 
-    auto dir_id = manager_.create_directory(dirname);
+    auto dir_id = manager_.create_directory(dirname);//tod delete this one
     auto result = wrap_trans_function(conn_, &db_services::check_directory_existence,
                                       std::move(dirname));//todo find betetr solution for wrapper
 
@@ -69,7 +69,7 @@ TEST_F(DbFile_Dir_tests, create_delete_dir_test) {
 
     ASSERT_EQ(dir_id, result.value()[0][0].as<index_type>());
 
-    ASSERT_EQ(manager_.delete_directory<delete_strategy::only_record>(std::move(dirname)),
+    ASSERT_EQ(manager_.delete_directory(std::move(dirname)),
               return_codes::return_sucess);
     result = wrap_trans_function(conn_, &db_services::check_directory_existence, std::move(dirname));
     ASSERT_TRUE(result.has_value());
@@ -92,7 +92,7 @@ TEST_P(DbFile_Dir_tests, insert_segments) {
     auto f_path = GetParam();
     auto f_in =/*get_normal_abs*/(fix_dir / f_path);
 
-    manager_.create_file(f_in.c_str(), index_vals::empty_parameter_value, fs::file_size(f_in));
+    manager_.create_file(f_in.c_str(), fs::file_size(f_in));
     std::ifstream in(f_in);
 
     manager_.insert_file_from_stream(f_in.c_str(), in, fs::file_size(f_in));
@@ -115,7 +115,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_retrieve) {
     auto f_in = get_normal_abs(fix_dir / f_path);
     auto f_out = get_normal_abs(res_dir / f_path);
 
-    auto file_id = manager_.create_file(f_in.c_str(), index_vals::empty_parameter_value, fs::file_size(f_in));
+    auto file_id = manager_.create_file(f_in.c_str(), fs::file_size(f_in));
     std::ifstream in(f_in);
 
     manager_.insert_file_from_stream(f_in.c_str(), in, fs::file_size(f_in));
@@ -142,8 +142,7 @@ TEST_P(DbFile_Dir_tests, check_very_long_file_pathes) {
 
     f_path = d_path / f_path;
 
-    auto file_id = manager_.create_file(f_path.c_str(), index_vals::empty_parameter_value,
-                                        index_vals::empty_parameter_value);
+    auto file_id = manager_.create_file(f_path.c_str(), index_vals::empty_parameter_value);
 
     auto res = wrap_trans_function(conn_, &check_file_existence, {f_path.c_str()});
 
@@ -172,7 +171,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
     auto f_in =/*get_normal_abs*/(fix_dir / f_path);
     auto f_out =/*get_normal_abs*/(res_dir / f_path);
 
-    auto file_id = manager_.create_file(f_in.c_str(), index_vals::empty_parameter_value, fs::file_size(f_in));
+    auto file_id = manager_.create_file(f_in.c_str(), fs::file_size(f_in));
     std::ifstream in(f_in);
 
     manager_.insert_file_from_stream(f_in.c_str(), in, fs::file_size(f_in));
@@ -194,7 +193,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
 }
 
 
-TEST_F(DbFile_Dir_tests, insert_files_from_directory) {
+TEST_F(DbFile_Dir_tests, insert_files_from_directory) {//todo this one is redundant
     auto d_path = "block_size";
     auto dd_path = fix_dir / d_path;
     auto f_path = "block_size/32blocks.txt";
@@ -208,7 +207,7 @@ TEST_F(DbFile_Dir_tests, insert_files_from_directory) {
 
         auto f_in =/*get_normal_abs*/(fix_dir / entry);
 
-        auto file_id = manager_.create_file(f_in.c_str(), dir_id, fs::file_size(f_in));
+        auto file_id = manager_.create_file(f_in.c_str() ,fs::file_size(f_in));
         std::ifstream in(f_in);
 
         manager_.insert_file_from_stream(f_in.c_str(), in, fs::file_size(f_in));
@@ -227,7 +226,7 @@ TEST_F(DbFile_Dir_tests, insert_files_from_directory) {
     }
 
 
-    auto ress = manager_.delete_directory<delete_strategy::only_record>(dd_path.string());//todo split
+    auto ress = manager_.delete_directory(dd_path.string());//todo delte
     ASSERT_EQ(ress, warning_message);
 
     auto result = wrap_trans_function(conn_, &db_services::check_directory_existence, {dd_path.string()});
@@ -243,12 +242,12 @@ TEST_F(DbFile_Dir_tests, insert_files_from_directory) {
     ASSERT_NO_THROW(result->no_rows());
 }
 
-
+//todo add threads
 TEST_F(DbFile_Dir_tests, insert_segments_process_delete_err) {
     auto f_path = "block_size/32blocks.txt";//todo fix
     auto f_in = (fix_dir / f_path);
 
-    auto file_id = manager_.create_file((f_in).c_str(), index_vals::empty_parameter_value, fs::file_size(f_in));
+    auto file_id = manager_.create_file((f_in).c_str(), fs::file_size(f_in));
     //todo new table name
     //manager_.create_file(f_in.c_str(),index_vals::empty_parameter_value,fs::file_size(f_in))
     std::ifstream in(f_in);
@@ -259,7 +258,8 @@ TEST_F(DbFile_Dir_tests, insert_segments_process_delete_err) {
 
     manager_.finish_file_processing(f_in.c_str(), file_id);
 
-    auto ress = manager_.delete_file<delete_strategy::only_record>(f_in.c_str());
+    auto ress = manager_.delete_file(f_in.c_str());
+    //todo diconnect
     ASSERT_EQ(ress, warning_message);
 
     auto result = wrap_trans_function(conn_, &db_services::check_file_existence, {f_in.string()});

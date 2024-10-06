@@ -1,5 +1,5 @@
-#ifndef SERVICE_SERVICEFILEINTERFACE_H
-#define SERVICE_SERVICEFILEINTERFACE_H
+#ifndef DATA_DEDUPLICATION_SERVICE_SERVICEFILEINTERFACE_H
+#define DATA_DEDUPLICATION_SERVICE_SERVICEFILEINTERFACE_H
 
 #include <vector>
 #include <array>
@@ -52,24 +52,11 @@ inline fs::path get_normal_abs(fs::path &&pwd) {
     return fs::absolute(pwd).lexically_normal();
 }
 
-template<unsigned int size>
-requires(size>=1)
-inline std::array<fs::path,size> parentN(fs::path & file)//todo maybe non needed
-{
-    std::array<fs::path,size> res;
-    res[0]=file.parent_path();
-    for (int i = 1; i < size; ++i) {
-        res[i]=res[i-1].parent_path();
-    }
-    return res;
-}
-using ds = db_services::delete_strategy;
 
 template<unsigned long segment_size> requires is_divisible<total_block_size, segment_size>
 class FileParsingService {
 public:
     using index_type = db_services::index_type;
-    static constexpr unsigned long long block_size = total_block_size / segment_size;
 
     FileParsingService()
     = default;
@@ -77,7 +64,7 @@ public:
 
     template<db_usage_strategy str = use, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
-    int db_load(std::string &dbName, std::string_view filename = "../../res/config.txt");
+    int db_load(std::string &dbName, std::string_view filename =db_services::cfile_name);
 
     int db_drop(std::string_view dbName) {
         auto res = manager_.drop_database(dbName);
@@ -85,24 +72,23 @@ public:
     };
 
     template<data_insetion_strategy strategy = preserve_old>
-    int process_directory(std::string_view dir_path, index_type *dir_idd = nullptr);
+    int process_directory(std::string_view dir_path);
 
     template<data_insetion_strategy strategy = preserve_old, bool existence_checks = true, hash_function hash = SHA_256>
     requires is_divisible<segment_size, hash_function_size[hash]>
-    int process_file(std::string_view file_path, index_type dir_id = index_vals::empty_parameter_value);
+    int process_file(std::string_view file_path);
 
 //todo use path type
     template<directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist>
     int load_directory(std::string_view from_dir, std::string_view to_dir);
 
 
-    template<directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist, bool from_load_dir = false>
+    template<directory_handling_strategy dir_s = no_create_main,
+            data_retrieval_strategy rr = persist, bool from_load_dir = false>
     int load_file(std::string_view from_file, std::string_view to_file);
 
-    template<ds delS = ds::cascade>
     int delete_file(std::string_view file_path);
 
-    template<ds delS = ds::cascade>
     int delete_directory(std::string_view dir_path);
 
     bool check_connection() {
@@ -115,11 +101,10 @@ private:
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template<ds delS>
 int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
     fs::path file_abs_path = get_normal_abs(file_path);
 
-    auto res = manager_.template delete_file<delS>(file_abs_path.string());
+    auto res = manager_.delete_file(file_abs_path.string());
 
     if (res == return_codes::error_occured) {
         VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", file_abs_path.c_str());
@@ -129,12 +114,11 @@ int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
 
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
-template<ds delS>
 int FileParsingService<segment_size>::delete_directory(std::string_view dir_path) {
     fs::path dir_abs_path = get_normal_abs(dir_path);
 
 
-    auto res = manager_.template delete_directory<delS>(dir_abs_path.string());
+    auto res = manager_.delete_directory(dir_abs_path.string());
     //todo replace with other things
 
     if (res == return_codes::error_occured) {
@@ -224,6 +208,12 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
     namespace fs = std::filesystem;
     fs::path new_dir_path;
     fs::path from_dir_path = get_normal_abs(from_dir);
+
+    auto files = manager_.get_all_files(from_dir_path.string());
+    if(files.empty())
+    {
+        VLOG(1)<<vformat("No files found for directory %s",from_dir.data());
+    }
     try {
         if (!fs::exists(to_dir)) {
             if constexpr (dir_s == create_main) {
@@ -238,12 +228,12 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
         if constexpr (dir_s == no_create_main) {
 
             if (!fs::is_directory(to_dir)) {
-                VLOG(1) << vformat("\"%s\" is not a directory use procesFile for files\n",
+                VLOG(1) << vformat("\"%s\" is not a directory change to_dir path\n",
                                    to_dir.data());
                 return return_codes::error_occured;
             }
         }
-        new_dir_path = get_normal_abs(to_dir);//todo is absolute
+        new_dir_path = get_normal_abs(to_dir);
 
     } catch (const fs::filesystem_error &e) {
         VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
@@ -251,7 +241,7 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
     }
 
 
-    auto files = manager_.get_all_files(from_dir_path.string());//get
+
 
 
     for (const std::pair<db_services::index_type, std::string> &pair: files) {
@@ -281,7 +271,7 @@ requires is_divisible<total_block_size, segment_size>
 template<db_usage_strategy str, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::db_load(std::string &dbName, std::string_view filename) {
-    auto CString = db_services::default_configuration();
+    auto CString = db_services::load_configuration(filename);
     CString.set_dbname(dbName);
 
     manager_ = dbManager<segment_size>(CString);
@@ -323,7 +313,7 @@ template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template<data_insetion_strategy strategy, bool existence_checks, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
-int FileParsingService<segment_size>::process_file(std::string_view file_path, index_type dir_id) {
+int FileParsingService<segment_size>::process_file(std::string_view file_path) {
 
     namespace fs = std::filesystem;
     std::string file;
@@ -339,10 +329,10 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 
     auto size = fs::file_size(file);
 
-    auto file_id = manager_.create_file(file, dir_id, size);//todo remove param
+    auto file_id = manager_.create_file(file, size);
 
 
-    if (file_id == return_codes::already_exists) {
+    if (file_id == return_codes::already_exists) {//todo check file existence the other way
         if (strategy == preserve_old) {
             return return_codes::already_exists;
         }
@@ -357,8 +347,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
             return return_codes::error_occured;
         }
 
-        file_id = manager_.create_file(file, dir_id, size);
-
+        file_id = manager_.create_file(file, size);
     }
 
     if (file_id == return_codes::error_occured) {
@@ -393,7 +382,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path, i
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>
 template<data_insetion_strategy strategy>
-int FileParsingService<segment_size>::process_directory(std::string_view dir_path, index_type *dir_idd) {
+int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
     namespace fs = std::filesystem;
     fs::path pp;
 
@@ -403,24 +392,11 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
     }
     pp = result.value();
 
-
-    /*auto dir_id = manager_.create_directory(pp.string());
-
-    if (dir_id == return_codes::error_occured || dir_id == return_codes::already_exists) {
-        VLOG(1) << vformat("Error occurred during directory creation. Directory path \"%s\"!",
-                           dir_path.data());
-        return dir_id;
-    }
-    if (dir_idd) {
-        *dir_idd = dir_id;
-    }*/
-
-
     for (const auto &entry: fs::recursive_directory_iterator(pp)) {
         if (!fs::is_directory(entry)) {
             auto file = fs::canonical(entry.path()).string();
             clk.tik();
-            auto results = this->template process_file<strategy, false>(file, 1);//todo remove param
+            auto results = this->template process_file<strategy, false>(file);//todo remove param
             clk.tak();
             if (results == return_codes::already_exists) {
                 continue;
@@ -436,4 +412,4 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
 }
 
 
-#endif //SERVICE_SERVICEFILEINTERFACE_H
+#endif //DATA_DEDUPLICATION_SERVICE_SERVICEFILEINTERFACE_H

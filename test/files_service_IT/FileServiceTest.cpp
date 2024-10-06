@@ -42,7 +42,7 @@ TEST_F(ServiceFileTest, process_nested_directory_file_id_set) {
     auto directory_path = get_normal_abs((fix_dir / "nested_directories/n1"));
     auto nested = directory_path / "n2";
     index_type dir_id;
-    file_service_.process_directory(directory_path.string(), &dir_id);
+    file_service_.process_directory(directory_path.string());
     file_service_.process_directory(nested.string());
 
     auto res = wrap_trans_function(conn_, check_directory_existence, {directory_path.string()});
@@ -66,7 +66,7 @@ TEST_F(ServiceFileTest, process_nested_directory_file_id_set) {
     EXPECT_TRUE(res.has_value());
     EXPECT_EQ(res->size(), files.size());
     for (auto row: res.value()) {
-        EXPECT_EQ(row["dir_id"].as<index_type>(), dir_id);
+        EXPECT_EQ(row["dir_id"].as<index_type>(), dir_id);//todo remove
     }
 
     file_service_.delete_directory(directory_path.string());
@@ -84,12 +84,13 @@ TEST_F(ServiceFileTest, process_nested_directory_up) {
     auto ns2 = ns3 / "N_2";
     auto ns1 = ns2 / "N_1";
     auto ns0 = ns1 / "N_0";
-
+//todo check tfiles integrity(all are present, non  is rewrited
+//todo add timestamp field array to file={create,filled, last time loaded}
     index_type n0, n1, n2, n3;
     file_service_.process_directory(ns0.string());
     file_service_.process_directory(ns1.string());
     file_service_.process_directory(ns2.string());
-    file_service_.process_directory(ns3.string(), &n3);
+    file_service_.process_directory(ns3.string());
 
     auto res = wrap_trans_function(conn_, check_directory_existence, {ns0.string()});
     EXPECT_TRUE(res.has_value());

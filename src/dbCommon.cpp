@@ -109,19 +109,4 @@ db_services::check_files_existence(db_services::trasnactionType &txn, std::vecto
     return txn.exec(r_q);
 }
 
-db_services::ResType db_services::check_directories_existence(db_services::trasnactionType &txn,
-                                                              std::vector<std::filesystem::path> &directories) {
-    std::string query = "SELECT * "
-                        "FROM directories "
-                        "WHERE directories.dir_path IN (%s)";//todo to dotted path
-    std::stringstream ss;
-    int i = 0;
-    for (; i < directories.size() - 1; i++) {
-        ss << '\'' << directories[i].string() << "\',";
-    }
-    ss << '\'' << directories[i].string() << "\'";
-    auto r_q = vformat(query.c_str(), ss.str().c_str());
-
-    return txn.exec(r_q);
-}
 
