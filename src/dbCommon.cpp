@@ -174,7 +174,10 @@ std::string db_services::to_spaced_path(std::string_view path)
     std::string res(path.size(),'\0');
     std::replace_copy_if(path.begin(), path.end(),res.begin(),
                          [](auto n){ return n=='/'; }, ' ');
-    return res.substr(1);
+    if(res[0]==' ') {
+        return res.substr(1);
+    }
+    return res;
 }
 
 db_services::ResType db_services::delete_unused_segments(db_services::trasnactionType &txn) {

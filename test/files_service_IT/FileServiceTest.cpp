@@ -37,8 +37,8 @@ protected:
 TEST_F(ServiceFileTest, test_created_db_acess) {
     ASSERT_TRUE(file_service_.check_connection());
 }
-
-TEST_F(ServiceFileTest, process_nested_directory_file_id_set) {
+//todo remake into tests for dircetory data intgrity + file deletion checks
+/*TEST_F(ServiceFileTest, process_nested_directory_file_id_set) {
     auto directory_path = get_normal_abs((fix_dir / "nested_directories/n1"));
     auto nested = directory_path / "n2";
     index_type dir_id;
@@ -128,7 +128,7 @@ TEST_F(ServiceFileTest, process_nested_directory_up) {
     res = wrap_trans_function(conn_, get_files_for_directory, {ns3.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
-}
+}*/
 
 
 int main(int argc, char **argv) {

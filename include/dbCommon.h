@@ -113,10 +113,10 @@ namespace db_services {
         }
     }
     template<typename T>
-    concept print=requires(T&elem,std::ofstream &out){
+    concept printable=requires(T&elem,std::ofstream &out){
         {out << elem}->std::same_as<std::ostream&>;
     };
-    template<print T>
+    template<printable T>
     std::string vec_to_string(std::vector<T>&vec)
     {
         std::stringstream ss;

@@ -150,8 +150,8 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
                         "from public.data"
                         "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
                         "        inner join public.files f on f.file_id = public.data.file_id "
-                        "where file_name=\'%s\'::tsvector "
-                        "order by segment_num", original_file.c_str());
+                        "where file_name=\'%s\' "
+                        "order by segment_num", db_services::to_spaced_path(original_file.c_str()).c_str());
     }
     for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
         //out<<name;
