@@ -1,8 +1,6 @@
+#include "FileService.h"
 
-
-#include "ServiceFileInterface.h"
-
-tl::expected<std::string, int> check_file_existence(std::string_view file_path) {
+tl::expected<std::string, int> check_file_existence_(std::string_view file_path) {
     std::string file;
     try {
         file = std::filesystem::canonical(file_path).string();
@@ -26,7 +24,7 @@ tl::expected<std::string, int> check_file_existence(std::string_view file_path) 
     return tl::expected<std::string, int>{file};
 }
 
-tl::expected<std::string, int> check_directory_existence(std::string_view dir_path) {
+tl::expected<std::string, int> check_directory_existence_(std::string_view dir_path) {
     std::string directory;
     try {
         directory = std::filesystem::canonical(dir_path).string();
@@ -50,3 +48,4 @@ tl::expected<std::string, int> check_directory_existence(std::string_view dir_pa
     }
     return tl::expected<std::string, int>{directory};
 }
+

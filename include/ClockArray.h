@@ -1,5 +1,6 @@
 #ifndef DIPLOM_OPENMPPARRALELCLOCK_H
 #define DIPLOM_OPENMPPARRALELCLOCK_H
+
 #include <array>
 #include <ranges>
 #include <limits>
@@ -14,190 +15,175 @@
 
 #include <source_location>
 
-using location_type=std::array<std::string,4>;
+using location_type = std::array<std::string, 4>;
+
 template<>
-struct ::std::hash<location_type>
-{
+struct ::std::hash<location_type> {
     std::size_t operator()(const location_type &s) const noexcept {
         return std::hash<std::string>{}(s[0] + s[1] + s[2] + s[3]);
     }
 };
 
 template<typename T, size_t sz>
-requires std::is_convertible_v<T,std::string>
-std::ostream& operator<< (std::ostream&out,std::array<T,sz>&arr)
-{
+requires std::is_convertible_v<T, std::string>
+std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr) {
     int i = 0;
-    for (; i < sz-1; ++i) {
-        out<<arr[i]<<'\t';
+    for (; i < sz - 1; ++i) {
+        out << arr[i] << '\t';
     }
-    out<<arr[i]<<'\n';
+    out << arr[i] << '\n';
     return out;
 }
 
 template<typename T, size_t sz>
-bool operator==(const std::array<T,sz>&arr1,const std::array<T,sz>&arr2)
-{
-   return std::equal(arr1.begin(), arr1.end(),arr2);
+bool operator==(const std::array<T, sz> &arr1, const std::array<T, sz> &arr2) {
+    return std::equal(arr1.begin(), arr1.end(), arr2);
 }
 
 namespace timing {
 
 
-    using  timepoint_type=std::chrono::system_clock::time_point;
+    using timepoint_type = std::chrono::system_clock::time_point;
 
-    using location_type=std::array<std::string,4>;
+    using location_type = std::array<std::string, 4>;
 
-    template<typename T,typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(std::source_location location),
-            T(*double_cast)(T2 curr,T2 prev)>
+    template<typename T, typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(
+            std::source_location location),
+            T(*double_cast)(T2 curr, T2 prev)>
     class ClockArray;
 
 
     inline location_type get_file_state(std::source_location location
-    = std::source_location::current())
-    {
-        std::string name=location.function_name();
-        auto id=name.find(' ');
-        auto id2=name.find('(');
+    = std::source_location::current()) {
+        std::string name = location.function_name();
+        auto id = name.find(' ');
+        auto id2 = name.find('(');
 
-        std::string fname=location.file_name();
-        return {name.substr(id+1,id2-id-1),std::to_string(location.line()),std::to_string(location.column()),fname.substr(fname.rfind('/')+1)};
+        std::string fname = location.file_name();
+        return {name.substr(id + 1, id2 - id - 1), std::to_string(location.line()), std::to_string(location.column()),
+                fname.substr(fname.rfind('/') + 1)};
 
     }
 
 
-
-    template<typename to_dur=std::chrono::nanoseconds,typename T>
-    T double_cat_chrono(timepoint_type curr, timepoint_type prev)
-    {
-        return  std::chrono::duration_cast<to_dur>(curr-prev).count();
+    template<typename to_dur=std::chrono::nanoseconds, typename T>
+    T double_cat_chrono(timepoint_type curr, timepoint_type prev) {
+        return std::chrono::duration_cast<to_dur>(curr - prev).count();
     }
 
-    constexpr const char* get_function_name(const std::source_location& location
-    = std::source_location::current())
-    {
+    constexpr const char *get_function_name(const std::source_location &location
+    = std::source_location::current()) {
         return location.function_name();
     }
 
 
-
-
     template<typename dur>
-    using chrono_clock_template = timing::ClockArray<double, timepoint_type
-            , &std::chrono::high_resolution_clock::now, &get_file_state,&double_cat_chrono<dur>>;
+    using chrono_clock_template = timing::ClockArray<double, timepoint_type,
+    &std::chrono::high_resolution_clock::now, &get_file_state, &double_cat_chrono<dur>>;
 
 
-
-    template<typename T,typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(std::source_location location),
-    T(*double_cast)(T2 curr,T2 prev)>
+    template<typename T, typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(
+            std::source_location location),
+            T(*double_cast)(T2 curr, T2 prev)>
     class ClockArray {
     public:
 
-        struct time_store
-        {
+        struct time_store {
             T time;
             size_t count;
-            friend std::ostream &operator<<(std::ostream &out,const time_store&ts)
-            {
-                out<<ts.time;///ts.count;
+
+            friend std::ostream &operator<<(std::ostream &out, const time_store &ts) {
+                out << ts.time;///ts.count;
                 return out;
             }
         };
+
         template<typename Tp, typename BinaryOperation>
         Tp aggregate(Tp init,
                      BinaryOperation binary_op) {
             return std::accumulate(timers.begin(), timers.end(), init, binary_op);
         }
 
-        void tak(const std::source_location& location
+        void tak(const std::source_location &location
         = std::source_location::current()) {
             auto id = (*src_to_loc_type)(location);
-            if(to_tak.empty()||to_tak.top()[0]!=id[0])
-            {
-                std::string msg="No paired tik statement found in queue\t"
-                                "Tak values"+id[3]+":"+id[1]+"\t"
-                                +id[0]+'\t'+id[2];
+            if (to_tak.empty() || to_tak.top()[0] != id[0]) {
+                std::string msg = "No paired tik statement found in queue\t"
+                                  "Tak values" + id[3] + ":" + id[1] + "\t"
+                                  + id[0] + '\t' + id[2];
                 throw std::logic_error(msg);
             }
-            id[1]=to_tak.top()[1];
-            id[2]=to_tak.top()[2];
+            id[1] = to_tak.top()[1];
+            id[2] = to_tak.top()[2];
             to_tak.pop();
-            auto res=double_cast((*timeGetter)() , startIngTimers[id]);
-            if(!timers.contains(id))
-            {
-                timers[id] ={res,1};
-            }
-            else
-            {
-                timers[id].time+=res;
+            auto res = double_cast((*timeGetter)(), startIngTimers[id]);
+            if (!timers.contains(id)) {
+                timers[id] = {res, 1};
+            } else {
+                timers[id].time += res;
                 timers[id].count++;
             }
         }
 
-        location_type tik_loc(const std::source_location& location
-        = std::source_location::current())
-        {
+        location_type tik_loc(const std::source_location &location
+        = std::source_location::current()) {
             tik(location);
             return src_to_loc_type(location);
 
         }
 
-        std::pair<std::source_location,location_type> tik_loc_(const std::source_location& location
-        = std::source_location::current())
-        {
-            return std::make_pair(location,tik_loc(location));
-        }
-        void tik(const std::source_location& location
+        std::pair<std::source_location, location_type> tik_loc_(const std::source_location &location
         = std::source_location::current()) {
-            auto id=src_to_loc_type(location);
+            return std::make_pair(location, tik_loc(location));
+        }
+
+        void tik(const std::source_location &location
+        = std::source_location::current()) {
+            auto id = src_to_loc_type(location);
             startIngTimers[id] = timeGetter();
 
             to_tak.push(id);
         }
 
-        decltype(auto) begin() const
-        {
+        decltype(auto) begin() const {
             return timers.begin();
         }
 
-        decltype(auto)  end() const
-        {
+        decltype(auto) end() const {
             return timers.end();
         }
 
-        auto cbegin() const
-        {
+        auto cbegin() const {
             return timers.cbegin();
         }
 
-        auto cend() const
-        {
+        auto cend() const {
             return timers.cend();
         }
 
-        friend std::ostream &operator<<(std::ostream &out,const ClockArray<T,T2,timeGetter,src_to_loc_type,double_cast>&ts)
-        {
-            out<<"Function name\tLine\tTime\n";
-            for (auto& val:ts) {
-                std::cout<<val.first[0]<<'\t'<<val.first[3]<<":"<<val.first[1]<<'\t'<<val.second<<'\n';
+        friend std::ostream &
+        operator<<(std::ostream &out, const ClockArray<T, T2, timeGetter, src_to_loc_type, double_cast> &ts) {
+            out << "Function name\tLine\tTime\n";
+            for (auto &val: ts) {
+                std::cout << val.first[0] << '\t' << val.first[3] << ":" << val.first[1] << '\t' << val.second << '\n';
             }
             return out;
         }
-        auto& operator[](location_type&loc)
-        {
+
+        auto &operator[](location_type &loc) {
             return timers[loc];
         }
-        bool contains(location_type&loc)
-        {
+
+        bool contains(location_type &loc) {
             return timers.contains(loc);
         }
 
 
         //decltype()
     private:
-        std::unordered_map<location_type ,time_store> timers;
+        std::unordered_map<location_type, time_store> timers;
 
-        std::unordered_map<location_type ,T2>startIngTimers;
+        std::unordered_map<location_type, T2> startIngTimers;
         std::stack<location_type> to_tak;
     };
 

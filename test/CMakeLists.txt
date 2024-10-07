@@ -18,9 +18,8 @@ file(GLOB TEST_SOURCES_2 files_service_IT/*.cpp)
 add_executable(FileServiceTests ${TEST_SOURCES_2})
 
 target_link_libraries(FileServiceTests PRIVATE
-        gtest gmock #[[gtest_main]] dbUtilsLib
+        gtest gmock FileUtilsLib
 )
-
 
 
 file(COPY test_data DESTINATION ${CMAKE_BINARY_DIR})
