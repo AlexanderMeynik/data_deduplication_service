@@ -28,42 +28,11 @@ namespace db_services {
     using nonTransType = pqxx::nontransaction;
 
 
-    std::string inline to_spaced_path(std::string_view path)
-    {
-        std::string res(path.size(),'\0');
-        std::replace_copy_if(path.begin(), path.end(),res.begin(),
-                             [](auto n){ return n=='/'; }, ' ');
-        return res.substr(1);
-    }
+    std::string to_spaced_path(std::string_view path);
 
-    std::string inline from_spaced_path(std::string_view path)
-    {
-        std::string res(path.size()+1,'/');
-        std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
-                             [](auto n){ return n==' '; }, '/');
-        return res;
-    }
+    std::string from_spaced_path(std::string_view path);
 
-    std::string inline to_tsquerable_path(std::string_view path)
-    {
-        std::string res(path.size(),'\0');
-        std::transform(path.begin(), path.end(), res.begin(),
-                       [](char c){
-                           switch (c) {
-                               case ' ':
-                               case '/':
-                                   return '&';
-                               case '_':
-                                   return '/';
-                               default:
-                                   return (char)std::tolower(c);
-                           } });
-        if(res[0]=='&')
-            res= res.substr(1);
-
-        //todo test to spaced path + this=this
-        return res;
-    }
+    std::string to_tsquerable_path(std::string_view path);
 
 
     bool inline checkConnection(const conPtr &conn) {
@@ -76,17 +45,73 @@ namespace db_services {
 
     ResType check_schemas(trasnactionType &txn);
 
+    index_type check_segment_count(trasnactionType &txn);
+
+    ResType delete_unused_segments(trasnactionType &txn);
+
     ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
 
     index_type get_file_id(trasnactionType &txn, std::string_view file_name);
 
-    index_type does_file_exist(trasnactionType &txn, std::string_view file_name);
+    bool does_file_exist(trasnactionType &txn, std::string_view file_name);
 
-    ResType get_files_for_directory(trasnactionType &txn, std::string_view dir_path);//todo  delete
+    ResType get_files_for_directory(trasnactionType &txn, std::string_view dir_path);
 
     std::vector<index_type> get_file_id_vector(trasnactionType &txn, std::string_view dir_path);
 
+    index_type inline get_total_file_size(trasnactionType &txn)
+    {
+        //todo check null
+        return txn.query_value<index_type>("select sum(size_in_bytes) from files;");
+    }
+    ResType inline get_total_schema_sizes(trasnactionType &txn)
+    {
+        std::string qq="SELECT\n"
+                         "    indexrelname, s.relname, "
+                         "    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size, "
+                         "    pg_size_pretty(pg_table_size(s.relname::text)) as t_size, "
+                         "    pg_size_pretty(pg_relation_size(s.relname::text)) as rel_size, "
+                         "    pg_size_pretty(pg_total_relation_size(s.relname::text)) as t_rel_size "
+                         "FROM "
+                         "    pg_stat_user_indexes s/*,pg_stat_all_tables*/\n"
+                         "WHERE "
+                         "        schemaname = 'public' order by index_size desc;";
 
+        return txn.exec(qq);
+    }
+    auto inline get_total_schema_sizes_pr(trasnactionType &txn)
+    {
+
+        ResType res= get_total_schema_sizes(txn);
+        std::vector<std::array<std::string,6>> res1;
+        decltype(res1)::value_type temp;
+        for (int i = 0; i < temp.size(); ++i) {
+            temp[i]=res.column_name(i);
+        }
+        res1.push_back(temp);
+        for (const auto & row:res) {
+            for (int i = 0; i < temp.size(); ++i) {
+                temp[i]=row[i].as<std::string>();
+            }
+            res1.push_back(temp);
+        }
+        return res1;
+    }
+    void inline  print_table(ResType&rss,std::ostream &out)
+    {
+        int i = 0;
+        for (; i < rss[0].size()-1; ++i) {
+            out<<rss.column_name(i)<<'\t';
+        }
+        out<<rss.column_name(i)<<'\n';
+        for (const auto & row:rss) {
+            i=0;
+            for ( ;i < row.size()-1; ++i) {
+                out<<row[i].as<std::string>()<<'\t';
+            }
+            out<<row[i].as<std::string>()<<'\n';
+        }
+    }
     template<typename T>
     concept print=requires(T&elem,std::ofstream &out){
         {out << elem}->std::same_as<std::ostream&>;
@@ -233,7 +258,6 @@ namespace db_services {
 
 
     auto default_configuration = []() {
-        //todo add verbose messages
         return load_configuration(cfile_name);
     };
 

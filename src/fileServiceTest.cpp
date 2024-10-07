@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#include "ServiceFileInterface.h"
+#include "FileService.h"
 
 namespace fs = std::filesystem;
 std::string parent_path = "../../testDirectories/";
@@ -48,19 +48,19 @@ int main(int argc, char *argv[]) {
         fs.load_directory<directory_handling_strategy::create_main>(from_dirs[i].string(), to_dirs[i].string());
         clk.tak();
         clk.tik();
-        fs.delete_directory(from_dirs[i].string());
+        //fs.delete_directory(from_dirs[i].string());
         clk.tak();
     }
     clk.tak();
     clk.tik();
     //todo add file check data
-    //todo file check segments(check taht segemnst sums add up)
     //fs.delete_directory(from_dirs[1].string());//works
     //todo add simple benchmark to get time data for runs,
 
     fs.process_file("../../conf/config.txt");//fails due to path containing chracters
     fs.load_file<directory_handling_strategy::create_main>("../../conf/config.txt", "../../conf/c2.txt");
-    fs.delete_file("../../conf/config.txt");
+    //fs.delete_file("../../conf/config.txt");
+    fs.clear_segments();
     /*fs.db_drop(dbName);*/
     clk.tak();
     std::cout << clk;

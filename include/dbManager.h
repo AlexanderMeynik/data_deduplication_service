@@ -34,7 +34,6 @@ namespace db_services {
             return cString_;
         }
 
-
         int connectToDb();
 
         void disconnect() {
@@ -50,6 +49,7 @@ namespace db_services {
         requires is_divisible<segment_size, hash_function_size[hash]>
         int fill_schemas();
 
+        int clear_segments();
 
         std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
 
@@ -67,7 +67,8 @@ namespace db_services {
         int delete_directory(std::string_view directory_path);
 
 
-        int get_file_streamed(std::string_view file_name, std::ostream &out,index_type file_id=index_vals::empty_parameter_value);
+        int get_file_streamed(std::string_view file_name, std::ostream &out,
+                              index_type file_id = index_vals::empty_parameter_value);
 
 
         int insert_file_from_stream(std::string_view file_name, std::istream &in, std::size_t file_size);
@@ -89,14 +90,36 @@ namespace db_services {
 
     };
 
+    template<unsigned long segment_size>
+    int dbManager<segment_size>::clear_segments() {
+
+        try {
+            trasnactionType txn(*conn_);
+
+            delete_unused_segments(txn);
+            txn.commit();
+            VLOG(2) << vformat("Successfully deleted redundant "
+                               "segments");
+        } catch (const pqxx::sql_error &e) {
+            VLOG(1) << "SQL Error: " << e.what()
+                    << "Query: " << e.query()
+                    << "SQL State: " << e.sqlstate() << '\n';
+            return return_codes::error_occured;
+        } catch (const std::exception &e) {
+            VLOG(1) << "Error while delting segments :" << e.what() << '\n';
+            return return_codes::error_occured;
+        }
+        return return_sucess;
+    }
+
 
     template<unsigned long segment_size>
     int dbManager<segment_size>::delete_directory(std::string_view directory_path) {
         try {
             trasnactionType txn(*conn_);
 
-            auto file_ids= get_file_id_vector(txn,directory_path);
-            auto id_string= vec_to_string(file_ids);
+            auto file_ids = get_file_id_vector(txn, directory_path);
+            auto id_string = vec_to_string(file_ids);
 
 
             std::string query, qr;
@@ -129,7 +152,6 @@ namespace db_services {
                                "for directory \"%s\"\n", directory_path.data());
 
 
-
             query = "delete from public.files where file_id in (%s);";
             qr = vformat(query.c_str(), id_string.c_str());
             clk.tik();
@@ -138,16 +160,6 @@ namespace db_services {
 
             VLOG(2) << vformat("Successfully deleted public.files "
                                " for directory \"%s\"\n", directory_path.data());
-
-            query = "delete from public.segments where segment_count=0";
-            //todo insert integrity check(counts of data segments must be the same as ones in segments)
-            clk.tik();
-            printRows_affected(txn.exec(query));//todo this one may be actually very slow
-            clk.tak();
-
-            VLOG(2) << vformat("Successfully deleted redundant "
-                               "segments for \"%s\"\n", directory_path.data());
-
             txn.commit();
 
         } catch (const pqxx::sql_error &e) {
@@ -174,7 +186,7 @@ namespace db_services {
 
             trasnactionType txn(*conn_);
             if (file_id == index_vals::empty_parameter_value) {
-                file_id= get_file_id(txn,file_name);
+                file_id = get_file_id(txn, file_name);
             }
             std::string query, qr;
             ResType res;
@@ -213,16 +225,6 @@ namespace db_services {
             VLOG(2) << vformat("Successfully deleted data "
                                "for file \"%s\"\n", file_name.data());
 
-
-            query = "delete from public.segments where segment_count=0";
-            printRows_affected(txn.exec(query));
-
-
-            VLOG(2) << vformat("Successfully deleted redundant "
-                               "segments for \"%s\"\n", file_name.data());
-
-
-
             query = "delete from public.files where file_id=%d;";
             qr = vformat(query.c_str(), file_id);
             printRows_affected(txn.exec(qr));
@@ -252,13 +254,12 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out,index_type file_id) {
+    int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out, index_type file_id) {
         try {
 
             trasnactionType txn(*conn_);
-            if(file_id==index_vals::empty_parameter_value)
-            {
-                file_id=db_services::get_file_id(txn,file_name);
+            if (file_id == index_vals::empty_parameter_value) {
+                file_id = db_services::get_file_id(txn, file_name);
             }
             std::string query = vformat("select s.segment_data "
                                         "from public.data"
@@ -353,7 +354,7 @@ namespace db_services {
                         "FROM \"%s\" t "
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
             clk.tik();
-            txn.exec(q);//todo
+            txn.exec(q);
             clk.tak();
             VLOG(2) << vformat(
                     "Segment data was aggregated into %s for file %s.",
@@ -469,7 +470,7 @@ namespace db_services {
         std::vector<std::pair<index_type, std::string>> result;
         try {
             trasnactionType txn(*conn_);
-            auto res= get_files_for_directory(txn,dir_path);
+            auto res = get_files_for_directory(txn, dir_path);
 
             VLOG(2)
                             << vformat("Filenames were successfully retrieved for directory \"%s\".", dir_path.data());
@@ -582,8 +583,7 @@ namespace db_services {
         auto tString = cString_;
         tString.set_dbname(sample_temp_db);
 
-        auto result = connect_if_possible(
-                tString);//todo since we change only database name do we need to pass whole string
+        auto result = connect_if_possible(tString);
 
         auto temp_connection = result.value_or(nullptr);
 
@@ -658,7 +658,7 @@ namespace db_services {
             VLOG(2) << vformat("Create segments table with preferred hashing function %s\n",
                                hash_function_name[hash]);
 
-            query ="create table public.files "
+            query = "create table public.files "
                     "("
                     "    file_id serial primary key NOT NULL,"
                     "    file_name text NOT NULL,"
@@ -667,9 +667,9 @@ namespace db_services {
                     ""
                     "create table public.data "
                     "("
-                    "    file_id int REFERENCES public.files(file_id) NOT NULL,"
+                    "    file_id int NOT NULL,"
                     "    segment_num bigint NOT NULL,"
-                    "    segment_hash bytea REFERENCES public.segments(segment_hash) NOT NULL"
+                    "    segment_hash bytea  NOT NULL"
                     ");";
             txn.exec(query);
             VLOG(2) << "Create directories, files and data tables\n";
@@ -680,14 +680,13 @@ namespace db_services {
                     ""
                     ""
                     "create index if not exists gin_f_name ON files USING GIN "
-                    "(to_tsvector('simple',replace(file_name,'_', '/')));";//todo path to spaced one
+                    "(to_tsvector('simple',replace(file_name,'_', '/')));";
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 
 
             query =
                     "ALTER TABLE public.files ADD CONSTRAINT unique_file_constr UNIQUE(file_name); ";
-            //todo can we remove it since we have GiST
             txn.exec(query);
             VLOG(2) << "Create unique constraints for tables\n";
             txn.commit();

@@ -1,5 +1,5 @@
-#ifndef DATA_DEDUPLICATION_SERVICE_SERVICEFILEINTERFACE_H
-#define DATA_DEDUPLICATION_SERVICE_SERVICEFILEINTERFACE_H
+#ifndef DATA_DEDUPLICATION_SERVICE_FILESERVICE_H
+#define DATA_DEDUPLICATION_SERVICE_FILESERVICE_H
 
 #include <vector>
 #include <array>
@@ -95,6 +95,13 @@ public:
     bool check_connection() {
         return manager_.check_connection();
     }
+    int clear_segments()
+    {
+        clk.tik();
+        auto rr=manager_.clear_segments();
+        clk.tak();
+        return rr;
+    }
 
 private:
     dbManager<segment_size> manager_;
@@ -120,7 +127,6 @@ int FileParsingService<segment_size>::delete_directory(std::string_view dir_path
 
 
     auto res = manager_.delete_directory(dir_abs_path.string());
-    //todo replace with other things
 
     if (res == return_codes::error_occured) {
         VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", dir_abs_path.c_str());
@@ -337,7 +343,7 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path) {
     clk.tak();
 
 
-    if (file_id == return_codes::already_exists) {//todo check file existence the other way
+    if (file_id == return_codes::already_exists) {
         if (strategy == preserve_old) {
             return return_codes::already_exists;
         }
@@ -400,7 +406,7 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
         if (!fs::is_directory(entry)) {
             auto file = fs::canonical(entry.path()).string();
             clk.tik();
-            auto results = this->template process_file<strategy, false>(file);//todo remove param
+            auto results = this->template process_file<strategy, false>(file);
             clk.tak();
             if (results == return_codes::already_exists) {
                 continue;
@@ -416,4 +422,4 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
 }
 
 
-#endif //DATA_DEDUPLICATION_SERVICE_SERVICEFILEINTERFACE_H
+#endif //DATA_DEDUPLICATION_SERVICE_FILESERVICE_H

@@ -73,7 +73,6 @@ std::vector<db_services::index_type> db_services::get_file_id_vector(db_services
     return res;
 }
 
-//todo check
 db_services::ResType db_services::check_file_existence(db_services::trasnactionType &txn, std::string_view file_name) {
     std::string query = "select files.* from files "
                         "where file_name=\'%s\';";
@@ -85,16 +84,17 @@ db_services::index_type db_services::get_file_id(db_services::trasnactionType &t
     return check_file_existence(txn,file_name).one_row()[0].as<index_type>();
 }
 
-db_services::index_type db_services::does_file_exist(db_services::trasnactionType &txn, std::string_view file_name) {
+bool db_services::does_file_exist(db_services::trasnactionType &txn, std::string_view file_name) {
     index_type res;
     try {
         res= get_file_id(txn,file_name);
+        return true;
     }
     catch (pqxx::unexpected_rows& rr)
     {
-        return return_codes::error_occured;
+        VLOG(2)<<vformat("File %s does not exist!",file_name.data());
     }
-    return res;
+    return false;
 }
 
 
@@ -124,7 +124,7 @@ db_services::my_conn_string db_services::load_configuration(std::string_view fil
     return res;
 }
 
-db_services::ResType //todo check
+db_services::ResType
 db_services::check_files_existence(db_services::trasnactionType &txn, std::vector<std::filesystem::path> &files) {
     std::string query = "SELECT * "
                         "FROM files "
@@ -139,6 +139,62 @@ db_services::check_files_existence(db_services::trasnactionType &txn, std::vecto
 
     return txn.exec(r_q);
 }
+
+std::string db_services::to_tsquerable_path(std::string_view path)
+{
+    std::string res(path.size(),'\0');
+    std::transform(path.begin(), path.end(), res.begin(),
+                   [](char c){
+                       switch (c) {
+                           case ' ':
+                           case '/':
+                               return '&';
+                           case '_':
+                               return '/';
+                           default:
+                               return (char)std::tolower(c);
+                       } });
+    if(res[0]=='&')
+        res= res.substr(1);
+
+    //todo test to spaced path + this=this
+    return res;
+}
+
+std::string db_services::from_spaced_path(std::string_view path)
+{
+    std::string res(path.size()+1,'/');
+    std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
+                         [](auto n){ return n==' '; }, '/');
+    return res;
+}
+
+std::string db_services::to_spaced_path(std::string_view path)
+{
+    std::string res(path.size(),'\0');
+    std::replace_copy_if(path.begin(), path.end(),res.begin(),
+                         [](auto n){ return n=='/'; }, ' ');
+    return res.substr(1);
+}
+
+db_services::ResType db_services::delete_unused_segments(db_services::trasnactionType &txn) {
+    return txn.exec("delete from public.segments where segment_count=0");
+}
+
+db_services::index_type db_services::check_segment_count(db_services::trasnactionType &txn) {
+    std::string qq="select segment_hash,count(segment_hash) from data "
+                   "group by  segment_hash except "
+                   "select segment_hash,segment_count "
+                   "from public.segments; ";
+    ResType rr=txn.exec(qq);
+    if(rr.empty())
+    {
+        return return_sucess;
+    }
+    return error_occured;
+
+}
+
 
 
 
