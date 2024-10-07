@@ -46,7 +46,7 @@ inline fs::path get_normal_abs(fs::path &pwd) {
     return fs::absolute(pwd).lexically_normal();
 }
 
-namespace fs = std::filesystem;
+
 
 inline fs::path get_normal_abs(fs::path &&pwd) {
     return fs::absolute(pwd).lexically_normal();
@@ -85,7 +85,8 @@ public:
 
     template<directory_handling_strategy dir_s = no_create_main,
             data_retrieval_strategy rr = persist, bool from_load_dir = false>
-    int load_file(std::string_view from_file, std::string_view to_file);
+    int load_file(std::string_view from_file, std::string_view to_file,
+                  index_type file_id=index_vals::empty_parameter_value);
 
     int delete_file(std::string_view file_path);
 
@@ -131,7 +132,7 @@ int FileParsingService<segment_size>::delete_directory(std::string_view dir_path
 template<unsigned long segment_size>
 requires is_divisible<total_block_size, segment_size>//todo create regular expression grabber for files
 template<directory_handling_strategy dir_s, data_retrieval_strategy rr, bool from_load_dir>
-int FileParsingService<segment_size>::load_file(std::string_view from_file, std::string_view to_file) {
+int FileParsingService<segment_size>::load_file(std::string_view from_file, std::string_view to_file,index_type file_id) {
     namespace fs = std::filesystem;
     fs::path to_file_path;
     fs::path from_file_path;
@@ -171,7 +172,7 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
     std::basic_ofstream<symbol_type> out(to_file_path.c_str());
 
 
-    auto stream_res = manager_.get_file_streamed(from_file_path.string(), out);
+    auto stream_res = manager_.get_file_streamed(from_file_path.string(), out,file_id);
 
 
     out.close();
@@ -251,7 +252,8 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 
 
         auto result = this->template load_file<directory_handling_strategy::create_main, rr, true>(pair.second,
-                                                                                                   p_t_s.string());
+                                                                                                   p_t_s.string(),
+                                                                                                   pair.first);
         if (result == return_codes::error_occured) {
             VLOG(1) << vformat("Error occurred during "
                                "file \"%s\" retrieval",
@@ -329,7 +331,10 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path) {
 
     auto size = fs::file_size(file);
 
+
+    clk.tik();
     auto file_id = manager_.create_file(file, size);
+    clk.tak();
 
 
     if (file_id == return_codes::already_exists) {//todo check file existence the other way
@@ -346,7 +351,6 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path) {
                                        file.c_str());
             return return_codes::error_occured;
         }
-
         file_id = manager_.create_file(file, size);
     }
 

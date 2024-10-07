@@ -61,7 +61,7 @@ TEST_F(DbFile_Dir_tests, create_delete_dir_test) {
     std::string_view dirname = "sample_dir_name";
 
     auto dir_id = manager_.create_directory(dirname);//tod delete this one
-    auto result = wrap_trans_function(conn_, &db_services::check_directory_existence,
+    auto result = wrap_trans_function(conn_, &db_services::get_files_for_directory,
                                       std::move(dirname));//todo find betetr solution for wrapper
 
     ASSERT_TRUE(result.has_value());
@@ -71,7 +71,7 @@ TEST_F(DbFile_Dir_tests, create_delete_dir_test) {
 
     ASSERT_EQ(manager_.delete_directory(std::move(dirname)),
               return_codes::return_sucess);
-    result = wrap_trans_function(conn_, &db_services::check_directory_existence, std::move(dirname));
+    result = wrap_trans_function(conn_, &db_services::get_files_for_directory, std::move(dirname));
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->no_rows());
 
@@ -229,7 +229,7 @@ TEST_F(DbFile_Dir_tests, insert_files_from_directory) {//todo this one is redund
     auto ress = manager_.delete_directory(dd_path.string());//todo delte
     ASSERT_EQ(ress, warning_message);
 
-    auto result = wrap_trans_function(conn_, &db_services::check_directory_existence, {dd_path.string()});
+    auto result = wrap_trans_function(conn_, &db_services::get_files_for_directory, {dd_path.string()});
 
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->one_row());
@@ -237,7 +237,7 @@ TEST_F(DbFile_Dir_tests, insert_files_from_directory) {//todo this one is redund
 
     manager_.delete_directory(dd_path.string());
 
-    result = wrap_trans_function(conn_, &db_services::check_directory_existence, {dd_path.string()});
+    result = wrap_trans_function(conn_, &db_services::get_files_for_directory, {dd_path.string()});
     ASSERT_TRUE(result.has_value());
     ASSERT_NO_THROW(result->no_rows());
 }

@@ -28,6 +28,44 @@ namespace db_services {
     using nonTransType = pqxx::nontransaction;
 
 
+    std::string inline to_spaced_path(std::string_view path)
+    {
+        std::string res(path.size(),'\0');
+        std::replace_copy_if(path.begin(), path.end(),res.begin(),
+                             [](auto n){ return n=='/'; }, ' ');
+        return res.substr(1);
+    }
+
+    std::string inline from_spaced_path(std::string_view path)
+    {
+        std::string res(path.size()+1,'/');
+        std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
+                             [](auto n){ return n==' '; }, '/');
+        return res;
+    }
+
+    std::string inline to_tsquerable_path(std::string_view path)
+    {
+        std::string res(path.size(),'\0');
+        std::transform(path.begin(), path.end(), res.begin(),
+                       [](char c){
+                           switch (c) {
+                               case ' ':
+                               case '/':
+                                   return '&';
+                               case '_':
+                                   return '/';
+                               default:
+                                   return (char)std::tolower(c);
+                           } });
+        if(res[0]=='&')
+            res= res.substr(1);
+
+        //todo test to spaced path + this=this
+        return res;
+    }
+
+
     bool inline checkConnection(const conPtr &conn) {
         return conn && conn->is_open();
     }
@@ -40,8 +78,34 @@ namespace db_services {
 
     ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
 
-    ResType check_directory_existence(trasnactionType &txn, std::string_view dir_path);//todo  delete
+    index_type get_file_id(trasnactionType &txn, std::string_view file_name);
 
+    index_type does_file_exist(trasnactionType &txn, std::string_view file_name);
+
+    ResType get_files_for_directory(trasnactionType &txn, std::string_view dir_path);//todo  delete
+
+    std::vector<index_type> get_file_id_vector(trasnactionType &txn, std::string_view dir_path);
+
+
+    template<typename T>
+    concept print=requires(T&elem,std::ofstream &out){
+        {out << elem}->std::same_as<std::ostream&>;
+    };
+    template<print T>
+    std::string vec_to_string(std::vector<T>&vec)
+    {
+        std::stringstream ss;
+        if(vec.empty())
+        {
+            return ss.str();
+        }
+        int i = 0;
+        for (; i < vec.size()-1; ++i) {
+            ss<<vec[i]<<',';
+        }
+        ss<<vec[i];
+        return ss.str();
+    }
 
     ResType check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path> &files);
 

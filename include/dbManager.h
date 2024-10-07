@@ -8,21 +8,6 @@
 
 namespace db_services {
 
-    std::string inline to_spaced_path(std::string_view path)
-    {
-        std::string res(path.size(),'\0');
-        std::replace_copy_if(path.begin(), path.end(),res.begin(),
-                             [](auto n){ return n=='/'; }, ' ');
-        return res.substr(1);
-    }
-
-    std::string inline from_spaced_path(std::string_view path)
-    {
-        std::string res(path.size()+1,'/');
-        std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
-                             [](auto n){ return n==' '; }, '/');
-        return res;
-    }
 
     inline void diconnect(conPtr &conn_) {
         if (conn_) {
@@ -76,13 +61,13 @@ namespace db_services {
         int finish_file_processing(std::string_view file_path, index_type file_id);
 
 
-        int delete_file(std::string_view file_name, index_type file_id = return_codes::already_exists);
+        int delete_file(std::string_view file_name, index_type file_id = index_vals::empty_parameter_value);
 
 
         int delete_directory(std::string_view directory_path);
 
 
-        int get_file_streamed(std::string_view file_name, std::ostream &out);
+        int get_file_streamed(std::string_view file_name, std::ostream &out,index_type file_id=index_vals::empty_parameter_value);
 
 
         int insert_file_from_stream(std::string_view file_name, std::istream &in, std::size_t file_size);
@@ -110,6 +95,9 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
 
+            auto file_ids= get_file_id_vector(txn,directory_path);
+            auto id_string= vec_to_string(file_ids);
+
 
             std::string query, qr;
             ResType res;
@@ -118,44 +106,44 @@ namespace db_services {
                     "set segment_count=segment_count-ss.cnt "
                     "from (select segment_hash as hhhash, count(segment_hash) as cnt "
                     "      from public.data inner join public.files f on f.file_id = public.data.file_id "
-                    "      where file_name  LIKE \'%s/%%\' "
+                    "      where f.file_id in (%s) "
                     "      group by file_name, segment_hash "
                     ") as ss "
                     "where ss.hhhash=segment_hash;";
-            qr = vformat(query.c_str(), directory_path.data());
-
+            qr = vformat(query.c_str(), id_string.c_str());
+            clk.tik();
             printRows_affected(txn.exec(qr));
-
+            clk.tak();
             VLOG(2) << vformat("Successfully reduced segment"
                                " counts for directory \"%s\"\n", directory_path.data());
 
 
-            query = "delete from public.data d "
-                    "       where exists "//todo mus be optimized
-                    "           ("
-                    "           select f.file_id "
-                    "           from public.files f "
-                    "           where file_name LIKE \'%s/%%\' and d.file_id=f.file_id "
-                    "        );  ";
+            query = "delete from public.data d where d.file_id in (%s);";
 
-            qr = vformat(query.c_str(), directory_path.data());
+            qr = vformat(query.c_str(), id_string.c_str());
+            clk.tik();
             printRows_affected(txn.exec(qr));
+            clk.tak();
 
             VLOG(2) << vformat("Successfully deleted data "
                                "for directory \"%s\"\n", directory_path.data());
 
 
 
-            query = "delete from public.files where file_name LIKE \'%s/%%\';";
-            qr = vformat(query.c_str(), directory_path.data());
+            query = "delete from public.files where file_id in (%s);";
+            qr = vformat(query.c_str(), id_string.c_str());
+            clk.tik();
             printRows_affected(txn.exec(qr));
+            clk.tak();
 
             VLOG(2) << vformat("Successfully deleted public.files "
                                " for directory \"%s\"\n", directory_path.data());
 
             query = "delete from public.segments where segment_count=0";
-            //todo ad respected checks for it
-            printRows_affected(txn.exec(query));
+            //todo insert integrity check(counts of data segments must be the same as ones in segments)
+            clk.tik();
+            printRows_affected(txn.exec(query));//todo this one may be actually very slow
+            clk.tak();
 
             VLOG(2) << vformat("Successfully deleted redundant "
                                "segments for \"%s\"\n", directory_path.data());
@@ -185,10 +173,8 @@ namespace db_services {
         try {
 
             trasnactionType txn(*conn_);
-            if (file_id == return_codes::already_exists) {//todo optinal value
-                std::string query = "select file_id from public.files where file_name = \'%s\';";
-                auto qx1 = vformat(query.c_str(), file_name.data());
-                file_id = txn.query_value<index_type>(qx1);
+            if (file_id == index_vals::empty_parameter_value) {
+                file_id= get_file_id(txn,file_name);
             }
             std::string query, qr;
             ResType res;
@@ -266,20 +252,23 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out) {
+    int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out,index_type file_id) {
         try {
+
             trasnactionType txn(*conn_);
+            if(file_id==index_vals::empty_parameter_value)
+            {
+                file_id=db_services::get_file_id(txn,file_name);
+            }
             std::string query = vformat("select s.segment_data "
                                         "from public.data"
                                         "         inner join public.segments s on s.segment_hash "
                                         "                                         = public.data.segment_hash "
                                         "        inner join public.files f on f.file_id = public.data.file_id "
-                                        "where file_name LIKE \'%s\' "
-                                        "order by segment_num", file_name.data());
+                                        "where f.file_id=%d "
+                                        "order by segment_num", file_id);
             for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
-                //out<<name;
                 out << name.str();
-                //out << hex_to_string(pqxx::to_string(name).substr(2));//this get string bytes without conversion
             }
             txn.commit();
 
@@ -364,7 +353,7 @@ namespace db_services {
                         "FROM \"%s\" t "
                         "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
             clk.tik();
-            txn.exec(q);
+            txn.exec(q);//todo
             clk.tak();
             VLOG(2) << vformat(
                     "Segment data was aggregated into %s for file %s.",
@@ -441,7 +430,7 @@ namespace db_services {
         try {
             query = "insert into public.files (file_name,size_in_bytes)"
                     " values ($1,$2) returning file_id;";
-            res = txn.exec(query, {file_path, file_size});
+            res = txn.exec(query, {to_spaced_path(file_path), file_size});
 
             future_file_id = res.one_row()[0].as<index_type>();
             VLOG(2) << vformat("File record (%d,\"%s\",%d) was successfully created.",
@@ -480,16 +469,13 @@ namespace db_services {
         std::vector<std::pair<index_type, std::string>> result;
         try {
             trasnactionType txn(*conn_);
+            auto res= get_files_for_directory(txn,dir_path);
 
-            std::string query = "select file_id,file_name from public.files "
-                                "where file_name LIKE \'%s/%\';";
-            auto qq = vformat(query.c_str(), dir_path.data());
-            ResType res = txn.exec(qq);
             VLOG(2)
                             << vformat("Filenames were successfully retrieved for directory \"%s\".", dir_path.data());
             for (const auto &re: res) {
                 auto tres = re[1].as<std::string>();
-                result.emplace_back(re[0].as<index_type>(), tres);
+                result.emplace_back(re[0].as<index_type>(), from_spaced_path(tres));
             }
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -691,7 +677,10 @@ namespace db_services {
 
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
-                    "create index if not exists gin_f_name ON files USING GIN (to_tsvector('english', file_name));";//todo path to spaced one
+                    ""
+                    ""
+                    "create index if not exists gin_f_name ON files USING GIN "
+                    "(to_tsvector('simple',replace(file_name,'_', '/')));";//todo path to spaced one
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 

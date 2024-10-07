@@ -45,11 +45,11 @@ TEST_F(ServiceFileTest, process_nested_directory_file_id_set) {
     file_service_.process_directory(directory_path.string());
     file_service_.process_directory(nested.string());
 
-    auto res = wrap_trans_function(conn_, check_directory_existence, {directory_path.string()});
+    auto res = wrap_trans_function(conn_, get_files_for_directory, {directory_path.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->one_row());
 
-    res = wrap_trans_function(conn_, check_directory_existence, {nested.string()});
+    res = wrap_trans_function(conn_, get_files_for_directory, {nested.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
     std::vector<fs::path> files;
@@ -71,7 +71,7 @@ TEST_F(ServiceFileTest, process_nested_directory_file_id_set) {
 
     file_service_.delete_directory(directory_path.string());
 
-    res = wrap_trans_function(conn_, check_directory_existence, {directory_path.string()});//todo check files
+    res = wrap_trans_function(conn_, get_files_for_directory, {directory_path.string()});//todo check files
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
 
@@ -92,19 +92,19 @@ TEST_F(ServiceFileTest, process_nested_directory_up) {
     file_service_.process_directory(ns2.string());
     file_service_.process_directory(ns3.string());
 
-    auto res = wrap_trans_function(conn_, check_directory_existence, {ns0.string()});
+    auto res = wrap_trans_function(conn_, get_files_for_directory, {ns0.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
 
-    res = wrap_trans_function(conn_, check_directory_existence, {ns1.string()});
+    res = wrap_trans_function(conn_, get_files_for_directory, {ns1.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
 
-    res = wrap_trans_function(conn_, check_directory_existence, {ns2.string()});
+    res = wrap_trans_function(conn_, get_files_for_directory, {ns2.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
 
-    res = wrap_trans_function(conn_, check_directory_existence, {ns3.string()});
+    res = wrap_trans_function(conn_, get_files_for_directory, {ns3.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->one_row());
 
@@ -125,7 +125,7 @@ TEST_F(ServiceFileTest, process_nested_directory_up) {
 
     file_service_.delete_directory(ns3.string());
 
-    res = wrap_trans_function(conn_, check_directory_existence, {ns3.string()});
+    res = wrap_trans_function(conn_, get_files_for_directory, {ns3.string()});
     EXPECT_TRUE(res.has_value());
     EXPECT_NO_THROW(res->no_rows());
 }
