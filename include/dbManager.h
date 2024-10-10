@@ -82,6 +82,24 @@ namespace db_services {
             disconnect();
         }
 
+        template<typename ResType1,typename ... Args>
+        tl::expected<ResType1 , int>
+        execute_in_transaction(ResType1 (*call)(trasnactionType &, Args ...), Args &&... args) {
+            trasnactionType txn(*conn_);
+            ResType1 res=call(txn,std::forward<Args>(args)...);
+            txn.commit();
+            return res;
+        }
+
+        template<typename ResType1,typename ... Args>
+        tl::expected<ResType1 , int>
+        execute_in_transaction(std::function<ResType1(trasnactionType &, Args ...)>&call, Args &&... args) {
+            trasnactionType txn(*conn_);
+            ResType1 res=call(txn,std::forward<Args>(args)...);
+            txn.commit();
+            return res;
+        }
+
 
     private:
         my_conn_string cString_;
@@ -383,7 +401,7 @@ namespace db_services {
 
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
-                        "SELECT tt.pos, %s(tt.data),  %d "
+                        "SELECT tt.pos, (%s(tt.data))::bytea,  %d "
                         "FROM  \"%s\" tt ", hash_function_name[hash],
                         file_id,
                         table_name.c_str()
@@ -603,8 +621,8 @@ namespace db_services {
             no_trans_exec.exec(vformat("CREATE DATABASE \"%s\";",
                                        cString_.getDbname().c_str()));
             //не менять, паарметры здесь не подпадают под query
-            no_trans_exec.exec(vformat("GRANT ALL ON DATABASE %s TO %s;",
-                                       no_trans_exec.esc(cString_.getDbname()).c_str(),
+            no_trans_exec.exec(vformat("GRANT ALL ON DATABASE \"%s\" TO %s;",
+                                       no_trans_exec.esc(cString_.getDbname()).c_str(),//todo no esc
                                        no_trans_exec.esc(cString_.getUser()).c_str()));
             no_trans_exec.commit();
 
@@ -680,7 +698,7 @@ namespace db_services {
                     ""
                     ""
                     "create index if not exists gin_f_name ON files USING GIN "
-                    "(to_tsvector('simple',replace(file_name,'_', '/')));";
+                    "(to_tsvector('simple',replace(file_name,'_', '/')));";//todo hash indexes(if needed)
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 

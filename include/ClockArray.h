@@ -14,6 +14,7 @@
 #include <stack>
 
 #include <source_location>
+#include <cassert>
 
 using location_type = std::array<std::string, 4>;
 
@@ -97,6 +98,13 @@ namespace timing {
                 return out;
             }
         };
+        void reset()
+        {
+            assert(to_tak.size()==0);
+            this->timers.clear();
+            this->startIngTimers.clear();
+            //this->to_tak= {}; should be empty anyway.
+        }
 
         template<typename Tp, typename BinaryOperation>
         Tp aggregate(Tp init,
@@ -165,7 +173,7 @@ namespace timing {
         operator<<(std::ostream &out, const ClockArray<T, T2, timeGetter, src_to_loc_type, double_cast> &ts) {
             out << "Function name\tLine\tTime\n";
             for (auto &val: ts) {
-                std::cout << val.first[0] << '\t' << val.first[3] << ":" << val.first[1] << '\t' << val.second << '\n';
+                out << val.first[0] << '\t' << val.first[3] << ":" << val.first[1] << '\t' << val.second << '\n';
             }
             return out;
         }

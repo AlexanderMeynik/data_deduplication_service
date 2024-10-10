@@ -53,7 +53,7 @@ inline fs::path get_normal_abs(fs::path &&pwd) {
 }
 
 
-template<unsigned long segment_size> requires is_divisible<total_block_size, segment_size>
+template<unsigned long segment_size>
 class FileParsingService {
 public:
     using index_type = db_services::index_type;
@@ -71,7 +71,8 @@ public:
         return res;
     };
 
-    template<data_insetion_strategy strategy = preserve_old>
+    template<data_insetion_strategy strategy = preserve_old, hash_function hash = SHA_256>
+    requires is_divisible<segment_size, hash_function_size[hash]>
     int process_directory(std::string_view dir_path);
 
     template<data_insetion_strategy strategy = preserve_old, bool existence_checks = true, hash_function hash = SHA_256>
@@ -103,12 +104,27 @@ public:
         return rr;
     }
 
+   // namespace db_s= db_services;
+
+    template<typename ResType1,typename ... Args>
+    tl::expected<ResType1 , int> execute_in_transaction(ResType1
+    (*call)(db_services::trasnactionType &, Args ...), Args &&... args) {
+        return manager_.execute_in_transaction(call,std::forward<Args>(args)...);
+    }
+
+    template<typename ResType1,typename ... Args>
+    tl::expected<ResType1 , int>
+    execute_in_transaction(std::function<ResType1(db_services::trasnactionType &, Args ...)>&call,
+                           Args &&... args) {
+        return manager_.execute_in_transaction(call,std::forward<Args>(args)...);
+    }
+
+
 private:
     dbManager<segment_size> manager_;
 };
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
 int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
     fs::path file_abs_path = get_normal_abs(file_path);
 
@@ -121,7 +137,7 @@ int FileParsingService<segment_size>::delete_file(std::string_view file_path) {
 }
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
+
 int FileParsingService<segment_size>::delete_directory(std::string_view dir_path) {
     fs::path dir_abs_path = get_normal_abs(dir_path);
 
@@ -135,8 +151,7 @@ int FileParsingService<segment_size>::delete_directory(std::string_view dir_path
 }
 
 
-template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>//todo create regular expression grabber for files
+template<unsigned long segment_size>//todo create regular expression grabber for files
 template<directory_handling_strategy dir_s, data_retrieval_strategy rr, bool from_load_dir>
 int FileParsingService<segment_size>::load_file(std::string_view from_file, std::string_view to_file,index_type file_id) {
     namespace fs = std::filesystem;
@@ -209,7 +224,6 @@ int FileParsingService<segment_size>::load_file(std::string_view from_file, std:
 
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
 template<directory_handling_strategy dir_s, data_retrieval_strategy rr>
 int FileParsingService<segment_size>::load_directory(std::string_view from_dir, std::string_view to_dir) {
     namespace fs = std::filesystem;
@@ -275,7 +289,6 @@ int FileParsingService<segment_size>::load_directory(std::string_view from_dir, 
 }
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
 template<db_usage_strategy str, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::db_load(std::string &dbName, std::string_view filename) {
@@ -318,7 +331,6 @@ int FileParsingService<segment_size>::db_load(std::string &dbName, std::string_v
 
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
 template<data_insetion_strategy strategy, bool existence_checks, hash_function hash>
 requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::process_file(std::string_view file_path) {
@@ -390,8 +402,8 @@ int FileParsingService<segment_size>::process_file(std::string_view file_path) {
 
 
 template<unsigned long segment_size>
-requires is_divisible<total_block_size, segment_size>
-template<data_insetion_strategy strategy>
+template<data_insetion_strategy strategy,hash_function hash>
+requires is_divisible<segment_size, hash_function_size[hash]>
 int FileParsingService<segment_size>::process_directory(std::string_view dir_path) {
     namespace fs = std::filesystem;
     fs::path pp;
@@ -406,7 +418,7 @@ int FileParsingService<segment_size>::process_directory(std::string_view dir_pat
         if (!fs::is_directory(entry)) {
             auto file = fs::canonical(entry.path()).string();
             clk.tik();
-            auto results = this->template process_file<strategy, false>(file);
+            auto results = this->template process_file<strategy, false,hash>(file);
             clk.tak();
             if (results == return_codes::already_exists) {
                 continue;

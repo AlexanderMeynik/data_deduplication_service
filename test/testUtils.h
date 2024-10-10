@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <iostream>
 #include <FileService.h>
-
+#include <gtest/gtest.h>
 
 template<typename>
 struct is_std_array : std::false_type {
@@ -21,7 +21,7 @@ struct is_std_array<std::array<T, N>> : std::true_type {
 template<typename T, std::size_t N>
 struct is_std_array<const std::array<T, N>> : std::true_type {
 };
-
+//todo divide into gtets and just test
 template<typename T>
 concept std_array = is_std_array<T>::value;
 
@@ -150,7 +150,7 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
                         "from public.data"
                         "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
                         "        inner join public.files f on f.file_id = public.data.file_id "
-                        "where file_name=\'%s\' "
+                        "where file_name=\'%s\' "//todo delegate to function
                         "order by segment_num", db_services::to_spaced_path(original_file.c_str()).c_str());
     }
     for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
@@ -216,24 +216,8 @@ void print_args() {
     }.template operator()<inner_elem_type, outer_size, inner_size, array>(std::make_index_sequence<outer_size>{});
 }
 
-template<std_array container, container array>
-requires std_array<typename container::value_type>
-         && (typename decltype(array)::value_type{}.size() == 2)//just 2 args for function
-void perform_stuff_on_2_d_array() {
 
-    using inner_elem_type = decltype(array)::value_type::value_type;
-    constexpr size_t outer_size = decltype(array){}.size();
-    constexpr size_t inner_size = typename decltype(array)::value_type{}.size();
 
-    []<typename T, size_t N, size_t N2, std::array<std::array<T, N2>, N> out, std::size_t ... Is>(
-            std::index_sequence<Is...>) {
-        using out_elem_t = decltype(out)::value_type;
-        ([]<out_elem_t inner_array, std::size_t... Is2>(std::index_sequence<Is2...>) {
-            performStuff<inner_array[Is2]...>();//it seems to me that in order to insert function name here I need to wrap the whole thing in macro
-        }.template operator()<out[Is]>(std::make_index_sequence<inner_size>{}), ...);
-
-    }.template operator()<inner_elem_type, outer_size, inner_size, array>(std::make_index_sequence<outer_size>{});
-}
 /*
 int main() {
 
