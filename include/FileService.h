@@ -6,12 +6,12 @@
 #include <string>
 #include <iostream>
 #include <openssl/sha.h>
-#include "myconcepts.h"
+#include <common.h>
 #include "dbManager.h"
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
-#include "expected.hpp"
+#include "common.h"
 
 enum db_usage_strategy {
     use,

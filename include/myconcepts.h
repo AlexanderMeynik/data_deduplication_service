@@ -19,6 +19,7 @@ static const int SHA256size = 32; //SHA256_DIGEST_LENGTH;
 
 using CLOCK = timing::chrono_clock_template<std::chrono::milliseconds>;
 static CLOCK clk;
+
 #define COMMA ,
 //crutch
 #define MEASURE_TIME(block) \
@@ -33,31 +34,10 @@ double funcTime(F func, Args&&... args){
     return duration(timeNow()-t1);
 }*/
 
-enum hash_function {
-    SHA_224,
-    SHA_256,
-    MD_5,
-    SHA_384,
-    SHA_512
-};
 
-static constexpr std::array<const char *, 5> hash_function_name
-        {
-                "sha224",
-                "sha256",
-                "md5",
-                "sha384",
-                "sha512"
-        };
 
-static constexpr std::array<unsigned short, 5> hash_function_size
-        {
-                28,
-                32,
-                32,
-                48,
-                64
-        };
+
+
 
 
 //constexpr int block_size=2;

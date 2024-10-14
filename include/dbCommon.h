@@ -1,7 +1,6 @@
 #ifndef DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
 #define DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
-#include "myconcepts.h"
-#include "expected.hpp"
+#include <common.h>
 #include <fstream>
 #include <pqxx/pqxx>
 #include <functional>
@@ -154,6 +153,15 @@ namespace db_services {
 
     std::string inline get_hash_str(trasnactionType &txn, std::string_view file_name) {
         return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
+    }
+
+    std::string inline get_hash_md5( std::string_view file_name) {
+        std::basic_string<unsigned char>md(hash_function_size[MD_5],' ');
+        MD5(reinterpret_cast<const unsigned char *>(file_name.data()), file_name.size(),
+                 md.data());
+        //todo properly convert hash
+        return "";
+        // return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
     }
 
 

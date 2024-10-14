@@ -10,9 +10,8 @@ add_subdirectory(test)
 endif()]]
 
 find_package(libpqxx REQUIRED)
-#[[find_package(OpenSSL REQUIRED)]]
-
 find_package(glog 0.7.1 REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 #[[find_package(OpenCV REQUIRED)]]
 
@@ -23,15 +22,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
 
-add_library(commonLibrary src/myconcepts.cpp src/ClockArray.cpp)
-target_link_libraries(commonLibrary glog::glog)
+add_library(commonLibrary src/myconcepts.cpp src/ClockArray.cpp src/HashUtils.cpp)
+target_link_libraries(commonLibrary glog::glog OpenSSL::SSL -lcrypto)
 
 add_library(dbUtilsLib src/dbManager.cpp src/dbCommon.cpp)
 target_link_libraries(dbUtilsLib pqxx pq commonLibrary)
 
 add_library(FileUtilsLib src/FileService.cpp)
-target_link_libraries(FileUtilsLib #[[OpenSSL::SSL -lcrypto]] commonLibrary dbUtilsLib)#[[remove lcrypto]]
+target_link_libraries(FileUtilsLib commonLibrary dbUtilsLib)
 
 
 add_executable(file_service src/fileServiceTest.cpp)
 target_link_libraries(file_service FileUtilsLib)
+
+add_executable(ssltest src/main.cpp)
+target_link_libraries(ssltest FileUtilsLib commonLibrary FileUtilsLib)

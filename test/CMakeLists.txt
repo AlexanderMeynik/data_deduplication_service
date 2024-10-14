@@ -4,7 +4,7 @@ enable_testing()
 find_package(GTest REQUIRED)
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
-find_package(OpenSSL REQUIRED)
+
 include_directories(../include)
 include_directories(../fff)
 file(GLOB TEST_SOURCES_1 clock_array/*.cpp)
