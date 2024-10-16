@@ -11,6 +11,7 @@
 int main() {
 //todo hash segments on client side
 
+auto resss =db_services::get_hash_md5("3");
 
     auto c_string=db_services::default_configuration();
     c_string.set_dbname("testbytea");

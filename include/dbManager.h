@@ -380,7 +380,7 @@ namespace db_services {
                     file_path.data());
 
 
-            q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
+              q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
                         "SELECT ns.data, ns.count "
                         "FROM \"%s\" ns "
                         "ON CONFLICT (segment_hash) "
@@ -413,7 +413,6 @@ namespace db_services {
 
 
             q = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
-            //todo if exists is redundant
             clk.tik();
             txn.exec(q);
             clk.tak();
@@ -530,7 +529,7 @@ namespace db_services {
         if (check_connection()) {
             conn_->close();
         }
-        //todo variant with no dbName
+
         conn_ = nullptr;
         cString_.set_dbname(dbName);
 
@@ -622,8 +621,8 @@ namespace db_services {
                                        cString_.getDbname().c_str()));
             //не менять, паарметры здесь не подпадают под query
             no_trans_exec.exec(vformat("GRANT ALL ON DATABASE \"%s\" TO %s;",
-                                       no_trans_exec.esc(cString_.getDbname()).c_str(),//todo no esc
-                                       no_trans_exec.esc(cString_.getUser()).c_str()));
+                                       cString_.getDbname().c_str(),
+                                       cString_.getUser().c_str()));
             no_trans_exec.commit();
 
             VLOG(2) << "Database created successfully: " << cString_.getDbname() << '\n';
@@ -698,7 +697,7 @@ namespace db_services {
                     ""
                     ""
                     "create index if not exists gin_f_name ON files USING GIN "
-                    "(to_tsvector('simple',replace(file_name,'_', '/')));";//todo hash indexes(if needed)
+                    "(to_tsvector('simple',replace(file_name,'_', '/')));";
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 

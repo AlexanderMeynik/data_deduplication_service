@@ -8,12 +8,12 @@
 namespace fs = std::filesystem;
 std::string parent_path = "../../testDirectories/";
 std::string new_dir_prefix = "../../testDirectoriesRes/";
-std::vector<fs::path> from_dirs = {"images",
+std::vector<fs::path> from_dirs = {"shakespear",
                                    "test1",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
-constexpr std::array<int,5> indx={0,1,2,3,4};
-constexpr std::array<int,3> multipliers={2,4,8};//,16,64,256};
+constexpr std::array<int,1> indx={MD_5};
+constexpr std::array<int,5> multipliers={4,8,16,32,64};
 
 template<int hashNum,int multip>
 void performStuff()
@@ -21,9 +21,9 @@ void performStuff()
     std::ofstream timers("bench_timers.txt",std::ios::app);
     std::ofstream total_size("bench_total_sizes.txt",std::ios::app);
     std::ofstream sizes("bench_sizes.txt",std::ios::app);
-
+    std::ofstream sizes2("bench_sizes2.txt",std::ios::app);
     clk.tik();
-    constexpr auto segment_size=multip*hash_function_size[hashNum];
+    constexpr auto segment_size=multip/**hash_function_size[hashNum]*/;
     FileParsingService<segment_size> fs;
 
     std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
@@ -50,16 +50,24 @@ void performStuff()
     db_services::print_table(schemas.value(),sizes);
     sizes<<'\n';
 
-    clk.tik();
+    auto dedup_data=fs.execute_in_transaction(&db_services::getDedupCharacteristics,(index_type)segment_size);
+    sizes2<<dbName<<"\n";
+    db_services::print_table(dedup_data.value(),sizes2);
+    sizes2<<'\n';
+
+   /* clk.tik();
     fs.db_drop(dbName);
-    clk.tak();
+    clk.tak();*/
 
     timers<<dbName<<'\n'<<clk<<"\n";
+
+
 
     clk.reset();
     timers.close();
     total_size.close();
     sizes.close();
+    sizes2.close();
     //abort();
 }
 template<std_array container, container array>
@@ -88,12 +96,15 @@ int main(int argc, char *argv[]) {
     std::ofstream timers("bench_timers.txt");
     std::ofstream total_size("bench_total_sizes.txt");
     std::ofstream sizes("bench_sizes.txt");
+    std::ofstream sizes2("bench_sizes2.txt");
     timers<<"\n";
     total_size<<'\n';
     sizes<<'\n';
+    sizes2<<'\n';
     timers.close();
     total_size.close();
     sizes.close();
+    sizes2.close();
 
     google::InitGoogleLogging(argv[0]);
     google::SetVLOGLevel("*", 3);
@@ -106,58 +117,5 @@ int main(int argc, char *argv[]) {
 
     constexpr auto entries2 = cartesian_product_arr(indx, multipliers);
     perform_stuff_on_2_d_array<decltype(entries2), entries2>();
-/*
-    std::ios::sync_with_stdio(false);
-    for (int i = 0; i < from_dirs.size(); i++) {
-        to_dirs[i] = get_normal_abs((new_dir_prefix / from_dirs[i]));
-        from_dirs[i] = get_normal_abs(parent_path / from_dirs[i]);
-        auto res=db_services::to_spaced_path(to_dirs[i].string());
-        auto res2=db_services::from_spaced_path(res);
-        auto res3=db_services::to_tsquerable_path(res);
-        auto res4=db_services::to_tsquerable_path(to_dirs[i].string());
-        std::cout<<to_dirs[i].string()<<'\t'<<res<<'\t'<<res2<<'\t';
-        std::cout<<res3<<'\t'<<res4<<'\n';
-    }
-    *//*return 0;*//*
-
-
-
-
-
-    google::InitGoogleLogging(argv[0]);
-    google::SetVLOGLevel("*", 3);//todo proper vlog handling from terminal
-
-    FileParsingService<64> fs;
-    std::string dbName = "deduplication10";
-    clk.tik();
-
-    fs.db_drop(dbName);
-
-    fs.db_load<db_usage_strategy::create>(dbName);
-
-    for (int i = 0; i < from_dirs.size(); ++i) {
-        clk.tik();//test for simialr cases
-        fs.process_directory(from_dirs[i].string());
-        clk.tak();
-        clk.tik();
-        fs.load_directory<directory_handling_strategy::create_main>(from_dirs[i].string(), to_dirs[i].string());
-        clk.tak();
-        clk.tik();
-        //fs.delete_directory(from_dirs[i].string());
-        clk.tak();
-    }
-    clk.tak();
-    clk.tik();
-    //todo add file check data
-    //fs.delete_directory(from_dirs[1].string());//works
-    //todo add simple benchmark to get time data for runs,
-
-    fs.process_file("../../conf/config.txt");//fails due to path containing chracters
-    fs.load_file<directory_handling_strategy::create_main>("../../conf/config.txt", "../../conf/c2.txt");
-    //fs.delete_file("../../conf/config.txt");
-    fs.clear_segments();
-    *//*fs.db_drop(dbName);*//*
-    clk.tak();
-    std::cout << clk;*/
 
 }

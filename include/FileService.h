@@ -52,7 +52,10 @@ inline fs::path get_normal_abs(fs::path &&pwd) {
     return fs::absolute(pwd).lexically_normal();
 }
 
-
+/**
+ *
+ * @tparam segment_size
+ */
 template<unsigned long segment_size>
 class FileParsingService {
 public:
@@ -79,7 +82,7 @@ public:
     requires is_divisible<segment_size, hash_function_size[hash]>
     int process_file(std::string_view file_path);
 
-//todo use path type
+
     template<directory_handling_strategy dir_s = no_create_main, data_retrieval_strategy rr = persist>
     int load_directory(std::string_view from_dir, std::string_view to_dir);
 

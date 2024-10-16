@@ -21,7 +21,7 @@ struct is_std_array<std::array<T, N>> : std::true_type {
 template<typename T, std::size_t N>
 struct is_std_array<const std::array<T, N>> : std::true_type {
 };
-//todo divide into gtets and just test
+
 template<typename T>
 concept std_array = is_std_array<T>::value;
 
@@ -31,45 +31,30 @@ constexpr auto cartesian_product_arr_impl(ARRAYS...arrays)requires (std_array<AR
 ...)&&
 (std::is_same_v<typename ARRAYS::value_type, T>&&...)//type equality checks
 {
-using type = std::array<T, sizeof...(ARRAYS)>;//since I decided to have arrays with
-// same value type, we can use array
-constexpr std::size_t N = (1 * ... * arrays.size());
-constexpr std::size_t outer_arr_size = sizeof...(arrays);
+    using type = std::array<T, sizeof...(ARRAYS)>;//since I decided to have arrays with
+    // same value type, we can use array
+    constexpr std::size_t N = (1 * ... * arrays.size());
+    constexpr std::size_t outer_arr_size = sizeof...(arrays);
 
-std::array<std::size_t, outer_arr_size> dims{arrays.size()...};
-for (
-std::size_t i = 1;
-i<dims.
+    std::array<std::size_t, outer_arr_size> dims{arrays.size()...};
+    for (std::size_t i = 1; i<dims.size();++i)
+    {
+        dims[i] *= dims[i-1];
+    }
+    return [&] ()
+    {
+        std::array<type, N> result{};
 
-size();
-
-++i)  { dims[i] *= dims[i-1]; }
-
-return [&] ()
-{
-std::array<type, N> result{};
-
-for (
-std::size_t i = 0;
-i<result.
-
-size();
-
-++i)
-{
-[&]<
-std::size_t... Is
->(std::index_sequence<Is...>)
-{
-std::array<std::size_t, outer_arr_size> idx = {((i * dims[Is]) / N) % arrays.size() ...};
-result[i] ={ arrays[idx[Is]]...};
-
-}(std::make_index_sequence<outer_arr_size>{ });
-}
-
-return
-result;
-}();
+        for (std::size_t i = 0;i<result.size();++i)
+        {
+            [&]<std::size_t... Is>(std::index_sequence<Is...>)
+            {
+                std::array<std::size_t, outer_arr_size> idx = {((i * dims[Is]) / N) % arrays.size() ...};
+                result[i] ={ arrays[idx[Is]]...};
+            }(std::make_index_sequence<outer_arr_size>{ });
+    }
+    return result;
+    }();
 }
 
 
@@ -124,7 +109,7 @@ enum check_from {
     temporary_table,
     concolidate_from_saved
 };
-using namespace db_services;//todo
+using namespace db_services;
 template<size_t size = 64, check_from cs>
 void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_file) {
     char buff[size];
@@ -150,7 +135,7 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
                         "from public.data"
                         "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
                         "        inner join public.files f on f.file_id = public.data.file_id "
-                        "where file_name=\'%s\' "//todo delegate to function
+                        "where file_name=\'%s\' "
                         "order by segment_num", db_services::to_spaced_path(original_file.c_str()).c_str());
     }
     for (auto [name]: txn.stream<pqxx::binarystring>(query)) {

@@ -174,5 +174,3 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
 
 
 
-
-//todo negative tests

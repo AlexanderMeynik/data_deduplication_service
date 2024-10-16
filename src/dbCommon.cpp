@@ -157,7 +157,6 @@ std::string db_services::to_tsquerable_path(std::string_view path)
     if(res[0]=='&')
         res= res.substr(1);
 
-    //todo test to spaced path + this=this
     return res;
 }
 

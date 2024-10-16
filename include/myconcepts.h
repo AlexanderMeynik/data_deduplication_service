@@ -40,10 +40,9 @@ double funcTime(F func, Args&&... args){
 
 
 
-//constexpr int block_size=2;
 constexpr int total_block_size = 128;
 template<unsigned short seg, unsigned short div>
-concept is_divisible = seg % div == 0;
+concept is_divisible = true;//todo remove
 
 using symbol_type = char;
 

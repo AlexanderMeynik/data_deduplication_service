@@ -78,24 +78,29 @@ namespace db_services {
 
         return txn.exec(qq);
     }
-    auto inline get_total_schema_sizes_pr(trasnactionType &txn)
-    {
 
-        ResType res= get_total_schema_sizes(txn);
-        std::vector<std::array<std::string,6>> res1;
-        decltype(res1)::value_type temp;
-        for (int i = 0; i < temp.size(); ++i) {
-            temp[i]=res.column_name(i);
-        }
-        res1.push_back(temp);
-        for (const auto & row:res) {
-            for (int i = 0; i < temp.size(); ++i) {
-                temp[i]=row[i].as<std::string>();
-            }
-            res1.push_back(temp);
-        }
-        return res1;
+    ResType inline getDedupCharacteristics(trasnactionType &txn,index_type  segment_size)
+    {
+        std::string query="with segments as( "
+                          "select f.file_name,d.segment_hash ,count(d.segment_hash) from files f "
+                          "        inner join public.data d on f.file_id = d.file_id "
+                          "group by f.file_name,d.segment_hash "
+                          "order by f.file_name) "
+                          ", "
+                          "unique_segments_count as( "
+                          "select file_name,count(segment_hash) as unique_count  from segments "
+                          "group by file_name) "
+                          " "
+                          " "
+                          "select f.file_name,size_in_bytes,aa.unique_count, "
+                          "       ceil(size_in_bytes::float8/$1 "
+                          "       ) as segment_count,(aa.unique_count /ceil(size_in_bytes::float8/$1 "
+                          "                          )::float8)*100 as unique_percenatage "
+                          "from files f\n"
+                          "inner join  unique_segments_count aa on f.file_name=aa.file_name;";
+        return txn.exec(query,pqxx::params(segment_size));
     }
+
     void inline  print_table(ResType&rss,std::ostream &out)
     {
         int i = 0;
@@ -145,10 +150,20 @@ namespace db_services {
     }
 
     ResType inline get_hash_res(trasnactionType &txn, std::string_view file_name) {
-        //todo maybe we can generate it with openssl
         std::string query = vformat("select LEFT(md5(\'%s\'),32)", file_name.data());
         return txn.exec(query);
 
+    }
+    template<typename T>
+    std::string inline convertToHex(const T& binaryResult)
+    {
+        std::ostringstream ss;//todo better way
+        ss << std::hex << std::setfill('0');
+        for (unsigned int i = 0; i < binaryResult.size(); ++i) {
+            ss << std::setw(2) << static_cast<unsigned>(binaryResult.at(i));
+        }
+
+        return ss.str();
     }
 
     std::string inline get_hash_str(trasnactionType &txn, std::string_view file_name) {
@@ -157,10 +172,10 @@ namespace db_services {
 
     std::string inline get_hash_md5( std::string_view file_name) {
         std::basic_string<unsigned char>md(hash_function_size[MD_5],' ');
-        MD5(reinterpret_cast<const unsigned char *>(file_name.data()), file_name.size(),
+        funcs[MD_5](reinterpret_cast<const unsigned char *>(file_name.data()), file_name.size(),
                  md.data());
-        //todo properly convert hash
-        return "";
+
+        return convertToHex(md);
         // return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
     }
 

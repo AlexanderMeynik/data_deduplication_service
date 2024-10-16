@@ -5,8 +5,8 @@
 namespace fs = std::filesystem;
 std::string parent_path = "../../testDirectories/";
 std::string new_dir_prefix = "../../testDirectoriesRes/";
-std::vector<fs::path> from_dirs = {"documentation",
-                                   "test1",
+std::vector<fs::path> from_dirs = {"shakespear",
+                                   "res",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
 
@@ -30,17 +30,16 @@ int main(int argc, char *argv[]) {
 
 
     google::InitGoogleLogging(argv[0]);
-    google::SetVLOGLevel("*", 3);//todo proper vlog handling from terminal
-
+    google::SetVLOGLevel("*", 3);
     FileParsingService<64> fs;
-    std::string dbName = "deduplication10";
+    std::string dbName = "deduplication12";
     clk.tik();
 
     fs.db_drop(dbName);
 
     fs.db_load<db_usage_strategy::create>(dbName);
 
-    for (int i = 0; i < from_dirs.size(); ++i) {
+    for (int i = 0; i < 2; ++i) {
         clk.tik();//test for simialr cases
         fs.process_directory(from_dirs[i].string());
         clk.tak();
@@ -55,10 +54,9 @@ int main(int argc, char *argv[]) {
     clk.tik();
     //todo add file check data
     //fs.delete_directory(from_dirs[1].string());//works
-    //todo add simple benchmark to get time data for runs,
 
-    fs.process_file("../../conf/config.txt");//fails due to path containing chracters
-    fs.load_file<directory_handling_strategy::create_main>("../../conf/config.txt", "../../conf/c2.txt");
+  /*  fs.process_file("../../conf/config.txt");//fails due to path containing chracters
+    fs.load_file<directory_handling_strategy::create_main>("../../conf/config.txt", "../../conf/c2.txt");*/
     //fs.delete_file("../../conf/config.txt");
     fs.clear_segments();
     /*fs.db_drop(dbName);*/
