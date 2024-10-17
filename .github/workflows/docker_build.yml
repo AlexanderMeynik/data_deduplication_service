@@ -2,6 +2,7 @@ name: Build and push docker image
 on:
   push:
     paths:
+      - .github/workflows/docker_build.yml
       - Dockerfile
 
 jobs:
