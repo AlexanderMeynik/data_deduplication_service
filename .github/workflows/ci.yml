@@ -2,15 +2,16 @@ name: Build and Test
 
 on:
   workflow_run:
-    workflows: [ "Build and push docker image" ]  # This matches the name of your docker_build.yml
+    workflows: [ "Build and push docker image" ]
     types:
       - completed
   push:
-    paths-ignore:
-      - sripts/**
-      - README.md
-      - documentation/**
-      - Dockerfile
+    paths:
+      - .github/workflows/ci.yml
+      - src/**
+      - include/**
+      - test/**
+      - CMakeLists.txt
 
 jobs:
   build-and-test:
