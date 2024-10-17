@@ -38,7 +38,6 @@ target_link_libraries(file_service FileUtilsLib)
 add_executable(ssltest src/main.cpp)
 target_link_libraries(ssltest FileUtilsLib commonLibrary FileUtilsLib)
 
-
 option(BUILD_DOC "Build documentation" OFF)
 if(BUILD_DOC)
     add_subdirectory(documentation)

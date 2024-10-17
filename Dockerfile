@@ -58,5 +58,4 @@ RUN cd /home/deps && \
     cmake --build . && \
     ninja install
 
-
 WORKDIR /usr/application/src
