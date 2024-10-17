@@ -8,8 +8,7 @@ find_package(glog 0.7.1 REQUIRED)
 include_directories(../include)
 include_directories(../fff)
 file(GLOB TEST_SOURCES_1 clock_array/*.cpp)
-add_executable(clock_array_tests ${TEST_SOURCES_1}
-        )
+add_executable(clock_array_tests ${TEST_SOURCES_1})
 
 
 add_executable(benchmark bencmark.cpp)

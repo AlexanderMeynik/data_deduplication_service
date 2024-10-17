@@ -1,10 +1,10 @@
 name: Build and Test
 
 on:
-  workflow_run:
-    workflows: [ "Build and push docker image" ]
-    types:
-      - completed
+#  workflow_run:
+#    workflows: [ "Build and push docker image" ]
+#    types:
+#      - completed
   push:
     paths:
       - .github/workflows/ci.yml
@@ -12,8 +12,12 @@ on:
       - include/**
       - test/**
       - CMakeLists.txt
+      - Dockerfile
 
 jobs:
+  call_docker_wf:
+    uses: ./.github/workflows/docker_build.yml
+    if: contains(github.event.head_commit.modified, 'Dockerfile')
   build-and-test:
     runs-on: ubuntu-latest
     services:

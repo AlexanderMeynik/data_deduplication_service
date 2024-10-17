@@ -1,20 +1,22 @@
 #ifndef DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
 #define DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
+
 #include <common.h>
 #include <fstream>
 #include <pqxx/pqxx>
 #include <functional>
-
+/// db_services namespace
 namespace db_services {
     using namespace std::placeholders;
 #ifdef IT_test
-
     static std::string res_dir_path = "../../conf/";
 #else
     static std::string res_dir_path = "../../conf/";
 #endif
 
+    ///default configuration file path
     static std::string cfile_name = res_dir_path.append("config.txt");
+
     static constexpr const char *const sqlLimitBreached_state = "23505";
     static constexpr const char *const sqlFqConstraight = "23503";
 
@@ -58,83 +60,20 @@ namespace db_services {
 
     std::vector<index_type> get_file_id_vector(trasnactionType &txn, std::string_view dir_path);
 
-    index_type inline get_total_file_size(trasnactionType &txn)
-    {
-        //todo check null
+    index_type inline get_total_file_size(trasnactionType &txn) {
         return txn.query_value<index_type>("select sum(size_in_bytes) from files;");
     }
-    ResType inline get_total_schema_sizes(trasnactionType &txn)
-    {
-        std::string qq="SELECT\n"
-                         "    indexrelname, s.relname, "
-                         "    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size, "
-                         "    pg_size_pretty(pg_table_size(s.relname::text)) as t_size, "
-                         "    pg_size_pretty(pg_relation_size(s.relname::text)) as rel_size, "
-                         "    pg_size_pretty(pg_total_relation_size(s.relname::text)) as t_rel_size "
-                         "FROM "
-                         "    pg_stat_user_indexes s/*,pg_stat_all_tables*/\n"
-                         "WHERE "
-                         "        schemaname = 'public' order by index_size desc;";
 
-        return txn.exec(qq);
-    }
+    ResType get_total_schema_sizes(trasnactionType &txn);
 
-    ResType inline getDedupCharacteristics(trasnactionType &txn,index_type  segment_size)
-    {
-        std::string query="with segments as( "
-                          "select f.file_name,d.segment_hash ,count(d.segment_hash) from files f "
-                          "        inner join public.data d on f.file_id = d.file_id "
-                          "group by f.file_name,d.segment_hash "
-                          "order by f.file_name) "
-                          ", "
-                          "unique_segments_count as( "
-                          "select file_name,count(segment_hash) as unique_count  from segments "
-                          "group by file_name) "
-                          " "
-                          " "
-                          "select f.file_name,size_in_bytes,aa.unique_count, "
-                          "       ceil(size_in_bytes::float8/$1 "
-                          "       ) as segment_count,(aa.unique_count /ceil(size_in_bytes::float8/$1 "
-                          "                          )::float8)*100 as unique_percenatage "
-                          "from files f\n"
-                          "inner join  unique_segments_count aa on f.file_name=aa.file_name;";
-        return txn.exec(query,pqxx::params(segment_size));
-    }
+    ResType get_dedup_characteristics(trasnactionType &txn, index_type segment_size);
 
-    void inline  print_table(ResType&rss,std::ostream &out)
-    {
-        int i = 0;
-        for (; i < rss[0].size()-1; ++i) {
-            out<<rss.column_name(i)<<'\t';
-        }
-        out<<rss.column_name(i)<<'\n';
-        for (const auto & row:rss) {
-            i=0;
-            for ( ;i < row.size()-1; ++i) {
-                out<<row[i].as<std::string>()<<'\t';
-            }
-            out<<row[i].as<std::string>()<<'\n';
-        }
-    }
-    template<typename T>
-    concept printable=requires(T&elem,std::ofstream &out){
-        {out << elem}->std::same_as<std::ostream&>;
-    };
+    void  print_res(ResType &rss, std::ostream &out);
+
+
+
     template<printable T>
-    std::string vec_to_string(std::vector<T>&vec)
-    {
-        std::stringstream ss;
-        if(vec.empty())
-        {
-            return ss.str();
-        }
-        int i = 0;
-        for (; i < vec.size()-1; ++i) {
-            ss<<vec[i]<<',';
-        }
-        ss<<vec[i];
-        return ss.str();
-    }
+    std::string vec_to_string(std::vector<T> &vec);
 
     ResType check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path> &files);
 
@@ -145,6 +84,7 @@ namespace db_services {
     inline void printRows_affected(ResType &res) {
         VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
     }
+
     inline void printRows_affected(ResType &&res) {
         printRows_affected(res);
     }
@@ -152,11 +92,10 @@ namespace db_services {
     ResType inline get_hash_res(trasnactionType &txn, std::string_view file_name) {
         std::string query = vformat("select LEFT(md5(\'%s\'),32)", file_name.data());
         return txn.exec(query);
-
     }
+
     template<typename T>
-    std::string inline convertToHex(const T& binaryResult)
-    {
+    std::string inline convertToHex(const T &binaryResult) {
         std::ostringstream ss;//todo better way
         ss << std::hex << std::setfill('0');
         for (unsigned int i = 0; i < binaryResult.size(); ++i) {
@@ -170,20 +109,19 @@ namespace db_services {
         return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
     }
 
-    std::string inline get_hash_md5( std::string_view file_name) {
-        std::basic_string<unsigned char>md(hash_function_size[MD_5],' ');
+    std::string inline get_hash_md5(std::string_view file_name) {
+        std::basic_string<unsigned char> md(hash_function_size[MD_5], ' ');
         funcs[MD_5](reinterpret_cast<const unsigned char *>(file_name.data()), file_name.size(),
-                 md.data());
+                    md.data());
 
         return convertToHex(md);
-        // return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
     }
 
 
     ResType inline check_t_existence(db_services::trasnactionType &txn, std::string_view file_name) {
         auto hash_str = get_hash_str(txn, file_name);
         std::string table_name = vformat("temp_file_%s", hash_str.c_str());
-        //std::string t_name= get_table_name(txn,file_name);
+
         std::string query = "select 1 from pg_tables "
                             "where tablename=\'%s\' and schemaname='public';";
         auto r_q = vformat(query.c_str(), table_name.data(), table_name.c_str());
@@ -291,6 +229,20 @@ namespace db_services {
             res[i] = string[i];
         }
         return res;
+    }
+
+    template<printable T>
+    std::string vec_to_string(std::vector<T> &vec) {
+        std::stringstream ss;
+        if (vec.empty()) {
+            return ss.str();
+        }
+        int i = 0;
+        for (; i < vec.size() - 1; ++i) {
+            ss << vec[i] << ',';
+        }
+        ss << vec[i];
+        return ss.str();
     }
 
 

@@ -40,7 +40,7 @@ template<typename T, size_t sz>
 bool operator==(const std::array<T, sz> &arr1, const std::array<T, sz> &arr2) {
     return std::equal(arr1.begin(), arr1.end(), arr2);
 }
-
+///timing namespace
 namespace timing {
 
 
@@ -50,8 +50,7 @@ namespace timing {
 
     template<typename T, typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(
             std::source_location location),
-            T(*double_cast)(T2 curr, T2 prev)>
-    requires std::is_floating_point_v<T>
+            T(*double_cast)(T2 curr, T2 prev)> requires std::is_floating_point_v<T>
     class ClockArray;
 
 
@@ -78,29 +77,30 @@ namespace timing {
         return location.function_name();
     }
 
-
-    template<typename dur>
+    /**
+     * @tparam chrono_duration_type
+     */
+    template<typename chrono_duration_type>
     using chrono_clock_template = timing::ClockArray<double, timepoint_type,
-    &std::chrono::high_resolution_clock::now, &get_file_state, &double_cat_chrono<dur>>;
+            &std::chrono::high_resolution_clock::now, &get_file_state, &double_cat_chrono<chrono_duration_type>>;
 
     /**
      * @ingroup timing
-     * @tparam T double type tha will be printed
-     * @tparam T2 Type that timeGetter return
+     * @tparam OutType double type tha will be printed
+     * @tparam inType Type that timeGetter return
      * @tparam timeGetter function that return current time
-     * @tparam src_to_loc_type function that converts source location to inner representation of it
-     * @tparam double_cast a function that casts time difference to type
+     * @tparam sourceTypeConverter function that converts source location to inner representation of it
+     * @tparam timeConverter a function that casts time difference to type
      */
-    template<typename T, typename T2, T2(*timeGetter)(), location_type (*src_to_loc_type)(
+    template<typename OutType, typename inType, inType(*timeGetter)(), location_type (*sourceTypeConverter)(
             std::source_location location),
-            T(*double_cast)(T2 curr, T2 prev)>
-    requires std::is_floating_point_v<T>
+            OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
     class ClockArray {
     public:
 
 
         struct time_store {
-            T time;
+            OutType time;
             size_t count;
 
             friend std::ostream &operator<<(std::ostream &out, const time_store &ts) {
@@ -108,28 +108,37 @@ namespace timing {
                 return out;
             }
         };
+
         /**
          * Resets timers and converted double values
          */
-        void reset()
-        {
+        void reset() {
             assert(to_tak.empty());
             this->timers.clear();
             this->startIngTimers.clear();
         }
 
-        template<typename Tp, typename BinaryOperation>
-        Tp aggregate(Tp init,
-                     BinaryOperation binary_op) {
-            return std::accumulate(timers.begin(), timers.end(), init, binary_op);
+        /**
+         * Applies Binary Binary operation to all clocks
+         * @tparam ReturnType
+         * @tparam BinaryOperation
+         * @param starting_value
+         * @param binary_op
+         * @return accumulated value
+         */
+        template<typename ReturnType, typename BinaryOperation>
+        ReturnType aggregate(ReturnType starting_value,
+                             BinaryOperation binary_op) {
+            return std::accumulate(timers.begin(), timers.end(), starting_value, binary_op);
         }
+
         /**
          * Finishes timing for specified section and calculation double value for time
          * @param location
          */
         void tak(const std::source_location &location
         = std::source_location::current()) {
-            auto id = (*src_to_loc_type)(location);
+            auto id = (*sourceTypeConverter)(location);
             if (to_tak.empty() || to_tak.top()[0] != id[0]) {
                 std::string msg = "No paired tik statement found in queue\t"
                                   "Tak values" + id[3] + ":" + id[1] + "\t"
@@ -139,7 +148,7 @@ namespace timing {
             id[1] = to_tak.top()[1];
             id[2] = to_tak.top()[2];
             to_tak.pop();
-            auto res = double_cast((*timeGetter)(), startIngTimers[id]);
+            auto res = timeConverter((*timeGetter)(), startIngTimers[id]);
             if (!timers.contains(id)) {
                 timers[id] = {res, 1};
             } else {
@@ -147,39 +156,46 @@ namespace timing {
                 timers[id].count++;
             }
         }
+
         /**
          * This function returns it's source location to chain several
          * compute sections into one.
-         * auto source =tik_loc()  some_func()
-         * tak() someOtherFunc(); tik(source) some_func(); tak()
+         * @details Example:
+         * @details auto source =clk.tik_loc();
+         * @details some_func();
+         * @details clk.tak();
+         * @details someOtherFunc();
+         * @details clk.tik(source);
+         * @details some_func();
+         * @details clk.tak();
          * @param location
          * @return source location
          */
         location_type tik_loc(const std::source_location &location
         = std::source_location::current()) {
             tik(location);
-            return src_to_loc_type(location);
+            return sourceTypeConverter(location);
 
         }
+
         /**
-         *
          * @param location
-         * @return pait of std::source_location, location_type
+         * @return pair of std::source_location, location_type
          */
         std::pair<std::source_location, location_type> tik_loc_(const std::source_location &location
         = std::source_location::current()) {
             return std::make_pair(location, tik_loc(location));
         }
+
         /**
          * This function starts new calculation section
          * @param location source location of calle
          * @attention You must mirror every tik like call with
          * @ref timing::ClockArray< T, T2, timeGetter, src_to_loc_type, double_cast >::tak "tak()"
-         *
          */
         void tik(const std::source_location &location
         = std::source_location::current()) {
-            auto id = src_to_loc_type(location);
+            auto id = sourceTypeConverter(location);
             startIngTimers[id] = timeGetter();
 
             to_tak.push(id);
@@ -202,7 +218,8 @@ namespace timing {
         }
 
         friend std::ostream &
-        operator<<(std::ostream &out, const ClockArray<T, T2, timeGetter, src_to_loc_type, double_cast> &ts) {
+        operator<<(std::ostream &out,
+                   const ClockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter> &ts) {
             out << "Function name\tLine\tTime\n";
             for (auto &val: ts) {
                 out << val.first[0] << '\t' << val.first[3] << ":" << val.first[1] << '\t' << val.second << '\n';
@@ -221,7 +238,7 @@ namespace timing {
     private:
         std::unordered_map<location_type, time_store> timers;
 
-        std::unordered_map<location_type, T2> startIngTimers;
+        std::unordered_map<location_type, inType> startIngTimers;
         std::stack<location_type> to_tak;
     };
 

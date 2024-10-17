@@ -62,12 +62,13 @@ db_services::get_files_for_directory(db_services::trasnactionType &txn, std::str
     return txn.exec(r_q);
 }
 
-std::vector<db_services::index_type> db_services::get_file_id_vector(db_services::trasnactionType &txn, std::string_view dir_path) {
+std::vector<db_services::index_type>
+db_services::get_file_id_vector(db_services::trasnactionType &txn, std::string_view dir_path) {
     std::vector<index_type> res;
 
-    ResType rr= get_files_for_directory(txn,dir_path);
+    ResType rr = get_files_for_directory(txn, dir_path);
 
-    for (const auto &row:rr) {
+    for (const auto &row: rr) {
         res.push_back(row[0].as<index_type>());
     }
     return res;
@@ -81,18 +82,17 @@ db_services::ResType db_services::check_file_existence(db_services::trasnactionT
 }
 
 db_services::index_type db_services::get_file_id(db_services::trasnactionType &txn, std::string_view file_name) {
-    return check_file_existence(txn,file_name).one_row()[0].as<index_type>();
+    return check_file_existence(txn, file_name).one_row()[0].as<index_type>();
 }
 
 bool db_services::does_file_exist(db_services::trasnactionType &txn, std::string_view file_name) {
     index_type res;
     try {
-        res= get_file_id(txn,file_name);
+        res = get_file_id(txn, file_name);
         return true;
     }
-    catch (pqxx::unexpected_rows& rr)
-    {
-        VLOG(2)<<vformat("File %s does not exist!",file_name.data());
+    catch (pqxx::unexpected_rows &rr) {
+        VLOG(2) << vformat("File %s does not exist!", file_name.data());
     }
     return false;
 }
@@ -140,11 +140,10 @@ db_services::check_files_existence(db_services::trasnactionType &txn, std::vecto
     return txn.exec(r_q);
 }
 
-std::string db_services::to_tsquerable_path(std::string_view path)
-{
-    std::string res(path.size(),'\0');
+std::string db_services::to_tsquerable_path(std::string_view path) {
+    std::string res(path.size(), '\0');
     std::transform(path.begin(), path.end(), res.begin(),
-                   [](char c){
+                   [](char c) {
                        switch (c) {
                            case ' ':
                            case '/':
@@ -152,28 +151,27 @@ std::string db_services::to_tsquerable_path(std::string_view path)
                            case '_':
                                return '/';
                            default:
-                               return (char)std::tolower(c);
-                       } });
-    if(res[0]=='&')
-        res= res.substr(1);
+                               return (char) std::tolower(c);
+                       }
+                   });
+    if (res[0] == '&')
+        res = res.substr(1);
 
     return res;
 }
 
-std::string db_services::from_spaced_path(std::string_view path)
-{
-    std::string res(path.size()+1,'/');
-    std::replace_copy_if(path.begin(), path.end(),res.begin()+1,
-                         [](auto n){ return n==' '; }, '/');
+std::string db_services::from_spaced_path(std::string_view path) {
+    std::string res(path.size() + 1, '/');
+    std::replace_copy_if(path.begin(), path.end(), res.begin() + 1,
+                         [](auto n) { return n == ' '; }, '/');
     return res;
 }
 
-std::string db_services::to_spaced_path(std::string_view path)
-{
-    std::string res(path.size(),'\0');
-    std::replace_copy_if(path.begin(), path.end(),res.begin(),
-                         [](auto n){ return n=='/'; }, ' ');
-    if(res[0]==' ') {
+std::string db_services::to_spaced_path(std::string_view path) {
+    std::string res(path.size(), '\0');
+    std::replace_copy_if(path.begin(), path.end(), res.begin(),
+                         [](auto n) { return n == '/'; }, ' ');
+    if (res[0] == ' ') {
         return res.substr(1);
     }
     return res;
@@ -184,18 +182,72 @@ db_services::ResType db_services::delete_unused_segments(db_services::trasnactio
 }
 
 db_services::index_type db_services::check_segment_count(db_services::trasnactionType &txn) {
-    std::string qq="select segment_hash,count(segment_hash) from data "
-                   "group by  segment_hash except "
-                   "select segment_hash,segment_count "
-                   "from public.segments; ";
-    ResType rr=txn.exec(qq);
-    if(rr.empty())
-    {
+    std::string qq = "select segment_hash,count(segment_hash) from data "
+                     "group by  segment_hash except "
+                     "select segment_hash,segment_count "
+                     "from public.segments; ";
+    ResType rr = txn.exec(qq);
+    if (rr.empty()) {
         return return_sucess;
     }
     return error_occured;
 
 }
+
+db_services::ResType
+db_services::get_dedup_characteristics(trasnactionType &txn, index_type segment_size) {
+    std::string query = "with segments as( "
+                        "select f.file_name,d.segment_hash ,count(d.segment_hash) from files f "
+                        "        inner join public.data d on f.file_id = d.file_id "
+                        "group by f.file_name,d.segment_hash "
+                        "order by f.file_name) "
+                        ", "
+                        "unique_segments_count as( "
+                        "select file_name,count(segment_hash) as unique_count  from segments "
+                        "group by file_name) "
+                        " "
+                        " "
+                        "select f.file_name,size_in_bytes,aa.unique_count, "
+                        "       ceil(size_in_bytes::float8/$1 "
+                        "       ) as segment_count,(aa.unique_count /ceil(size_in_bytes::float8/$1 "
+                        "                          )::float8)*100 as unique_percenatage "
+                        "from files f\n"
+                        "inner join  unique_segments_count aa on f.file_name=aa.file_name;";
+    return txn.exec(query, pqxx::params(segment_size));
+}
+
+void db_services::print_res(db_services::ResType &rss, std::ostream &out)
+{
+    int i = 0;
+    for (; i < rss[0].size() - 1; ++i) {
+        out << rss.column_name(i) << '\t';
+    }
+    out << rss.column_name(i) << '\n';
+    for (const auto &row: rss) {
+        i = 0;
+        for (; i < row.size() - 1; ++i) {
+            out << row[i].as<std::string>() << '\t';
+        }
+        out << row[i].as<std::string>() << '\n';
+    }
+}
+
+db_services::ResType db_services::get_total_schema_sizes(db_services::trasnactionType &txn) {
+    std::string qq = "SELECT\n"
+                     "    indexrelname, s.relname, "
+                     "    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size, "
+                     "    pg_size_pretty(pg_table_size(s.relname::text)) as t_size, "
+                     "    pg_size_pretty(pg_relation_size(s.relname::text)) as rel_size, "
+                     "    pg_size_pretty(pg_total_relation_size(s.relname::text)) as t_rel_size "
+                     "FROM "
+                     "    pg_stat_user_indexes s/*,pg_stat_all_tables*/\n"
+                     "WHERE "
+                     "        schemaname = 'public' order by index_size desc;";
+
+    return txn.exec(qq);
+}
+
+
 
 
 

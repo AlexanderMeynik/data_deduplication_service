@@ -5,10 +5,13 @@
 #include <iostream>
 #include "dbCommon.h"
 #include <common.h>
-
+/// db_services namespace
 namespace db_services {
 
-
+    /**
+     * Closes and deletes connection
+     * @param conn_
+     */
     inline void diconnect(conPtr &conn_) {
         if (conn_) {
             conn_->close();
@@ -16,7 +19,10 @@ namespace db_services {
         }
     }
 
-
+    /**
+     * Database manager that handles database management
+     * @tparam segment_size
+     */
     template<unsigned long segment_size>
     class dbManager {
     public:
@@ -41,38 +47,84 @@ namespace db_services {
         }
 
         //inpired by https://stackoverflow.com/questions/49122358/libbqxx-c-api-to-connect-to-postgresql-without-db-name
-        index_type create_database(std::string_view dbName);
+        /**
+         * Creates database entry and connect to it
+         * @param dbName
+         */
+        int create_database(std::string_view dbName);
 
-        index_type drop_database(std::string_view dbName);
+        /**
+         * Deletes database entry
+         * @param dbName
+         */
+        int drop_database(std::string_view dbName);
 
+        /**
+         * Create main database tables and indexes
+         * @tparam hash hash function that will be used for hashing
+         */
         template<hash_function hash = SHA_256>
         requires is_divisible<segment_size, hash_function_size[hash]>
         int fill_schemas();
 
+        /**
+         * Removes segments that are not used in files
+         */
         int clear_segments();
 
+        /**
+         * Get vector of pairs of file_names and file ids for directory
+         * @param dir_path
+         */
         std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
 
-
+        /**
+         * Creates entry for a given file
+         * @param file_path
+         * @param file_size
+         * @return
+         */
         index_type create_file(std::string_view file_path, int file_size = 0);
 
 
-        template<hash_function hash = SHA_256>
-        int finish_file_processing(std::string_view file_path, index_type file_id);
+        /**
+         * Recursevely deletes all file data
+         * @param file_path
+         * @param file_id
+         */
+        int delete_file(std::string_view file_path, index_type file_id = index_vals::empty_parameter_value);
 
-
-        int delete_file(std::string_view file_name, index_type file_id = index_vals::empty_parameter_value);
-
-
+        /**
+         * Recursevely deletes all file that are in directory
+         * @param directory_path
+         */
         int delete_directory(std::string_view directory_path);
 
-
-        int get_file_streamed(std::string_view file_name, std::ostream &out,
+        /**
+         * Recreates file conents and bulk insert the in out
+         * @param file_name
+         * @param output
+         * @param file_id
+         */
+        int get_file_streamed(std::string_view file_name, std::ostream &output,
                               index_type file_id = index_vals::empty_parameter_value);
 
-
+        /**
+         * Bulk insert file segments into temporary table
+         * @param file_name
+         * @param in
+         * @param file_size
+         */
         int insert_file_from_stream(std::string_view file_name, std::istream &in, std::size_t file_size);
 
+        /**
+         * Process bulk inserted file data
+         * @tparam hash
+         * @param file_path
+         * @param file_id
+        */
+        template<hash_function hash = SHA_256>
+        int finish_file_processing(std::string_view file_path, index_type file_id);
 
         bool check_connection() {
             return db_services::checkConnection(conn_);
@@ -82,20 +134,34 @@ namespace db_services {
             disconnect();
         }
 
-        template<typename ResType1,typename ... Args>
-        tl::expected<ResType1 , int>
-        execute_in_transaction(ResType1 (*call)(trasnactionType &, Args ...), Args &&... args) {
+        /**
+         * Wraps function in transaction block
+         * @tparam ResultType
+         * @tparam Args
+         * @param call
+         * @param args
+         */
+        template<typename ResultType, typename ... Args>
+        tl::expected<ResultType, int>
+        execute_in_transaction(ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
             trasnactionType txn(*conn_);
-            ResType1 res=call(txn,std::forward<Args>(args)...);
+            ResultType res = call(txn, std::forward<Args>(args)...);
             txn.commit();
             return res;
         }
 
-        template<typename ResType1,typename ... Args>
-        tl::expected<ResType1 , int>
-        execute_in_transaction(std::function<ResType1(trasnactionType &, Args ...)>&call, Args &&... args) {
+        /**
+         * Functional variant of previous call
+         * @tparam ResultType
+         * @tparam Args
+         * @param call
+         * @param args
+         */
+        template<typename ResultType, typename ... Args>
+        tl::expected<ResultType, int>
+        execute_in_transaction(std::function<ResultType(trasnactionType &, Args ...)> &call, Args &&... args) {
             trasnactionType txn(*conn_);
-            ResType1 res=call(txn,std::forward<Args>(args)...);
+            ResultType res = call(txn, std::forward<Args>(args)...);
             txn.commit();
             return res;
         }
@@ -104,8 +170,6 @@ namespace db_services {
     private:
         my_conn_string cString_;
         conPtr conn_;
-
-
     };
 
     template<unsigned long segment_size>
@@ -199,18 +263,18 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::delete_file(std::string_view file_name, index_type file_id) {
+    int dbManager<segment_size>::delete_file(std::string_view file_path, index_type file_id) {
         try {
 
             trasnactionType txn(*conn_);
             if (file_id == index_vals::empty_parameter_value) {
-                file_id = get_file_id(txn, file_name);
+                file_id = get_file_id(txn, file_path);
             }
             std::string query, qr;
             ResType res;
 
 
-            auto hash_str = get_hash_str(txn, file_name);
+            auto hash_str = get_hash_str(txn, file_path);
             std::string table_name = vformat("temp_file_%s", hash_str.c_str());
             qr = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
             res = txn.exec(qr);
@@ -231,7 +295,7 @@ namespace db_services {
             printRows_affected(txn.exec(qr));
 
             VLOG(2) << vformat("Successfully reduced segments"
-                               " counts for file \"%s\"\n", file_name.data());
+                               " counts for file \"%s\"\n", file_path.data());
 
 
             query = "delete from public.data where file_id=%d;";
@@ -241,7 +305,7 @@ namespace db_services {
             printRows_affected(txn.exec(qr));
 
             VLOG(2) << vformat("Successfully deleted data "
-                               "for file \"%s\"\n", file_name.data());
+                               "for file \"%s\"\n", file_path.data());
 
             query = "delete from public.files where file_id=%d;";
             qr = vformat(query.c_str(), file_id);
@@ -249,14 +313,14 @@ namespace db_services {
 
 
             VLOG(2) << vformat("Successfully deleted file "
-                               "entry for \"%s\"\n", file_name.data());
+                               "entry for \"%s\"\n", file_path.data());
 
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlFqConstraight) {
                 VLOG(1) << vformat("Unable to remove record for file \"%s\" since segment data "
-                                   "for it are stile present.", file_name.data());
+                                   "for it are stile present.", file_path.data());
                 return return_codes::warning_message;
             }
             VLOG(1) << "SQL Error: " << e.what()
@@ -272,7 +336,8 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &out, index_type file_id) {
+    int
+    dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &output, index_type file_id) {
         try {
 
             trasnactionType txn(*conn_);
@@ -287,7 +352,7 @@ namespace db_services {
                                         "where f.file_id=%d "
                                         "order by segment_num", file_id);
             for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
-                out << name.str();
+                output << name.str();
             }
             txn.commit();
 
@@ -380,7 +445,7 @@ namespace db_services {
                     file_path.data());
 
 
-              q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
+            q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
                         "SELECT ns.data, ns.count "
                         "FROM \"%s\" ns "
                         "ON CONFLICT (segment_hash) "
@@ -519,13 +584,12 @@ namespace db_services {
         if (!result.has_value()) {
             return result.error();
         }
-        //return result.error();
         return return_codes::return_sucess;
     }
 
 
     template<unsigned long segment_size>
-    index_type dbManager<segment_size>::drop_database(std::string_view dbName) {
+    int dbManager<segment_size>::drop_database(std::string_view dbName) {
         if (check_connection()) {
             conn_->close();
         }
@@ -592,7 +656,7 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    index_type dbManager<segment_size>::create_database(std::string_view dbName) {
+    int dbManager<segment_size>::create_database(std::string_view dbName) {
         conn_ = nullptr;
 
         cString_.set_dbname(dbName);

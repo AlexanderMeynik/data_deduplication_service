@@ -36,7 +36,7 @@ void performStuff()
         fs.template process_directory<preserve_old,static_cast<hash_function>(hashNum)>(from_dirs[i].string());
         clk.tak();
         clk.tik();
-        fs.template load_directory<directory_handling_strategy::create_main>(from_dirs[i].string(), to_dirs[i].string());
+        fs.template load_directory<root_directory_handling_strategy::create_main>(from_dirs[i].string(), to_dirs[i].string());
         clk.tak();
         clk.tik();
         //fs.delete_directory(from_dirs[i].string());
@@ -47,12 +47,12 @@ void performStuff()
     auto schemas=fs.execute_in_transaction(&db_services::get_total_schema_sizes);
     total_size<<dbName<<"\t"<<total_file_size.value_or(-1)<<'\n';
     sizes<<dbName<<"\n";
-    db_services::print_table(schemas.value(),sizes);
+    db_services::print_res(schemas.value(), sizes);
     sizes<<'\n';
 
-    auto dedup_data=fs.execute_in_transaction(&db_services::getDedupCharacteristics,(index_type)segment_size);
+    auto dedup_data=fs.execute_in_transaction(&db_services::get_dedup_characteristics, (index_type)segment_size);
     sizes2<<dbName<<"\n";
-    db_services::print_table(dedup_data.value(),sizes2);
+    db_services::print_res(dedup_data.value(), sizes2);
     sizes2<<'\n';
 
    /* clk.tik();

@@ -1,10 +1,11 @@
 name: Build and push docker image
+#on:
+#  push:
+#    paths:
+#      - .github/workflows/docker_build.yml
+#      - Dockerfile
 on:
-  push:
-    paths:
-      - .github/workflows/docker_build.yml
-      - Dockerfile
-
+  workflow_call:
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub

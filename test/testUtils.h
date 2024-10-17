@@ -57,7 +57,7 @@ constexpr auto cartesian_product_arr_impl(ARRAYS...arrays)requires (std_array<AR
     }();
 }
 
-
+using namespace file_services;
 template<typename...ARRAYS>
 constexpr auto cartesian_product_arr(ARRAYS...arrays)//
 {

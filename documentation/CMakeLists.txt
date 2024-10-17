@@ -2,6 +2,7 @@ find_package(Doxygen)
 if (DOXYGEN_FOUND)
     set(DOXYGEN_IN  Doxyfile.in)
     set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    file(COPY md DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
     message("Doxygen build started")
