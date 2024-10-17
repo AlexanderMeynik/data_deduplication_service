@@ -1,6 +1,11 @@
 name: Build and push docker image
 on:
   workflow_call:
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
