@@ -22,7 +22,7 @@ namespace db_services {
 
 
     using index_type = long long;
-    using trasnactionType = pqxx::work;
+    using trasnactionType = pqxx::transaction<pqxx::isolation_level::read_committed>;
     using connection_type = pqxx::connection;
     using conPtr = std::shared_ptr<connection_type>;
     using ResType = pqxx::result;
@@ -106,6 +106,7 @@ namespace db_services {
     }
 
     std::string inline get_hash_str(trasnactionType &txn, std::string_view file_name) {
+       //todo find proper way to hash table name
         return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
     }
 

@@ -61,10 +61,7 @@ namespace db_services {
 
         /**
          * Create main database tables and indexes
-         * @tparam hash hash function that will be used for hashing
          */
-        template<hash_function hash = SHA_256>
-        requires is_divisible<segment_size, hash_function_size[hash]>
         int fill_schemas();
 
         /**
@@ -111,19 +108,20 @@ namespace db_services {
 
         /**
          * Bulk insert file segments into temporary table
+         * @tparam hash hash function that will be used for hashing
          * @param file_name
          * @param in
          * @param file_size
          */
+        template<hash_function hash = SHA_256>
+        requires is_divisible<segment_size, hash_function_size[hash]>
         int insert_file_from_stream(std::string_view file_name, std::istream &in, std::size_t file_size);
 
         /**
          * Process bulk inserted file data
-         * @tparam hash
          * @param file_path
          * @param file_id
         */
-        template<hash_function hash = SHA_256>
         int finish_file_processing(std::string_view file_path, index_type file_id);
 
         bool check_connection() {
@@ -371,6 +369,8 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
+    template<hash_function hash>
+    requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::insert_file_from_stream(std::string_view file_name, std::istream &in,
                                                          std::size_t file_size) {
         try {
@@ -386,22 +386,31 @@ namespace db_services {
             size_t block_count = file_size / segment_size;
             size_t l_block_size = file_size - block_count * segment_size;
             std::istream::sync_with_stdio(false);
+
+
+            std::basic_string<unsigned char> md(hash_function_size[MD_5], ' ');
+
+
+
             for (int i = 0; i < block_count; ++i) {
                 in.read(buffer.data(), segment_size);
-                //std::from_b
+                funcs[hash](reinterpret_cast<const unsigned char *>(buffer.data()), buffer.size(),
+                            md.data());
                 copy_stream
                         << std::make_tuple(
                                 block_index++,
-                                pqxx::binary_cast(buffer));
+                                pqxx::binary_cast(buffer),pqxx::binary_cast(md));
 
             }
             if (l_block_size != 0) {
                 std::string bff(l_block_size, '\0');
                 in.read(bff.data(), segment_size);
+                funcs[hash](reinterpret_cast<const unsigned char *>(bff.data()), bff.size(),
+                            md.data());
                 copy_stream
                         << std::make_tuple(
                                 block_index,
-                                pqxx::binary_cast(bff));
+                                pqxx::binary_cast(bff),pqxx::binary_cast(md));
             }
             copy_stream.complete();
             txn.commit();
@@ -419,7 +428,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    template<hash_function hash>
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
@@ -433,9 +441,9 @@ namespace db_services {
             clk.tik();
             txn.exec(q).one_row();
             clk.tak();
-            q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count "
+            q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count, t.hash "
                         "FROM \"%s\" t "
-                        "GROUP BY t.data;", aggregation_table_name.c_str(), table_name.c_str());
+                        "GROUP BY t.data,t.hash;", aggregation_table_name.c_str(), table_name.c_str());
             clk.tik();
             txn.exec(q);
             clk.tak();
@@ -445,8 +453,8 @@ namespace db_services {
                     file_path.data());
 
 
-            q = vformat("INSERT INTO public.segments (segment_data, segment_count) "
-                        "SELECT ns.data, ns.count "
+            q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
+                        "SELECT ns.data, ns.count,ns.hash "
                         "FROM \"%s\" ns "
                         "ON CONFLICT (segment_hash) "
                         "DO UPDATE "
@@ -456,7 +464,6 @@ namespace db_services {
             txn.exec(q);
             clk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", file_path.data());
-
             q = vformat("drop table \"%s\";", aggregation_table_name.c_str());
             clk.tik();
             txn.exec(q);
@@ -466,8 +473,8 @@ namespace db_services {
 
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
-                        "SELECT tt.pos, (%s(tt.data))::bytea,  %d "
-                        "FROM  \"%s\" tt ", hash_function_name[hash],
+                        "SELECT tt.pos, tt.hash,  %d "
+                        "FROM  \"%s\" tt ",
                         file_id,
                         table_name.c_str()
             );
@@ -523,7 +530,7 @@ namespace db_services {
             auto hash_str = get_hash_str(txn, file_path);
             std::string table_name = vformat("temp_file_%s", hash_str.c_str());
             std::string q1 = vformat(
-                    "CREATE TABLE \"%s\" (pos bigint, data bytea);",
+                    "CREATE TABLE \"%s\" (pos bigint, data bytea,hash bytea);",
                     table_name.c_str()
             );
             txn.exec(q1);
@@ -719,8 +726,6 @@ namespace db_services {
 
 
     template<unsigned long segment_size>
-    template<hash_function hash>
-    requires is_divisible<segment_size, hash_function_size[hash]>
     int dbManager<segment_size>::fill_schemas() {
         try {
 
@@ -730,14 +735,12 @@ namespace db_services {
             std::string query = vformat("create schema if not exists public;"
                                         "create table public.segments"
                                         "("
-                                        "    segment_hash bytea NOT NULL GENERATED"
-                                        "      ALWAYS AS ((%s(segment_data::bytea))::bytea) STORED primary key, "
+                                        "    segment_hash bytea NOT NULL primary key,"
                                         "    segment_data bytea NOT NULL,"
                                         "    segment_count bigint NOT NULL"
-                                        ");", hash_function_name[hash]);
+                                        ");");
             txn.exec(query);
-            VLOG(2) << vformat("Create segments table with preferred hashing function %s\n",
-                               hash_function_name[hash]);
+            VLOG(2) << vformat("Create segments table\n");
 
             query = "create table public.files "
                     "("

@@ -398,7 +398,7 @@ namespace file_services {
                 return return_codes::error_occured;
             }
 
-            reusult = manager_.template fill_schemas<hash>();
+            reusult = manager_.fill_schemas();
 
 
             if (reusult == return_codes::error_occured) {
@@ -473,7 +473,7 @@ namespace file_services {
         std::basic_ifstream<symbol_type> in(file);
 
         clk.tik();
-        auto res1 = manager_.insert_file_from_stream(file, in, size);
+        auto res1 = manager_.template insert_file_from_stream<hash>(file, in, size);
         clk.tak();
 
         if (res1 == return_codes::error_occured) {
@@ -483,7 +483,7 @@ namespace file_services {
             return res1;
         }
         clk.tik();
-        res1 = manager_.template finish_file_processing<hash>(file, file_id);
+        res1 = manager_.finish_file_processing(file, file_id);
         clk.tak();
 
         if (res1 == return_codes::error_occured) {

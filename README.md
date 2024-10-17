@@ -50,11 +50,7 @@
 3. libglog
 4. gtest/gmock 1.15.2
 5. FFF(Fake Function Framework)
-
-todo:
-
-- libopenssl
-- libopencv
+6. libopenssl
 
 ## Wsl firewall set-up
 

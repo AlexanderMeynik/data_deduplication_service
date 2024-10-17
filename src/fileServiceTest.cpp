@@ -14,7 +14,7 @@ using namespace file_services;
 int main(int argc, char *argv[]) {
 
     std::ios::sync_with_stdio(false);
-    for (int i = 0; i < from_dirs.size(); i++) {
+    for (int i = 1; i < from_dirs.size(); i++) {
         to_dirs[i] = get_normal_abs((new_dir_prefix / from_dirs[i]));
         from_dirs[i] = get_normal_abs(parent_path / from_dirs[i]);
         auto res = db_services::to_spaced_path(to_dirs[i].string());
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
     fs.db_load<db_usage_strategy::create>(dbName);
 
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 1; i < 2; ++i) {
         clk.tik();//test for simialr cases
         fs.process_directory(from_dirs[i].string());
         clk.tak();

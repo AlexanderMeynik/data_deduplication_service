@@ -8,12 +8,12 @@
 namespace fs = std::filesystem;
 std::string parent_path = "../../testDirectories/";
 std::string new_dir_prefix = "../../testDirectoriesRes/";
-std::vector<fs::path> from_dirs = {"shakespear",
-                                   "test1",
+std::vector<fs::path> from_dirs = {"images",
+                                   "shakespear",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
-constexpr std::array<int,1> indx={MD_5};
-constexpr std::array<int,5> multipliers={4,8,16,32,64};
+constexpr std::array<int,5> indx={0,1,2,3,4};
+constexpr std::array<int,3> multipliers={2,4,8};//,16,64,256};
 
 template<int hashNum,int multip>
 void performStuff()
@@ -23,7 +23,7 @@ void performStuff()
     std::ofstream sizes("bench_sizes.txt",std::ios::app);
     std::ofstream sizes2("bench_sizes2.txt",std::ios::app);
     clk.tik();
-    constexpr auto segment_size=multip/**hash_function_size[hashNum]*/;
+    constexpr auto segment_size=multip*hash_function_size[hashNum];
     FileParsingService<segment_size> fs;
 
     std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
@@ -55,9 +55,9 @@ void performStuff()
     db_services::print_res(dedup_data.value(), sizes2);
     sizes2<<'\n';
 
-   /* clk.tik();
+    clk.tik();
     fs.db_drop(dbName);
-    clk.tak();*/
+    clk.tak();
 
     timers<<dbName<<'\n'<<clk<<"\n";
 
