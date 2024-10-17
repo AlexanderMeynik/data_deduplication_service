@@ -14,8 +14,8 @@ jobs:
   call_docker_wf:
     uses: ./.github/workflows/docker_build.yml
     secrets:
-     DOCKER_PASSWORD=${{secrets.DOCKER_PASSWORD}}
-     DOCKER_USERNAME=${{secrets.DOCKER_USERNAME}}
+     DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+     DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
     #if: contains(github.event.head_commit.modified, 'Dockerfile')
   build-and-test:
     runs-on: ubuntu-latest
