@@ -1,6 +1,10 @@
-#include "myconcepts.h"
+#include "myConcepts.h"
 
-std::string my_concepts::vformat(const char *const zcFormat, ...) {
+#include <vector>
+#include <string>
+#include <cstdio>
+
+std::string myConcepts::vformat(const char *const zcFormat, ...) {
 
     // initialize use of the variable argument array
     va_list vaArgs;
@@ -11,7 +15,7 @@ std::string my_concepts::vformat(const char *const zcFormat, ...) {
     // and a functionally reliable call to mock the formatting
     va_list vaArgsCopy;
     va_copy(vaArgsCopy, vaArgs);
-    const int iLen = std::vsnprintf(NULL, 0, zcFormat, vaArgsCopy);
+    const int iLen = std::vsnprintf(nullptr, 0, zcFormat, vaArgsCopy);
     va_end(vaArgsCopy);
 
     // return a formatted string without risking memory mismanagement

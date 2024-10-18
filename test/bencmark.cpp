@@ -1,8 +1,9 @@
 #include <vector>
 #include <iostream>
+
 #include "FileService.h"
 #include "testUtils.h"
-#include <common.h>
+
 
 
 namespace fs = std::filesystem;
@@ -19,56 +20,53 @@ template<int hashNum,int multip>
 void performStuff()
 {
     std::ofstream timers("bench_timers.txt",std::ios::app);
-    std::ofstream total_size("bench_total_sizes.txt",std::ios::app);
+    std::ofstream totalSize("bench_total_sizes.txt", std::ios::app);
     std::ofstream sizes("bench_sizes.txt",std::ios::app);
     std::ofstream sizes2("bench_sizes2.txt",std::ios::app);
-    clk.tik();
+    gClk.tik();
     constexpr auto segment_size=multip*hash_function_size[hashNum];
     FileParsingService<segment_size> fs;
 
     std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
     std::cout<<dbName<<'\n';
-    fs.template db_load<db_usage_strategy::create,static_cast<hash_function>(hashNum)>(dbName);
-    clk.tak();
+    fs.template dbLoad<dbUsageStrategy::create, static_cast<hash_function>(hashNum)>(dbName);
+    gClk.tak();
 
     for (int i = 0; i < 1; ++i) {
-        clk.tik();//test for simialr cases
-        fs.template process_directory<preserve_old,static_cast<hash_function>(hashNum)>(from_dirs[i].string());
-        clk.tak();
-        clk.tik();
-        fs.template load_directory<root_directory_handling_strategy::create_main>(from_dirs[i].string(), to_dirs[i].string());
-        clk.tak();
-        clk.tik();
+        gClk.tik();//test for simialr cases
+        fs.template processDirectory<PreserveOld, static_cast<hash_function>(hashNum)>(from_dirs[i].string());
+        gClk.tak();
+        gClk.tik();
+        fs.template loadDirectory<rootDirectoryHandlingStrategy::CreateMain>(from_dirs[i].string(), to_dirs[i].string());
+        gClk.tak();
+        gClk.tik();
         //fs.delete_directory(from_dirs[i].string());
-        clk.tak();
+        gClk.tak();
     }
 
-    auto total_file_size=fs.execute_in_transaction(&db_services::get_total_file_size);
-    auto schemas=fs.execute_in_transaction(&db_services::get_total_schema_sizes);
-    total_size<<dbName<<"\t"<<total_file_size.value_or(-1)<<'\n';
+    auto total_file_size= fs.executeInTransaction(&db_services::getTotalFileSize);
+    auto schemas= fs.executeInTransaction(&db_services::getTotalSchemaSizes);
+    totalSize << dbName << "\t" << total_file_size.value_or(-1) << '\n';
     sizes<<dbName<<"\n";
-    db_services::print_res(schemas.value(), sizes);
+    db_services::printRes(schemas.value(), sizes);
     sizes<<'\n';
 
-    auto dedup_data=fs.execute_in_transaction(&db_services::get_dedup_characteristics, (index_type)segment_size);
+    auto dedup_data= fs.executeInTransaction(&db_services::getDedupCharacteristics, (indexType) segment_size);
     sizes2<<dbName<<"\n";
-    db_services::print_res(dedup_data.value(), sizes2);
+    db_services::printRes(dedup_data.value(), sizes2);
     sizes2<<'\n';
 
-    clk.tik();
-    fs.db_drop(dbName);
-    clk.tak();
+    gClk.tik();
+    fs.dbDrop(dbName);
+    gClk.tak();
 
-    timers<<dbName<<'\n'<<clk<<"\n";
+    timers << dbName << '\n' << gClk << "\n";
 
-
-
-    clk.reset();
+    gClk.reset();
     timers.close();
-    total_size.close();
+    totalSize.close();
     sizes.close();
     sizes2.close();
-    //abort();
 }
 template<std_array container, container array>
 requires std_array<typename container::value_type>
@@ -110,10 +108,9 @@ int main(int argc, char *argv[]) {
     google::SetVLOGLevel("*", 3);
 
     for (int i = 0; i < from_dirs.size(); i++) {
-        to_dirs[i] = get_normal_abs((new_dir_prefix / from_dirs[i]));
-        from_dirs[i] = get_normal_abs(parent_path / from_dirs[i]);
+        to_dirs[i] = getNormalAbs((new_dir_prefix / from_dirs[i]));
+        from_dirs[i] = getNormalAbs(parent_path / from_dirs[i]);
     }
-
 
     constexpr auto entries2 = cartesian_product_arr(indx, multipliers);
     perform_stuff_on_2_d_array<decltype(entries2), entries2>();

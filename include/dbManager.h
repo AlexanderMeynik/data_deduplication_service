@@ -1,23 +1,29 @@
 #ifndef DATA_DEDUPLICATION_SERVICE_DBMANAGER_H
 #define DATA_DEDUPLICATION_SERVICE_DBMANAGER_H
 
-#include <pqxx/pqxx>
 #include <iostream>
+#include <vector>
+#include <utility>
+#include <string>
+
+#include <pqxx/pqxx>
+
+#include "myConcepts.h"
 #include "dbCommon.h"
-#include <common.h>
+#include "HashUtils.h"
+
 /// db_services namespace
+using myConcepts::paramType,myConcepts::gClk;
+using enum myConcepts::paramType;
+using namespace hash_utils;
+
 namespace db_services {
 
     /**
      * Closes and deletes connection
-     * @param conn_
+     * @param conn
      */
-    inline void diconnect(conPtr &conn_) {
-        if (conn_) {
-            conn_->close();
-            conn_ = nullptr;
-        }
-    }
+     void diconnect(conPtr &conn);
 
     /**
      * Database manager that handles database management
@@ -26,17 +32,16 @@ namespace db_services {
     template<unsigned long segment_size>
     class dbManager {
     public:
+        dbManager() : cString_(db_services::defaultConfiguration()), conn_(nullptr) {}
 
-        dbManager() : cString_(db_services::default_configuration()), conn_(nullptr) {};
+        explicit dbManager(myConnString &ss) : cString_(ss), conn_(nullptr) {}
 
-        explicit dbManager(my_conn_string &ss) : cString_(ss), conn_(nullptr) {};
-
-        void setCString(my_conn_string &ss) {
+        void setCString(myConnString &ss) {
             cString_ = ss;
             disconnect();
         }
 
-        [[nodiscard]] const my_conn_string &getCString() const {
+        [[nodiscard]] const myConnString &getCString() const {
             return cString_;
         }
 
@@ -51,80 +56,79 @@ namespace db_services {
          * Creates database entry and connect to it
          * @param dbName
          */
-        int create_database(std::string_view dbName);
+        int createDatabase(std::string_view dbName);
 
         /**
          * Deletes database entry
          * @param dbName
          */
-        int drop_database(std::string_view dbName);
+        int dropDatabase(std::string_view dbName);
 
         /**
          * Create main database tables and indexes
          */
-        int fill_schemas();
+        int fillSchemas();
 
         /**
          * Removes segments that are not used in files
          */
-        int clear_segments();
+        int clearSegments();
 
         /**
          * Get vector of pairs of file_names and file ids for directory
-         * @param dir_path
+         * @param dirPath
          */
-        std::vector<std::pair<index_type, std::string>> get_all_files(std::string_view dir_path);
+        std::vector<std::pair<indexType, std::string>> getAllFiles(std::string_view dirPath);
 
         /**
          * Creates entry for a given file
-         * @param file_path
-         * @param file_size
+         * @param filePath
+         * @param fileSize
          * @return
          */
-        index_type create_file(std::string_view file_path, int file_size = 0);
+        indexType createFile(std::string_view filePath, int fileSize = 0);
 
 
         /**
          * Recursevely deletes all file data
-         * @param file_path
-         * @param file_id
+         * @param filePath
+         * @param fileId
          */
-        int delete_file(std::string_view file_path, index_type file_id = index_vals::empty_parameter_value);
+        int deleteFile(std::string_view filePath, indexType fileId = paramType::EmptyParameterValue);
 
         /**
          * Recursevely deletes all file that are in directory
-         * @param directory_path
+         * @param directoryPath
          */
-        int delete_directory(std::string_view directory_path);
+        int deleteDirectory(std::string_view directoryPath);
 
         /**
          * Recreates file conents and bulk insert the in out
-         * @param file_name
+         * @param fileName
          * @param output
-         * @param file_id
+         * @param fileId
          */
-        int get_file_streamed(std::string_view file_name, std::ostream &output,
-                              index_type file_id = index_vals::empty_parameter_value);
+        int getFileStreamed(std::string_view fileName, std::ostream &output,
+                            indexType fileId = paramType::EmptyParameterValue);
 
         /**
          * Bulk insert file segments into temporary table
          * @tparam hash hash function that will be used for hashing
-         * @param file_name
+         * @param fileName
          * @param in
-         * @param file_size
+         * @param fileSize
          */
         template<hash_function hash = SHA_256>
-        requires is_divisible<segment_size, hash_function_size[hash]>
-        int insert_file_from_stream(std::string_view file_name, std::istream &in, std::size_t file_size);
+        int insertFileFromStream(std::string_view fileName, std::istream &in, std::size_t fileSize);
 
         /**
          * Process bulk inserted file data
-         * @param file_path
-         * @param file_id
+         * @param filePath
+         * @param fileId
         */
-        int finish_file_processing(std::string_view file_path, index_type file_id);
+        int finishFileProcessing(std::string_view filePath, indexType fileId);
 
-        bool check_connection() {
+        bool checkConnection() {
             return db_services::checkConnection(conn_);
         }
 
@@ -141,7 +145,7 @@ namespace db_services {
          */
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
-        execute_in_transaction(ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
+        executeInTransaction(ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
             trasnactionType txn(*conn_);
             ResultType res = call(txn, std::forward<Args>(args)...);
             txn.commit();
@@ -157,26 +161,24 @@ namespace db_services {
          */
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
-        execute_in_transaction(std::function<ResultType(trasnactionType &, Args ...)> &call, Args &&... args) {
+        executeInTransaction(const std::function<ResultType(trasnactionType &, Args ...)> &call, Args &&... args) {
             trasnactionType txn(*conn_);
             ResultType res = call(txn, std::forward<Args>(args)...);
             txn.commit();
             return res;
         }
 
-
     private:
-        my_conn_string cString_;
+        myConnString cString_;
         conPtr conn_;
     };
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::clear_segments() {
-
+    int dbManager<segment_size>::clearSegments() {
         try {
             trasnactionType txn(*conn_);
 
-            delete_unused_segments(txn);
+            deleteUnusedSegments(txn);
             txn.commit();
             VLOG(2) << vformat("Successfully deleted redundant "
                                "segments");
@@ -184,26 +186,26 @@ namespace db_services {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         } catch (const std::exception &e) {
             VLOG(1) << "Error while delting segments :" << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_sucess;
+        return ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::delete_directory(std::string_view directory_path) {
+    int dbManager<segment_size>::deleteDirectory(std::string_view directoryPath) {
         try {
             trasnactionType txn(*conn_);
 
-            auto file_ids = get_file_id_vector(txn, directory_path);
-            auto id_string = vec_to_string(file_ids);
+            auto fileIds = getFileIdVector(txn, directoryPath);
+            auto idString = vecToString(fileIds);
 
 
             std::string query, qr;
-            ResType res;
+            resType res;
 
             query = "update public.segments s "
                     "set segment_count=segment_count-ss.cnt "
@@ -213,68 +215,68 @@ namespace db_services {
                     "      group by file_name, segment_hash "
                     ") as ss "
                     "where ss.hhhash=segment_hash;";
-            qr = vformat(query.c_str(), id_string.c_str());
-            clk.tik();
-            printRows_affected(txn.exec(qr));
-            clk.tak();
+            qr = vformat(query.c_str(), idString.c_str());
+            gClk.tik();
+            printRowsAffected(txn.exec(qr));
+            gClk.tak();
             VLOG(2) << vformat("Successfully reduced segment"
-                               " counts for directory \"%s\"\n", directory_path.data());
+                               " counts for directory \"%s\"\n", directoryPath.data());
 
 
             query = "delete from public.data d where d.file_id in (%s);";
 
-            qr = vformat(query.c_str(), id_string.c_str());
-            clk.tik();
-            printRows_affected(txn.exec(qr));
-            clk.tak();
+            qr = vformat(query.c_str(), idString.c_str());
+            gClk.tik();
+            printRowsAffected(txn.exec(qr));
+            gClk.tak();
 
             VLOG(2) << vformat("Successfully deleted data "
-                               "for directory \"%s\"\n", directory_path.data());
+                               "for directory \"%s\"\n", directoryPath.data());
 
 
             query = "delete from public.files where file_id in (%s);";
-            qr = vformat(query.c_str(), id_string.c_str());
-            clk.tik();
-            printRows_affected(txn.exec(qr));
-            clk.tak();
+            qr = vformat(query.c_str(), idString.c_str());
+            gClk.tik();
+            printRowsAffected(txn.exec(qr));
+            gClk.tak();
 
             VLOG(2) << vformat("Successfully deleted public.files "
-                               " for directory \"%s\"\n", directory_path.data());
+                               " for directory \"%s\"\n", directoryPath.data());
             txn.commit();
 
         } catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlFqConstraight) {
                 VLOG(1) << vformat("Unable to remove record for directory \"%s\" since files "
-                                   "for it are stile present.", directory_path.data());
-                return return_codes::warning_message;
+                                   "for it are stile present.", directoryPath.data());
+                return returnCodes::WarningMessage;
             }
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         } catch (const std::exception &e) {
             VLOG(1) << "Error while delting directory:" << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_sucess;
+        return ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::delete_file(std::string_view file_path, index_type file_id) {
+    int dbManager<segment_size>::deleteFile(std::string_view filePath, indexType fileId) {
         try {
 
             trasnactionType txn(*conn_);
-            if (file_id == index_vals::empty_parameter_value) {
-                file_id = get_file_id(txn, file_path);
+            if (fileId == paramType::EmptyParameterValue) {
+                fileId = getFileId(txn, filePath);
             }
             std::string query, qr;
-            ResType res;
+            resType res;
 
             //todo it's not required here
-            auto hash_str = get_hash_str(file_path);
-            std::string table_name = vformat("temp_file_%s", hash_str.c_str());
-            qr = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
+            auto hashStr = getHashStr(filePath);
+            std::string tableName = vformat("temp_file_%s", hashStr.c_str());
+            qr = vformat("DROP TABLE IF EXISTS  \"%s\";", tableName.c_str());
             res = txn.exec(qr);
             VLOG(3) << res.query();
 
@@ -288,59 +290,58 @@ namespace db_services {
                     ") as ss "
                     "where ss.hhhash=segment_hash;";
 
-            qr = vformat(query.c_str(), file_id);
+            qr = vformat(query.c_str(), fileId);
 
-            printRows_affected(txn.exec(qr));
+            printRowsAffected(txn.exec(qr));
 
             VLOG(2) << vformat("Successfully reduced segments"
-                               " counts for file \"%s\"\n", file_path.data());
+                               " counts for file \"%s\"\n", filePath.data());
 
 
             query = "delete from public.data where file_id=%d;";
 
-            qr = vformat(query.c_str(), file_id);
+            qr = vformat(query.c_str(), fileId);
 
-            printRows_affected(txn.exec(qr));
+            printRowsAffected(txn.exec(qr));
 
             VLOG(2) << vformat("Successfully deleted data "
-                               "for file \"%s\"\n", file_path.data());
+                               "for file \"%s\"\n", filePath.data());
 
             query = "delete from public.files where file_id=%d;";
-            qr = vformat(query.c_str(), file_id);
-            printRows_affected(txn.exec(qr));
+            qr = vformat(query.c_str(), fileId);
+            printRowsAffected(txn.exec(qr));
 
 
             VLOG(2) << vformat("Successfully deleted file "
-                               "entry for \"%s\"\n", file_path.data());
+                               "entry for \"%s\"\n", filePath.data());
 
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
             if (e.sqlstate() == sqlFqConstraight) {
                 VLOG(1) << vformat("Unable to remove record for file \"%s\" since segment data "
-                                   "for it are stile present.", file_path.data());
-                return return_codes::warning_message;
+                                   "for it are stile present.", filePath.data());
+                return returnCodes::WarningMessage;
             }
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         } catch (const std::exception &e) {
             VLOG(1) << "Error while deleting file:" << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_sucess;
+        return ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int
-    dbManager<segment_size>::get_file_streamed(std::string_view file_name, std::ostream &output, index_type file_id) {
+    int dbManager<segment_size>::getFileStreamed(std::string_view fileName, std::ostream &output, indexType fileId) {
         try {
 
             trasnactionType txn(*conn_);
-            if (file_id == index_vals::empty_parameter_value) {
-                file_id = db_services::get_file_id(txn, file_name);
+            if (fileId == paramType::EmptyParameterValue) {
+                fileId = db_services::getFileId(txn, fileName);
             }
             std::string query = vformat("select s.segment_data "
                                         "from public.data"
@@ -348,7 +349,7 @@ namespace db_services {
                                         "                                         = public.data.segment_hash "
                                         "        inner join public.files f on f.file_id = public.data.file_id "
                                         "where f.file_id=%d "
-                                        "order by segment_num", file_id);
+                                        "order by segment_num", fileId);
             for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
                 output << name.str();
             }
@@ -359,95 +360,95 @@ namespace db_services {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         } catch (const std::exception &e) {
             VLOG(1) << "Error inserting block data:" << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_codes::return_sucess;
+        return returnCodes::ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
     template<hash_function hash>
-    requires is_divisible<segment_size, hash_function_size[hash]>
-    int dbManager<segment_size>::insert_file_from_stream(std::string_view file_name, std::istream &in,
-                                                         std::size_t file_size) {
+    int dbManager<segment_size>::insertFileFromStream(std::string_view fileName, std::istream &in,
+                                                      std::size_t fileSize) {
         try {
             trasnactionType txn(*conn_);
 
-            auto hash_str = get_hash_str(file_name);
-            std::string table_name = vformat("\"temp_file_%s\"", hash_str.c_str());
-            pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
-            int block_index = 1;
+            auto hashStr = getHashStr(fileName);
+            std::string tableName = vformat("\"temp_file_%s\"", hashStr.c_str());
+            pqxx::stream_to copyStream = pqxx::stream_to::raw_table(txn, tableName);
+            int blockIndex = 1;
 
             //std::string buffer(segment_size, '\0');
             unsigned char buffer[segment_size];
 
-            size_t block_count = file_size / segment_size;
-            size_t l_block_size = file_size - block_count * segment_size;
+            size_t blockCount = fileSize / segment_size;
+            size_t lastBlockSize = fileSize - blockCount * segment_size;
             std::istream::sync_with_stdio(false);
 
             unsigned char mmd[hash_function_size[hash]];
 
-            for (int i = 0; i < block_count; ++i) {
+            for (int i = 0; i < blockCount; ++i) {
                 in.read(reinterpret_cast<char *>(buffer), segment_size);
-                funcs[hash](buffer, segment_size,mmd);
-                copy_stream
+                funcs[hash](buffer, segment_size, mmd);
+                copyStream
                         << std::make_tuple(
-                                block_index++,
-                                pqxx::binarystring(buffer,segment_size),pqxx::binarystring(mmd,hash_function_size[hash]));
+                                blockIndex++,
+                                pqxx::binarystring(buffer, segment_size),
+                                pqxx::binarystring(mmd, hash_function_size[hash]));
 
             }
-            if (l_block_size != 0) {
-                std::string bff(l_block_size, '\0');
+            if (lastBlockSize != 0) {
+                std::string bff(lastBlockSize, '\0');
                 in.read(bff.data(), segment_size);
                 funcs[hash](reinterpret_cast<const unsigned char *>(bff.data()), bff.size(),
                            mmd);
-                copy_stream
+                copyStream
                         << std::make_tuple(
-                                block_index,
-                                pqxx::binary_cast(bff),pqxx::binarystring(mmd,hash_function_size[hash]));
+                                blockIndex,
+                                pqxx::binary_cast(bff), pqxx::binarystring(mmd, hash_function_size[hash]));
             }
-            copy_stream.complete();
+            copyStream.complete();
             txn.commit();
         } catch (const pqxx::sql_error &e) {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         } catch (const std::exception &e) {
             VLOG(1) << "Error inserting block data:" << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_sucess;
+        return ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
+    int dbManager<segment_size>::finishFileProcessing(std::string_view filePath, indexType fileId) {
         try {
             trasnactionType txn(*conn_);
-            auto hash_str = get_hash_str(file_path);
-            std::string table_name = vformat("temp_file_%s", hash_str.c_str());
+            auto hashStr = getHashStr(filePath);
+            std::string tableName = vformat("temp_file_%s", hashStr.c_str());
 
 
-            std::string aggregation_table_name = vformat("new_segments_%s", hash_str.c_str());
-            ResType r;
-            std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = \'%s\'", table_name.c_str());
-            clk.tik();
+            std::string aggregationTableName = vformat("new_segments_%s", hashStr.c_str());
+            resType r;
+            std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = \'%s\'", tableName.c_str());
+            gClk.tik();
             txn.exec(q).one_row();
-            clk.tak();
+            gClk.tak();
             q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count, t.hash "
                         "FROM \"%s\" t "
-                        "GROUP BY t.data,t.hash;", aggregation_table_name.c_str(), table_name.c_str());
-            clk.tik();
+                        "GROUP BY t.data,t.hash;", aggregationTableName.c_str(), tableName.c_str());
+            gClk.tik();
             txn.exec(q);
-            clk.tak();
+            gClk.tak();
             VLOG(2) << vformat(
                     "Segment data was aggregated into %s for file %s.",
-                    aggregation_table_name.c_str(),
-                    file_path.data());
+                    aggregationTableName.c_str(),
+                    filePath.data());
 
 
             q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
@@ -456,90 +457,89 @@ namespace db_services {
                         "ON CONFLICT (segment_hash) "
                         "DO UPDATE "
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
-                        aggregation_table_name.c_str());
-            clk.tik();
+                        aggregationTableName.c_str());
+            gClk.tik();
             txn.exec(q);
-            clk.tak();
-            VLOG(2) << vformat("New segments were inserted for file \"%s\".", file_path.data());
-            q = vformat("drop table \"%s\";", aggregation_table_name.c_str());
-            clk.tik();
+            gClk.tak();
+            VLOG(2) << vformat("New segments were inserted for file \"%s\".", filePath.data());
+            q = vformat("drop table \"%s\";", aggregationTableName.c_str());
+            gClk.tik();
             txn.exec(q);
-            clk.tak();
+            gClk.tak();
             VLOG(2)
-                            << vformat("Temporary aggregation table %s was deleted.", aggregation_table_name.c_str());
+                            << vformat("Temporary aggregation table %s was deleted.", aggregationTableName.c_str());
 
 
             q = vformat("INSERT INTO public.data (segment_num, segment_hash, file_id) "
                         "SELECT tt.pos, tt.hash,  %d "
                         "FROM  \"%s\" tt ",
-                        file_id,
-                        table_name.c_str()
-            );
-            clk.tik();
+                        fileId,
+                        tableName.c_str());
+            gClk.tik();
             txn.exec(q);
-            clk.tak();
-            VLOG(2) << vformat("Segment data of %s was inserted.", table_name.c_str());
+            gClk.tak();
+            VLOG(2) << vformat("Segment data of %s was inserted.", tableName.c_str());
 
 
-            q = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
-            clk.tik();
+            q = vformat("DROP TABLE IF EXISTS  \"%s\";", tableName.c_str());
+            gClk.tik();
             txn.exec(q);
-            clk.tak();
-            VLOG(2) << vformat("Temp data table %s was deleted.", table_name.c_str());
+            gClk.tak();
+            VLOG(2) << vformat("Temp data table %s was deleted.", tableName.c_str());
 
             txn.commit();
         } catch (const pqxx::sql_error &e) {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         catch (const pqxx::unexpected_rows &r) {
-            VLOG(1) << vformat("No data found for file \"%s\"", file_path.data());
+            VLOG(1) << vformat("No data found for file \"%s\"", filePath.data());
             VLOG(2) << vformat("Exception description: %s", r.what()) << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         catch (const std::exception &e) {
             VLOG(1) << "Error processing file data:" << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_codes::return_sucess;
+        return returnCodes::ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    index_type dbManager<segment_size>::create_file(std::string_view file_path, int file_size) {
+    indexType dbManager<segment_size>::createFile(std::string_view filePath, int fileSize) {
         trasnactionType txn(*conn_);
-        index_type future_file_id = return_codes::error_occured;
+        indexType futureFileId = returnCodes::ErrorOccured;
 
         std::string query;
-        ResType res;
+        resType res;
         try {
             query = "insert into public.files (file_name,size_in_bytes)"
                     " values ($1,$2) returning file_id;";
-            res = txn.exec(query, {to_spaced_path(file_path), file_size});
+            res = txn.exec(query, {toSpacedPath(filePath), fileSize});
 
-            future_file_id = res.one_row()[0].as<index_type>();
+            futureFileId = res.one_row()[0].as<indexType>();
             VLOG(2) << vformat("File record (%d,\"%s\",%d) was successfully created.",
-                               future_file_id,
-                               file_path.data(),
-                               file_size);
-            auto hash_str = get_hash_str(file_path);
-            std::string table_name = vformat("temp_file_%s", hash_str.c_str());
+                               futureFileId,
+                               filePath.data(),
+                               fileSize);
+            auto hashStr = getHashStr(filePath);
+            std::string tableName = vformat("temp_file_%s", hashStr.c_str());
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea,hash bytea);",
-                    table_name.c_str()
+                    tableName.c_str()
             );
             txn.exec(q1);
 
             txn.commit();
 
-            VLOG(2) << vformat("Temp data table %s was created.", table_name.c_str());
+            VLOG(2) << vformat("Temp data table %s was created.", tableName.c_str());
         }
         catch (const pqxx::sql_error &e) {
-            if (e.sqlstate() == sqlLimitBreached_state) {
-                VLOG(1) << vformat("File %s already exists\n", file_path.data());
-                return return_codes::already_exists;
+            if (e.sqlstate() == sqlLimitBreachedState) {
+                VLOG(1) << vformat("File %s already exists\n", filePath.data());
+                return returnCodes::AlreadyExists;
             }
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
@@ -548,21 +548,21 @@ namespace db_services {
         catch (const std::exception &e) {
             VLOG(1) << "Error while creting file:" << e.what() << '\n';
         }
-        return future_file_id;
+        return futureFileId;
     }
 
     template<unsigned long segment_size>
-    std::vector<std::pair<index_type, std::string>> dbManager<segment_size>::get_all_files(std::string_view dir_path) {
-        std::vector<std::pair<index_type, std::string>> result;
+    std::vector<std::pair<indexType, std::string>> dbManager<segment_size>::getAllFiles(std::string_view dirPath) {
+        std::vector<std::pair<indexType, std::string>> result;
         try {
             trasnactionType txn(*conn_);
-            auto res = get_files_for_directory(txn, dir_path);
+            auto res = getFilesForDirectory(txn, dirPath);
 
             VLOG(2)
-                            << vformat("Filenames were successfully retrieved for directory \"%s\".", dir_path.data());
+                            << vformat("Filenames were successfully retrieved for directory \"%s\".", dirPath.data());
             for (const auto &re: res) {
                 auto tres = re[1].as<std::string>();
-                result.emplace_back(re[0].as<index_type>(), from_spaced_path(tres));
+                result.emplace_back(re[0].as<indexType>(), fromSpacedPath(tres));
             }
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -578,156 +578,152 @@ namespace db_services {
 
     template<unsigned long segment_size>
     int dbManager<segment_size>::connectToDb() {
-        if (check_connection()) {
-            return return_codes::return_sucess;
+        if (checkConnection()) {
+            return returnCodes::ReturnSucess;
         }
         VLOG(1) << "Failed to listen with current connection, attempt to reconnect via cString\n";
-        auto result = connect_if_possible(cString_);
+        auto result = connectIfPossible(cString_);
 
         conn_ = result.value_or(nullptr);
         if (!result.has_value()) {
             return result.error();
         }
-        return return_codes::return_sucess;
+        return returnCodes::ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::drop_database(std::string_view dbName) {
-        if (check_connection()) {
+    int dbManager<segment_size>::dropDatabase(std::string_view dbName) {
+        if (checkConnection()) {
             conn_->close();
         }
 
         conn_ = nullptr;
-        cString_.set_dbname(dbName);
+        cString_.setDbname(dbName);
 
         auto tString = cString_;
-        tString.set_dbname(sample_temp_db);
+        tString.setDbname(sampleTempDb);
 
-        auto result = connect_if_possible(tString);
+        auto result = connectIfPossible(tString);
 
-        auto temp_connection = result.value_or(nullptr);
+        auto tempConnection = result.value_or(nullptr);
 
         if (!result.has_value()) {
             VLOG(1)
                             << vformat("Unable to connect by url \"%s\"\n", (tString).operator std::string().c_str());
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         VLOG(1) << vformat("Connected to database %s\n", tString.getDbname().c_str());
 
 
-        nonTransType no_trans_exec(*temp_connection);
+        nonTransType noTransExec(*tempConnection);
         std::string qq;
         try {
-            check_database_existence(no_trans_exec, cString_.getDbname()).one_row();
+            checkDatabaseExistence(noTransExec, cString_.getDbname()).one_row();
 
-            terminate_all_db_connections(no_trans_exec, cString_.getDbname());
+            terminateAllDbConnections(noTransExec, cString_.getDbname());
 
 
             qq = vformat("DROP DATABASE \"%s\";",
                          cString_.getDbname().c_str());
-            no_trans_exec.exec(qq);
+            noTransExec.exec(qq);
 
-            no_trans_exec.commit();
+            noTransExec.commit();
 
             VLOG(2) << "Database deleted successfully: " << cString_.getDbname();
-
-
         } catch (const pqxx::sql_error &e) {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         catch (const pqxx::unexpected_rows &r) {
             VLOG(1) << vformat("No database %s found! Abort drop! ", cString_.getDbname().c_str());
             VLOG(2) << "    exception message: " << r.what();
-            no_trans_exec.abort();
-            temp_connection->close();
-            conn_ = connect_if_possible(cString_).value_or(nullptr);
-            return return_codes::warning_message;
+            noTransExec.abort();
+            tempConnection->close();
+            conn_ = connectIfPossible(cString_).value_or(nullptr);
+            return returnCodes::WarningMessage;
         }
         catch (const std::exception &e) {
             VLOG(1) << "Error: " << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
 
 
-        temp_connection->close();
+        tempConnection->close();
 
-        return return_sucess;
+        return ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::create_database(std::string_view dbName) {
+    int dbManager<segment_size>::createDatabase(std::string_view dbName) {
         conn_ = nullptr;
 
-        cString_.set_dbname(dbName);
+        cString_.setDbname(dbName);
 
         auto tString = cString_;
-        tString.set_dbname(sample_temp_db);
+        tString.setDbname(sampleTempDb);
 
-        auto result = connect_if_possible(tString);
+        auto result = connectIfPossible(tString);
 
-        auto temp_connection = result.value_or(nullptr);
+        auto tempConnection = result.value_or(nullptr);
 
         if (!result.has_value()) {
             VLOG(1)
                             << vformat("Unable to connect by url \"%s\"\n", (tString).operator std::string().c_str());
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         VLOG(1) << vformat("Connected to database %s\n", tString.getDbname().c_str());
 
 
-        nonTransType no_trans_exec(*temp_connection);
+        nonTransType noTransExec(*tempConnection);
 
         try {
-            check_database_existence(no_trans_exec, cString_.getDbname()).no_rows();
+            checkDatabaseExistence(noTransExec, cString_.getDbname()).no_rows();
 
-            no_trans_exec.exec(vformat("CREATE DATABASE \"%s\";",
-                                       cString_.getDbname().c_str()));
-            //не менять, паарметры здесь не подпадают под query
-            no_trans_exec.exec(vformat("GRANT ALL ON DATABASE \"%s\" TO %s;",
-                                       cString_.getDbname().c_str(),
-                                       cString_.getUser().c_str()));
-            no_trans_exec.commit();
+            noTransExec.exec(vformat("CREATE DATABASE \"%s\";",
+                                     cString_.getDbname().c_str()));
+
+            noTransExec.exec(vformat("GRANT ALL ON DATABASE \"%s\" TO %s;",
+                                     cString_.getDbname().c_str(),
+                                     cString_.getUser().c_str()));
+            noTransExec.commit();
 
             VLOG(2) << "Database created successfully: " << cString_.getDbname() << '\n';
-
-
         } catch (const pqxx::sql_error &e) {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         catch (const pqxx::unexpected_rows &r) {
             VLOG(1) << "Database already exists, aborting creation";
             VLOG(2) << "    exception message: " << r.what();
-            no_trans_exec.abort();
-            temp_connection->close();
-            conn_ = connect_if_possible(cString_).value_or(nullptr);
-            return return_codes::already_exists;
+            noTransExec.abort();
+            tempConnection->close();
+            conn_ = connectIfPossible(cString_).value_or(nullptr);
+            return returnCodes::AlreadyExists;
         }
         catch (const std::exception &e) {
             VLOG(1) << "Error: " << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
 
 
-        temp_connection->close();
-        conn_ = connect_if_possible(cString_).value_or(nullptr);
-        return return_codes::return_sucess;
+        tempConnection->close();
+        conn_ = connectIfPossible(cString_).value_or(nullptr);
+        return returnCodes::ReturnSucess;
     }
 
 
     template<unsigned long segment_size>
-    int dbManager<segment_size>::fill_schemas() {
+    int dbManager<segment_size>::fillSchemas() {
         try {
 
             trasnactionType txn(*conn_);
-            check_schemas(txn).no_rows();
+            checkSchemas(txn).no_rows();
 
             std::string query = vformat("create schema if not exists public;"
                                         "create table public.segments"
@@ -775,18 +771,18 @@ namespace db_services {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
                     << "SQL State: " << e.sqlstate() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
         catch (const pqxx::unexpected_rows &r) {
             VLOG(1) << "Database schemas have been already created, aborting creation";
             VLOG(2) << "    exception message: " << r.what();
-            return return_codes::already_exists;
+            return returnCodes::AlreadyExists;
         }
         catch (const std::exception &e) {
             VLOG(1) << "Error setting up database schemas: " << e.what() << '\n';
-            return return_codes::error_occured;
+            return returnCodes::ErrorOccured;
         }
-        return return_sucess;
+        return ReturnSucess;
     }
 
 

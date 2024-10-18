@@ -72,7 +72,7 @@ void print() {
 }
 
 inline void create_hierarhy_for_file(std::string_view file_name, std::ofstream &out) {
-    auto pp = get_normal_abs(file_name);
+    auto pp = getNormalAbs(file_name);
     if (!fs::exists(pp.parent_path())) {
         fs::create_directories(pp.parent_path());
 
@@ -80,19 +80,6 @@ inline void create_hierarhy_for_file(std::string_view file_name, std::ofstream &
     out.open(file_name.data());
 }
 
-template<size_t N>
-std::string inline trimNsymbols(std::string &&trimmee) {
-    if (trimmee.size() <= 2 * N) {
-        VLOG(1) << vformat("Trim Value %d is to large for string %s!", N, trimmee.c_str());
-        return "";
-    }
-    return trimmee.substr(N, trimmee.length() - (1 + N));
-}
-
-template<>
-std::string inline trimNsymbols<0>(std::string &&trimmee) {
-    return trimmee;
-}
 
 template<typename T, typename A>
 requires std::is_same_v<T, A> ||
@@ -114,13 +101,13 @@ template<size_t size = 64, check_from cs>
 void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_file) {
     char buff[size];
     std::ifstream in(original_file.c_str());
-    auto res = db_services::check_file_existence(txn, original_file.c_str());
+    auto res = db_services::checkFileExistence(txn, original_file.c_str());
 
-    auto file_size = res.one_row()["size_in_bytes"].as<index_type>();
+    auto file_size = res.one_row()["size_in_bytes"].as<indexType>();
 
     ASSERT_EQ(fs::file_size(original_file), file_size);
 
-    auto hash_str = get_hash_str(original_file.c_str());
+    auto hash_str = getHashStr(original_file.c_str());
     std::string table_name = vformat("temp_file_%s", hash_str.c_str());
 
 
@@ -136,10 +123,9 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
                         "         inner join public.segments s on s.segment_hash = public.data.segment_hash "
                         "        inner join public.files f on f.file_id = public.data.file_id "
                         "where file_name=\'%s\' "
-                        "order by segment_num", db_services::to_spaced_path(original_file.c_str()).c_str());
+                        "order by segment_num", db_services::toSpacedPath(original_file.c_str()).c_str());
     }
     for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
-        //out<<name;
         auto size_1 = in.readsome(buff, size);
         if (index_num < block_count) {
             compareArr(size, buff, name.str().c_str());
@@ -202,16 +188,4 @@ void print_args() {
 }
 
 
-
-/*
-int main() {
-
-    //print_args<decltype(entries), entries>();
-
-    constexpr auto entries2 = cartesian_product_arr(a1, a2);
-    print_args<decltype(entries2), entries2>();
-    perform_stuff_on_2_d_array<decltype(entries2), entries2>();
-
-    //perform_stuff_on_2_d_array<decltype(entries), entries>();//sfinae check
-}*/
 #endif //SOURCE_SERVICE_TESTUTILS_H

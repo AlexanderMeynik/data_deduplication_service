@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 SET( CMAKE_CXX_FLAGS_DEBUG  "-g -std=gnu++2b")
 SET( CMAKE_CXX_FLAGS_RELEASE  "-O3 -ffast-math -DNDEBUG -march=native -fpic -ftree-vectorize")
 SET( CMAKE_CXX_FLAGS  " -std=gnu++2b -fcolor-diagnostics")
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -25,7 +26,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
 
-add_library(commonLibrary src/myconcepts.cpp src/ClockArray.cpp src/HashUtils.cpp)
+add_library(commonLibrary src/myConcepts.cpp src/clockArray.cpp src/HashUtils.cpp)
 target_link_libraries(commonLibrary glog::glog OpenSSL::SSL -lcrypto)
 
 add_library(dbUtilsLib src/dbManager.cpp src/dbCommon.cpp)

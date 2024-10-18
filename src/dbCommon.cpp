@@ -1,13 +1,18 @@
 #include "dbCommon.h"
 
-tl::expected<db_services::conPtr, return_codes> db_services::connect_if_possible(std::string_view cString) {
+#include <algorithm>
+#include <string>
+#include <memory>
+#include <vector>
+
+tl::expected<db_services::conPtr, returnCodes> db_services::connectIfPossible(std::string_view cString) {
     conPtr c;
     std::string css = cString.data();
     try {
         c = std::make_shared<pqxx::connection>(css);
         if (!c->is_open()) {
             VLOG(1) << vformat("Unable to connect by url \"%s\"\n", cString.data());
-            return tl::unexpected(return_codes::error_occured);
+            return tl::unexpected(returnCodes::ErrorOccured);
 
         } else {
 
@@ -17,92 +22,89 @@ tl::expected<db_services::conPtr, return_codes> db_services::connect_if_possible
         VLOG(1) << "SQL Error: " << e.what()
                 << "Query: " << e.query()
                 << "SQL State: " << e.sqlstate() << '\n';
-        return tl::unexpected(return_codes::error_occured);
+        return tl::unexpected(returnCodes::ErrorOccured);
     } catch (const std::exception &e) {
         VLOG(1) << "Error: " << e.what() << '\n';
-        return tl::unexpected(return_codes::error_occured);
+        return tl::unexpected(returnCodes::ErrorOccured);
     }
-    return tl::expected<db_services::conPtr, return_codes>{c};
+    return tl::expected<db_services::conPtr, returnCodes>{c};
 }
 
 
-db_services::ResType
-db_services::terminate_all_db_connections(db_services::nonTransType &no_trans_exec, std::string_view db_name) {
+db_services::resType
+db_services::terminateAllDbConnections(nonTransType &noTransExec, std::string_view dbName) {
     std::string qq = vformat("SELECT pg_terminate_backend(pg_stat_activity.pid)\n"
                              "FROM pg_stat_activity "
                              "WHERE pg_stat_activity.datname = \'%s\' "
-                             " AND pid <> pg_backend_pid();", db_name.data());
-    ResType r = no_trans_exec.exec(qq);
+                             " AND pid <> pg_backend_pid();", dbName.data());
+    resType r = noTransExec.exec(qq);
 
-    VLOG(2) << vformat("All connections to %s were terminated!", db_name.data());
+    VLOG(2) << vformat("All connections to %s were terminated!", dbName.data());
     return r;
 }
 
-db_services::ResType
-db_services::check_database_existence(db_services::nonTransType &no_trans_exec, std::string_view db_name) {
-    std::string qq = vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';", db_name.data());
-    return no_trans_exec.exec(qq);
+db_services::resType
+db_services::checkDatabaseExistence(nonTransType &noTransExec, std::string_view dbName) {
+    std::string qq = vformat("SELECT 1 FROM pg_database WHERE datname = \'%s\';", dbName.data());
+    return noTransExec.exec(qq);
 }
 
-db_services::ResType db_services::check_schemas(db_services::trasnactionType &txn) {
+db_services::resType db_services::checkSchemas(trasnactionType &txn) {
     return txn.exec("select tablename "
                     "from pg_tables "
                     "where schemaname = 'public';");
 }
 
-db_services::ResType
-db_services::get_files_for_directory(db_services::trasnactionType &txn, std::string_view dir_path) {
-
+db_services::resType
+db_services::getFilesForDirectory(trasnactionType &txn, std::string_view dirPath) {
     std::string query = "select * from files "
                         "where to_tsvector('simple',replace(file_name,'_', '/'))"
                         "@@ \'%s\' and file_name LIKE \'%s %%\'";
-    auto r_q = vformat(query.c_str(), to_tsquerable_path(dir_path).c_str(),
-                       to_spaced_path(dir_path).c_str());
+    auto formattedQuery = vformat(query.c_str(), toTsquerablePath(dirPath).c_str(),
+                                  toSpacedPath(dirPath).c_str());
 
-    return txn.exec(r_q);
+    return txn.exec(formattedQuery);
 }
 
-std::vector<db_services::index_type>
-db_services::get_file_id_vector(db_services::trasnactionType &txn, std::string_view dir_path) {
-    std::vector<index_type> res;
+std::vector<db_services::indexType>
+db_services::getFileIdVector(trasnactionType &txn, std::string_view dirPath) {
+    std::vector<indexType> res;
 
-    ResType rr = get_files_for_directory(txn, dir_path);
+    resType rr = getFilesForDirectory(txn, dirPath);
 
-    for (const auto &row: rr) {
-        res.push_back(row[0].as<index_type>());
-    }
+    for (const auto &row: rr)
+        res.push_back(row[0].as<indexType>());
     return res;
 }
 
-db_services::ResType db_services::check_file_existence(db_services::trasnactionType &txn, std::string_view file_name) {
+db_services::resType db_services::checkFileExistence(trasnactionType &txn, std::string_view fileName) {
     std::string query = "select files.* from files "
                         "where file_name=\'%s\';";
-    auto r_q = vformat(query.c_str(), to_spaced_path(file_name).c_str());
-    return txn.exec(r_q);
+    auto formattedQuery = vformat(query.c_str(), toSpacedPath(fileName).c_str());
+    return txn.exec(formattedQuery);
 }
 
-db_services::index_type db_services::get_file_id(db_services::trasnactionType &txn, std::string_view file_name) {
-    return check_file_existence(txn, file_name).one_row()[0].as<index_type>();
+db_services::indexType db_services::getFileId(trasnactionType &txn, std::string_view fileName) {
+    return checkFileExistence(txn, fileName).one_row()[0].as<indexType>();
 }
 
-bool db_services::does_file_exist(db_services::trasnactionType &txn, std::string_view file_name) {
-    index_type res;
+bool db_services::doesFileExist(trasnactionType &txn, std::string_view fileName) {
     try {
-        res = get_file_id(txn, file_name);
+        getFileId(txn, fileName);
         return true;
     }
     catch (pqxx::unexpected_rows &rr) {
-        VLOG(2) << vformat("File %s does not exist!", file_name.data());
+        VLOG(2) << vformat("File %s does not exist!", fileName.data());
     }
     return false;
 }
 
 
-db_services::my_conn_string db_services::load_configuration(std::string_view filename) {
+db_services::myConnString db_services::loadConfiguration(std::string_view filename) {
     std::ifstream conf(filename.data());
     if (!conf.is_open()) {
         int count = 0;
-        for (auto &entry: std::filesystem::recursive_directory_iterator(
+        for (auto & entry : std::filesystem::recursive_directory_iterator(
                 std::filesystem::current_path().parent_path())) {
             count++;
             VLOG(1) << entry.path();
@@ -118,29 +120,29 @@ db_services::my_conn_string db_services::load_configuration(std::string_view fil
     if (!conf.eof())
         conf >> host >> port1;
 
-    auto res = db_services::my_conn_string(user, password, host, dbname1, port1);
+    auto res = db_services::myConnString(user, password, host, dbname1, port1);
     VLOG(2) << vformat("Configuration was loaded from file %s", filename.data());
 
     return res;
 }
 
-db_services::ResType
-db_services::check_files_existence(db_services::trasnactionType &txn, std::vector<std::filesystem::path> &files) {
+db_services::resType
+db_services::checkFilesExistence(trasnactionType &txn, const std::vector<std::filesystem::path> &files) {
     std::string query = "SELECT * "
                         "FROM files "
                         "WHERE files.file_name IN (%s)";
     std::stringstream ss;
     int i = 0;
     for (; i < files.size() - 1; i++) {
-        ss << '\'' << to_spaced_path(files[i].string()) << "\',";
+        ss << '\'' << toSpacedPath(files[i].string()) << "\',";
     }
-    ss << '\'' << to_spaced_path(files[i].string()) << "\'";
-    auto r_q = vformat(query.c_str(), ss.str().c_str());
+    ss << '\'' << toSpacedPath(files[i].string()) << "\'";
+    auto formattedQuery = vformat(query.c_str(), ss.str().c_str());
 
-    return txn.exec(r_q);
+    return txn.exec(formattedQuery);
 }
 
-std::string db_services::to_tsquerable_path(std::string_view path) {
+std::string db_services::toTsquerablePath(std::string_view path) {
     std::string res(path.size(), '\0');
     std::transform(path.begin(), path.end(), res.begin(),
                    [](char c) {
@@ -151,7 +153,7 @@ std::string db_services::to_tsquerable_path(std::string_view path) {
                            case '_':
                                return '/';
                            default:
-                               return (char) std::tolower(c);
+                               return  static_cast<char>(std::tolower(c));
                        }
                    });
     if (res[0] == '&')
@@ -160,14 +162,14 @@ std::string db_services::to_tsquerable_path(std::string_view path) {
     return res;
 }
 
-std::string db_services::from_spaced_path(std::string_view path) {
+std::string db_services::fromSpacedPath(std::string_view path) {
     std::string res(path.size() + 1, '/');
     std::replace_copy_if(path.begin(), path.end(), res.begin() + 1,
                          [](auto n) { return n == ' '; }, '/');
     return res;
 }
 
-std::string db_services::to_spaced_path(std::string_view path) {
+std::string db_services::toSpacedPath(std::string_view path) {
     std::string res(path.size(), '\0');
     std::replace_copy_if(path.begin(), path.end(), res.begin(),
                          [](auto n) { return n == '/'; }, ' ');
@@ -177,25 +179,24 @@ std::string db_services::to_spaced_path(std::string_view path) {
     return res;
 }
 
-db_services::ResType db_services::delete_unused_segments(db_services::trasnactionType &txn) {
+db_services::resType db_services::deleteUnusedSegments(trasnactionType &txn) {
     return txn.exec("delete from public.segments where segment_count=0");
 }
 
-db_services::index_type db_services::check_segment_count(db_services::trasnactionType &txn) {
+db_services::indexType db_services::checkSegmentCount(trasnactionType &txn) {
     std::string qq = "select segment_hash,count(segment_hash) from data "
                      "group by  segment_hash except "
                      "select segment_hash,segment_count "
                      "from public.segments; ";
-    ResType rr = txn.exec(qq);
+    resType rr = txn.exec(qq);
     if (rr.empty()) {
-        return return_sucess;
+        return ReturnSucess;
     }
-    return error_occured;
-
+    return ErrorOccured;
 }
 
-db_services::ResType
-db_services::get_dedup_characteristics(trasnactionType &txn, index_type segment_size) {
+db_services::resType
+db_services::getDedupCharacteristics(trasnactionType &txn, indexType segmentSize) {
     std::string query = "with segments as( "
                         "select f.file_name,d.segment_hash ,count(d.segment_hash) from files f "
                         "        inner join public.data d on f.file_id = d.file_id "
@@ -213,17 +214,16 @@ db_services::get_dedup_characteristics(trasnactionType &txn, index_type segment_
                         "                          )::float8)*100 as unique_percenatage "
                         "from files f\n"
                         "inner join  unique_segments_count aa on f.file_name=aa.file_name;";
-    return txn.exec(query, pqxx::params(segment_size));
+    return txn.exec(query, pqxx::params(segmentSize));
 }
 
-void db_services::print_res(db_services::ResType &rss, std::ostream &out)
-{
+void db_services::printRes(resType &rss, std::ostream &out){
     int i = 0;
     for (; i < rss[0].size() - 1; ++i) {
         out << rss.column_name(i) << '\t';
     }
     out << rss.column_name(i) << '\n';
-    for (const auto &row: rss) {
+    for (const auto &row : rss) {
         i = 0;
         for (; i < row.size() - 1; ++i) {
             out << row[i].as<std::string>() << '\t';
@@ -232,7 +232,7 @@ void db_services::print_res(db_services::ResType &rss, std::ostream &out)
     }
 }
 
-db_services::ResType db_services::get_total_schema_sizes(db_services::trasnactionType &txn) {
+db_services::resType db_services::getTotalSchemaSizes(trasnactionType &txn) {
     std::string qq = "SELECT\n"
                      "    indexrelname, s.relname, "
                      "    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size, "
@@ -245,6 +245,32 @@ db_services::ResType db_services::get_total_schema_sizes(db_services::trasnactio
                      "        schemaname = 'public' order by index_size desc;";
 
     return txn.exec(qq);
+}
+
+db_services::indexType db_services::getTotalFileSize(trasnactionType &txn) {
+    return txn.query_value<indexType>("select sum(size_in_bytes) from files;");
+}
+
+void db_services::printRowsAffected(resType &res) {
+    VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
+}
+
+void db_services::printRowsAffected(resType &&res) {
+    printRowsAffected(res);
+}
+
+db_services::resType db_services::checkTExistence(db_services::trasnactionType &txn, std::string_view fileName) {
+    auto hashStr = getHashStr(fileName);
+    std::string tableName = vformat("temp_file_%s", hashStr.c_str());
+
+    std::string query = "select 1 from pg_tables "
+                        "where tablename=\'%s\' and schemaname='public';";
+    auto formattedQuery = vformat(query.c_str(), tableName.data(), tableName.c_str());
+    return txn.exec(formattedQuery);
+}
+
+bool db_services::checkConnection(const db_services::conPtr &conn) {
+    return conn && conn->is_open();
 }
 
 

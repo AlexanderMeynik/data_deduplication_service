@@ -1,7 +1,7 @@
 #include "HashUtils.h"
 
 
-std::string hash_utils::string_to_hex(std::string_view in) {
+std::string hash_utils::stringToHex(std::string_view in) {
     std::stringstream ss;
 
     ss << std::hex << std::setfill('0');
@@ -12,7 +12,7 @@ std::string hash_utils::string_to_hex(std::string_view in) {
     return ss.str();
 }
 
-std::string hash_utils::hex_to_string(std::string_view in) {
+std::string hash_utils::hexToString(std::string_view in) {
     std::string output;
 
     if ((in.length() % 2) != 0) {

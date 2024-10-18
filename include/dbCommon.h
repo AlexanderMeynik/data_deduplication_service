@@ -1,204 +1,98 @@
 #ifndef DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
 #define DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
 
-#include <common.h>
 #include <fstream>
-#include <pqxx/pqxx>
 #include <functional>
+#include <memory>
+
+#include <pqxx/pqxx>
+
+#include "expected.hpp"
+#include "myConnString.h"
+#include "myConcepts.h"
+#include "HashUtils.h"
+
+using myConcepts::printable, myConcepts::returnCodes, myConcepts::vformat, hash_utils::getHashStr;
+using enum myConcepts::returnCodes;
 /// db_services namespace
 namespace db_services {
-    using namespace std::placeholders;
-#ifdef IT_test
-    static std::string res_dir_path = "../../conf/";
-#else
-    static std::string res_dir_path = "../../conf/";
-#endif
 
-    ///default configuration file path
-    static std::string cfile_name = res_dir_path.append("config.txt");
+    #ifdef IT_test
+    static std::string resDirPath = "../../conf/";
+    #else
+    static std::string resDirPath = "../../conf/";
+    #endif
 
-    static constexpr const char *const sqlLimitBreached_state = "23505";
+    ///  default configuration file path
+    static std::string cfileName = resDirPath.append("config.txt");
+    static constexpr const char *const sqlLimitBreachedState = "23505";
     static constexpr const char *const sqlFqConstraight = "23503";
+    static const char *const sampleTempDb = "template1";
 
-
-    using index_type = long long;
+    using indexType = int64_t;
     using trasnactionType = pqxx::transaction<pqxx::isolation_level::read_committed>;
-    using connection_type = pqxx::connection;
-    using conPtr = std::shared_ptr<connection_type>;
-    using ResType = pqxx::result;
+    using connectionType = pqxx::connection;
+    using conPtr = std::shared_ptr<connectionType>;
+    using resType = pqxx::result;
     using nonTransType = pqxx::nontransaction;
 
+    std::string toSpacedPath(std::string_view path);
 
-    std::string to_spaced_path(std::string_view path);
+    std::string fromSpacedPath(std::string_view path);
 
-    std::string from_spaced_path(std::string_view path);
+    std::string toTsquerablePath(std::string_view path);
 
-    std::string to_tsquerable_path(std::string_view path);
+    bool checkConnection(const conPtr &conn);
 
+    resType terminateAllDbConnections(nonTransType &noTransExec, std::string_view dbName);
 
-    bool inline checkConnection(const conPtr &conn) {
-        return conn && conn->is_open();
-    }
+    resType checkDatabaseExistence(nonTransType &noTransExec, std::string_view dbName);
 
-    ResType terminate_all_db_connections(nonTransType &no_trans_exec, std::string_view db_name);
+    resType checkSchemas(trasnactionType &txn);
 
-    ResType check_database_existence(nonTransType &no_trans_exec, std::string_view db_name);
+    indexType checkSegmentCount(trasnactionType &txn);
 
-    ResType check_schemas(trasnactionType &txn);
+    resType deleteUnusedSegments(trasnactionType &txn);
 
-    index_type check_segment_count(trasnactionType &txn);
+    resType checkFileExistence(trasnactionType &txn, std::string_view fileName);
 
-    ResType delete_unused_segments(trasnactionType &txn);
+    indexType getFileId(trasnactionType &txn, std::string_view fileName);
 
-    ResType check_file_existence(trasnactionType &txn, std::string_view file_name);
+    bool doesFileExist(trasnactionType &txn, std::string_view fileName);
 
-    index_type get_file_id(trasnactionType &txn, std::string_view file_name);
+    resType getFilesForDirectory(trasnactionType &txn, std::string_view dirPath);
 
-    bool does_file_exist(trasnactionType &txn, std::string_view file_name);
+    std::vector<indexType> getFileIdVector(trasnactionType &txn, std::string_view dirPath);
 
-    ResType get_files_for_directory(trasnactionType &txn, std::string_view dir_path);
+    indexType getTotalFileSize(trasnactionType &txn);
 
-    std::vector<index_type> get_file_id_vector(trasnactionType &txn, std::string_view dir_path);
+    resType getTotalSchemaSizes(trasnactionType &txn);
 
-    index_type inline get_total_file_size(trasnactionType &txn) {
-        return txn.query_value<index_type>("select sum(size_in_bytes) from files;");
-    }
+    resType getDedupCharacteristics(trasnactionType &txn, indexType segmentSize);
 
-    ResType get_total_schema_sizes(trasnactionType &txn);
-
-    ResType get_dedup_characteristics(trasnactionType &txn, index_type segment_size);
-
-    void  print_res(ResType &rss, std::ostream &out);
-
-
+    void printRes(resType &rss, std::ostream &out);
 
     template<printable T>
-    std::string vec_to_string(std::vector<T> &vec);
+    std::string vecToString(std::vector<T> &vec);
 
-    ResType check_files_existence(trasnactionType &txn, std::vector<std::filesystem::path> &files);
+    resType checkFilesExistence(trasnactionType &txn, const std::vector<std::filesystem::path> &files);
 
+    void printRowsAffected(resType &res);
 
-    static const char *const sample_temp_db = "template1";
+    void printRowsAffected(resType &&res);
 
+    resType checkTExistence(db_services::trasnactionType &txn, std::string_view fileName);
 
-    inline void printRows_affected(ResType &res) {
-        VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
-    }
+    tl::expected<conPtr, returnCodes> connectIfPossible(std::string_view cString);
 
-    inline void printRows_affected(ResType &&res) {
-        printRows_affected(res);
-    }
+    myConnString loadConfiguration(std::string_view filename);
 
-
-
-
-
-    ResType inline check_t_existence(db_services::trasnactionType &txn, std::string_view file_name) {
-        auto hash_str = get_hash_str(file_name);
-        std::string table_name = vformat("temp_file_%s", hash_str.c_str());
-
-        std::string query = "select 1 from pg_tables "
-                            "where tablename=\'%s\' and schemaname='public';";
-        auto r_q = vformat(query.c_str(), table_name.data(), table_name.c_str());
-        return txn.exec(r_q);
-    }
-
-
-    struct my_conn_string {
-        my_conn_string() : port(5432) {}
-
-        my_conn_string(std::string_view user_,
-                       std::string_view password_,
-                       std::string_view host_,
-                       std::string_view dbname_, unsigned port_)
-                : user(user_), password(password_),
-                  host(host_),
-                  dbname(dbname_),
-                  port(port_) {
-            update_format();
-        }
-
-        explicit operator std::string() {
-            return formatted_string;
-        }
-
-        operator std::string_view() {
-            return formatted_string;
-        }
-
-        [[nodiscard]] const char *c_str() const {
-            return formatted_string.c_str();
-        }
-
-        void set_user(std::string_view new_user) {
-            user = std::forward<std::string_view>(new_user);
-            update_format();
-        }
-
-        void set_password(std::string_view new_password) {
-            password = new_password;
-            update_format();
-        }
-
-        void set_host(std::string_view new_host) {
-            host = new_host;
-            update_format();
-        }
-
-        void set_port(unsigned new_port) {
-            port = new_port;
-            update_format();
-        }
-
-        void set_dbname(std::string_view new_dbname) {
-            dbname = new_dbname;
-            update_format();
-        }
-
-        [[nodiscard]] const std::string &getUser() const {
-            return user;
-        }
-
-        [[nodiscard]] const std::string &getPassword() const {
-            return password;
-        }
-
-        [[nodiscard]] const std::string &getHost() const {
-            return host;
-        }
-
-        [[nodiscard]] const std::string &getDbname() const {
-            return dbname;
-        }
-
-        [[nodiscard]] unsigned int getPort() const {
-            return port;
-        }
-
-
-    private:
-        void update_format() {
-            formatted_string = vformat("postgresql://%s:%s@%s:%d/%s",
-                                       user.c_str(), password.c_str(), host.c_str(), port, dbname.c_str());
-        }
-
-        std::string user, password, host, dbname;
-        unsigned port;
-        std::string formatted_string;
-    };
-
-
-    tl::expected<conPtr, return_codes> connect_if_possible(std::string_view cString);
-
-    my_conn_string load_configuration(std::string_view filename);
-
-
-    auto default_configuration = []() {
-        return load_configuration(cfile_name);
+    auto defaultConfiguration = []() {
+        return loadConfiguration(cfileName);
     };
 
     template<typename T, unsigned long size>
-    std::array<T, size> from_string(std::basic_string<T> &string) {
+    std::array<T, size> fromString(std::basic_string<T> &string) {
         std::array<T, size> res;
         for (int i = 0; i < size; ++i) {
             res[i] = string[i];
@@ -207,7 +101,7 @@ namespace db_services {
     }
 
     template<printable T>
-    std::string vec_to_string(std::vector<T> &vec) {
+    std::string vecToString(std::vector<T> &vec) {
         std::stringstream ss;
         if (vec.empty()) {
             return ss.str();
@@ -219,9 +113,6 @@ namespace db_services {
         ss << vec[i];
         return ss.str();
     }
-
-
 }
-
 
 #endif //DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
