@@ -16,7 +16,7 @@ namespace hash_utils {
 
     constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 5> funcs
             = {&SHA224, &SHA256,
-               &MD5, &SHA384, &SHA512,&SHA};
+               &MD5, &SHA384, &SHA512};
 
     /**
      * Enum for selected hash function
