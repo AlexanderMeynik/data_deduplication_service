@@ -8,15 +8,9 @@ on:
       - include/**
       - test/**
       - CMakeLists.txt
-      - Dockerfile
 
 jobs:
-  call_docker_wf:
-    uses: ./.github/workflows/docker_build.yml
-    if: false
-    secrets: inherit
   build-and-test:
-    needs: call_docker_wf
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -53,12 +47,19 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/build/test
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
-          echo ${{github.event.head_commit.modified}}
       - name: Save log files
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: logs
           path: /__w/data_deduplication_service/data_deduplication_service/logs
+          if-no-files-found: warn
+          include-hidden-files: true
+      - name: Save build
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: /__w/data_deduplication_service/data_deduplication_service/build
           if-no-files-found: warn
           include-hidden-files: true

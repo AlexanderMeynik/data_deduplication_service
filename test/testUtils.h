@@ -120,7 +120,7 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
 
     ASSERT_EQ(fs::file_size(original_file), file_size);
 
-    auto hash_str = get_hash_str(txn, original_file.c_str());
+    auto hash_str = get_hash_str(original_file.c_str());
     std::string table_name = vformat("temp_file_%s", hash_str.c_str());
 
 

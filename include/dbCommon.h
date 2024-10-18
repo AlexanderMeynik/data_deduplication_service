@@ -89,38 +89,12 @@ namespace db_services {
         printRows_affected(res);
     }
 
-    ResType inline get_hash_res(trasnactionType &txn, std::string_view file_name) {
-        std::string query = vformat("select LEFT(md5(\'%s\'),32)", file_name.data());
-        return txn.exec(query);
-    }
 
-    template<typename T>
-    std::string inline convertToHex(const T &binaryResult) {
-        std::ostringstream ss;//todo better way
-        ss << std::hex << std::setfill('0');
-        for (unsigned int i = 0; i < binaryResult.size(); ++i) {
-            ss << std::setw(2) << static_cast<unsigned>(binaryResult.at(i));
-        }
 
-        return ss.str();
-    }
-
-    std::string inline get_hash_str(trasnactionType &txn, std::string_view file_name) {
-       //todo find proper way to hash table name
-        return get_hash_res(txn, file_name).one_row()[0].as<std::string>();
-    }
-
-    std::string inline get_hash_md5(std::string_view file_name) {
-        std::basic_string<unsigned char> md(hash_function_size[MD_5], ' ');
-        funcs[MD_5](reinterpret_cast<const unsigned char *>(file_name.data()), file_name.size(),
-                    md.data());
-
-        return convertToHex(md);
-    }
 
 
     ResType inline check_t_existence(db_services::trasnactionType &txn, std::string_view file_name) {
-        auto hash_str = get_hash_str(txn, file_name);
+        auto hash_str = get_hash_str(file_name);
         std::string table_name = vformat("temp_file_%s", hash_str.c_str());
 
         std::string query = "select 1 from pg_tables "

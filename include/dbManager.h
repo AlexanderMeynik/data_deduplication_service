@@ -271,8 +271,8 @@ namespace db_services {
             std::string query, qr;
             ResType res;
 
-
-            auto hash_str = get_hash_str(txn, file_path);
+            //todo it's not required here
+            auto hash_str = get_hash_str(file_path);
             std::string table_name = vformat("temp_file_%s", hash_str.c_str());
             qr = vformat("DROP TABLE IF EXISTS  \"%s\";", table_name.c_str());
             res = txn.exec(qr);
@@ -376,41 +376,38 @@ namespace db_services {
         try {
             trasnactionType txn(*conn_);
 
-            auto hash_str = get_hash_str(txn, file_name);
+            auto hash_str = get_hash_str(file_name);
             std::string table_name = vformat("\"temp_file_%s\"", hash_str.c_str());
             pqxx::stream_to copy_stream = pqxx::stream_to::raw_table(txn, table_name);
             int block_index = 1;
 
-            std::string buffer(segment_size, '\0');
+            //std::string buffer(segment_size, '\0');
+            unsigned char buffer[segment_size];
 
             size_t block_count = file_size / segment_size;
             size_t l_block_size = file_size - block_count * segment_size;
             std::istream::sync_with_stdio(false);
 
-
-            std::basic_string<unsigned char> md(hash_function_size[MD_5], ' ');
-
-
+            unsigned char mmd[hash_function_size[hash]];
 
             for (int i = 0; i < block_count; ++i) {
-                in.read(buffer.data(), segment_size);
-                funcs[hash](reinterpret_cast<const unsigned char *>(buffer.data()), buffer.size(),
-                            md.data());
+                in.read(reinterpret_cast<char *>(buffer), segment_size);
+                funcs[hash](buffer, segment_size,mmd);
                 copy_stream
                         << std::make_tuple(
                                 block_index++,
-                                pqxx::binary_cast(buffer),pqxx::binary_cast(md));
+                                pqxx::binarystring(buffer,segment_size),pqxx::binarystring(mmd,hash_function_size[hash]));
 
             }
             if (l_block_size != 0) {
                 std::string bff(l_block_size, '\0');
                 in.read(bff.data(), segment_size);
                 funcs[hash](reinterpret_cast<const unsigned char *>(bff.data()), bff.size(),
-                            md.data());
+                           mmd);
                 copy_stream
                         << std::make_tuple(
                                 block_index,
-                                pqxx::binary_cast(bff),pqxx::binary_cast(md));
+                                pqxx::binary_cast(bff),pqxx::binarystring(mmd,hash_function_size[hash]));
             }
             copy_stream.complete();
             txn.commit();
@@ -431,7 +428,7 @@ namespace db_services {
     int dbManager<segment_size>::finish_file_processing(std::string_view file_path, index_type file_id) {
         try {
             trasnactionType txn(*conn_);
-            auto hash_str = get_hash_str(txn, file_path);
+            auto hash_str = get_hash_str(file_path);
             std::string table_name = vformat("temp_file_%s", hash_str.c_str());
 
 
@@ -527,7 +524,7 @@ namespace db_services {
                                future_file_id,
                                file_path.data(),
                                file_size);
-            auto hash_str = get_hash_str(txn, file_path);
+            auto hash_str = get_hash_str(file_path);
             std::string table_name = vformat("temp_file_%s", hash_str.c_str());
             std::string q1 = vformat(
                     "CREATE TABLE \"%s\" (pos bigint, data bytea,hash bytea);",

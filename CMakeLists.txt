@@ -3,17 +3,20 @@ project(data_deduplication_service)
 
 set(CMAKE_CXX_STANDARD 23)
 
+SET( CMAKE_CXX_FLAGS_DEBUG  "-g -std=gnu++2b")
+SET( CMAKE_CXX_FLAGS_RELEASE  "-Ofast -DNDEBUG -march=native -fpic -ftree-vectorize")
+SET( CMAKE_CXX_FLAGS  " -std=gnu++2b -fcolor-diagnostics")
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 add_subdirectory(test)
 
-#[[if(BUILD_TEST)
-    add_subdirectory(test)
-endif()]]
 
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-#[[find_package(OpenCV REQUIRED)]]
 
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

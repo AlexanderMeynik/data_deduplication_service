@@ -9,12 +9,14 @@
 #include <openssl/md2.h>
 #include <array>
 #include <string>
+#include <sstream>
+#include <iomanip>
 ///hash utils namespace
 namespace hash_utils {
 
     constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 5> funcs
             = {&SHA224, &SHA256,
-               &MD5, &SHA384, &SHA512};
+               &MD5, &SHA384, &SHA512,&SHA};
 
     /**
      * Enum for selected hash function
@@ -29,6 +31,19 @@ namespace hash_utils {
     };
 
     /**
+     * Lookup table for hash function size
+     */
+    static constexpr std::array<unsigned short, 5> hash_function_size
+            {
+                    SHA224_DIGEST_LENGTH,
+                    SHA256_DIGEST_LENGTH,
+                    MD5_DIGEST_LENGTH,
+                    SHA384_DIGEST_LENGTH,
+                    SHA512_DIGEST_LENGTH
+            };
+
+
+    /**
      * Lookup table for hash function name
      */
     static constexpr std::array<const char *, 5> hash_function_name
@@ -40,17 +55,7 @@ namespace hash_utils {
                     "sha512"
             };
 
-    /**
-     * Lookup table for hash function size
-     */
-    static constexpr std::array<unsigned short, 5> hash_function_size
-            {
-                    28,
-                    32,
-                    32,
-                    48,
-                    64
-            };
+
 
     /**
      * Converts string to hexadecimal string
@@ -58,11 +63,31 @@ namespace hash_utils {
      */
     std::string string_to_hex(std::string_view in);
 
+    //todo remake for raw buffers
     /**
      * Converts hexadecimal string to string
      * @param in
      */
     std::string hex_to_string(std::string_view in);
+
+    /**
+     * Generates hash string with specified hash function
+     * @tparam hash
+     * @param stringView
+     */
+    template<hash_function hash=MD_5>
+    std::string get_hash_str(std::string_view stringView) {
+        unsigned char md[hash_function_size[hash]];
+        funcs[hash](reinterpret_cast<const unsigned char *>(stringView.data()), stringView.size(),
+                    md);
+
+        std::stringstream ss;
+        for(size_t i=0; i < hash_function_size[hash]; ++i) {
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)md[i];
+        }
+        return ss.str();
+    }
+
 }
 
 #endif //DATA_DEDUPLICATION_SERVICE_HASHUTILS_H
