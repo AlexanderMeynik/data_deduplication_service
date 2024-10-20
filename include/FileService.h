@@ -13,10 +13,12 @@
 
 #include "dbManager.h"
 
-/// file services namespace
+
 using myConcepts::SymbolType;
 using db_services::dbManager;
 namespace fs = std::filesystem;
+
+/// file services namespace
 namespace file_services {
 
     /**
@@ -46,9 +48,9 @@ namespace file_services {
      * File/directory handling strategy during load process
      */
     enum dataRetrievalStrategy {
-        ///will leave data as is
+        /// will leave data as is
         Persist,
-        ///will delete requested data from database
+        /// will delete requested data from database
         Remove
     };
 
@@ -57,29 +59,30 @@ namespace file_services {
      * Defines what will be done if destination directory does not exist
      */
     enum rootDirectoryHandlingStrategy {
-        //will return an error code
+        /// will return an error code
         NoCreateMain,
-        //will create this directory using create_directories
+        /// will create this directory using create_directories
         CreateMain
     };
 
     /**
      * This function checks existence of a canonical file path for file_path
      * @param filePath
-     * @return canonical file_path or error code
+     * @return canonical filePath or error code
      */
     tl::expected<std::string, int> checkFileExistence(std::string_view filePath);
 
     /**
-     * This function checks existence of a  canonical directory path for dir_path
+     * This function checks existence of a canonical directory path for dir_path
      * @param dirPath
-     * @return canonical dir_path or error code
+     * @return canonical dirPath or error code
      */
     tl::expected<std::string, int> checkDirectoryExistence(std::string_view dirPath);
 
     /**
      * Calculates lexically normal absolute path
      * @param path
+     * @return lexically normal absolute path
      */
     fs::path getNormalAbs(fs::path &path);
 
@@ -104,10 +107,10 @@ namespace file_services {
          * @tparam db_usage_str
          * @tparam hash
          * @param dbName
-         * @param configuration_file
+         * @param configurationFile
          */
         template<dbUsageStrategy db_usage_str = use, hash_function hash = SHA_256>
-        int dbLoad(std::string &dbName, std::string_view configuration_file = db_services::cfileName);
+        int dbLoad(std::string &dbName, std::string_view configurationFile = db_services::cfileName);
 
         int dbDrop(std::string_view dbName) {
             auto res = manager_.dropDatabase(dbName);
@@ -140,23 +143,23 @@ namespace file_services {
         /**
          * Retrieves directory from database to to_dir
          * @tparam root_directory_str
-         * @tparam data_retr_str
+         * @tparam retrievalStrategy
          * @param fromDir
          * @param toDir
          */
         template<rootDirectoryHandlingStrategy root_directory_str = NoCreateMain,
-                dataRetrievalStrategy data_retr_str = Persist>
+                dataRetrievalStrategy retrievalStrategy = Persist>
         int loadDirectory(std::string_view fromDir, std::string_view toDir);
 
         /**
          * Retrieves file from database to to_file
          * @tparam dir_s
-         * @tparam data_retr_str
+         * @tparam retrievalStrategy
          * @param from_file
          * @param toFile
          */
         template<rootDirectoryHandlingStrategy dir_s = NoCreateMain,
-                dataRetrievalStrategy data_retr_str = Persist, bool from_load_dir = false>
+                dataRetrievalStrategy retrievalStrategy = Persist, bool from_load_dir = false>
         int loadFile(std::string_view from_file, std::string_view toFile,
                      index_type fileId = paramType::EmptyParameterValue);
 
@@ -361,8 +364,8 @@ namespace file_services {
 
     template<unsigned long segment_size>
     template<dbUsageStrategy str, hash_function hash>
-    int FileParsingService<segment_size>::dbLoad(std::string &dbName, std::string_view configuration_file) {
-        auto CString = db_services::loadConfiguration(configuration_file);
+    int FileParsingService<segment_size>::dbLoad(std::string &dbName, std::string_view configurationFile) {
+        auto CString = db_services::loadConfiguration(configurationFile);
         CString.setDbname(dbName);
 
         manager_ = dbManager<segment_size>(CString);

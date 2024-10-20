@@ -17,6 +17,7 @@ add_subdirectory(test)
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Xml)
 
 
 
@@ -26,13 +27,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
 
-add_library(commonLibrary src/myConcepts.cpp src/clockArray.cpp src/HashUtils.cpp)
+add_library(commonLibrary lib/myConcepts.cpp lib/clockArray.cpp lib/HashUtils.cpp)
 target_link_libraries(commonLibrary glog::glog OpenSSL::SSL -lcrypto)
 
-add_library(dbUtilsLib src/dbManager.cpp src/dbCommon.cpp)
+add_library(dbUtilsLib lib/dbManager.cpp lib/dbCommon.cpp)
 target_link_libraries(dbUtilsLib pqxx pq commonLibrary)
 
-add_library(FileUtilsLib src/FileService.cpp)
+add_library(FileUtilsLib lib/FileService.cpp)
 target_link_libraries(FileUtilsLib commonLibrary dbUtilsLib)
 
 
@@ -40,9 +41,15 @@ add_executable(file_service src/fileServiceTest.cpp)
 target_link_libraries(file_service FileUtilsLib)
 
 add_executable(ssltest src/main.cpp)
-target_link_libraries(ssltest FileUtilsLib commonLibrary FileUtilsLib)
+target_link_libraries(ssltest FileUtilsLib commonLibrary )
 
 option(BUILD_DOC "Build documentation" OFF)
 if(BUILD_DOC)
-    add_subdirectory(documentation)
+    add_subdirectory(doc)
 endif (BUILD_DOC)
+
+
+
+add_executable(qt_main src/runQt.cpp)
+
+target_link_libraries(qt_main  Qt6::Widgets Qt6::Xml FileUtilsLib)

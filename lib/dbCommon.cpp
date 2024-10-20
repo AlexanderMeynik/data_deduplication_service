@@ -208,7 +208,7 @@ db_services::getDedupCharacteristics(trasnactionType &txn, indexType segmentSize
                         "group by file_name) "
                         " "
                         " "
-                        "select f.file_name,size_in_bytes,aa.unique_count, "
+                        "select '/'||replace(f.file_name,' ','/') as path,size_in_bytes,aa.unique_count, "
                         "       ceil(size_in_bytes::float8/$1 "
                         "       ) as segment_count,(aa.unique_count /ceil(size_in_bytes::float8/$1 "
                         "                          )::float8)*100 as unique_percenatage "

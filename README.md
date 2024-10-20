@@ -51,6 +51,8 @@
 4. gtest/gmock 1.15.2
 5. FFF(Fake Function Framework)
 6. libopenssl
+7. Асинхронный пул потоков из библиотеки Leopard 
+7. Qt6 Widgets
 
 ## Wsl firewall set-up
 

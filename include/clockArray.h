@@ -10,11 +10,12 @@
 #include <source_location>
 #include <cassert>
 #include <utility>
-
+#include <thread>
+#include <sstream>
 template<typename T, std::size_t N>
 std::array<T, N> constexpr makeArray(T val){
     std::array<T, N> tempArray{};
-    for (T &elem: tempArray)
+    for ( T &elem : tempArray )
         elem = val;
     return tempArray;
 }
@@ -26,20 +27,14 @@ struct ::std::hash<std::array<std::string, N>>{
 
         return std::hash<std::string>{}([&s]<std::size_t... Is>(std::index_sequence<Is...>) { return (s[Is]+...); }
                                                 (std::make_index_sequence<N>{}));
-        // return std::hash<std::string>{}(s[0] + s[1] + s[2] + s[3]);
     }
 };
 
 template<typename T, size_t sz>
 requires std::is_convertible_v<T, std::string>
-std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr) {
-    int i = 0;
-    for (; i < sz - 1; ++i) {
-        out << arr[i] << '\t';
-    }
-    out << arr[i] << '\n';
-    return out;
-}
+std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr);
+
+
 
 template<typename T, size_t sz>
 bool operator==(const std::array<T, sz> &arr1, const std::array<T, sz> &arr2) {
@@ -50,7 +45,7 @@ namespace timing {
 
     using timepointType = std::chrono::system_clock::time_point;
 
-    using locationType = std::array<std::string, 4>;
+    using locationType = std::array<std::string, 5>;
 
     template<typename T, typename T2, T2(*timeGetter)(), locationType (*src_to_loc_type)(
             std::source_location location),
@@ -58,16 +53,8 @@ namespace timing {
     class clockArray;
 
 
-    inline locationType getFileState(std::source_location location
-    = std::source_location::current()) {
-        std::string name = location.function_name();
-        auto id = name.find(' ');
-        auto id2 = name.find('(');
-
-        std::string fname = location.file_name();
-        return {name.substr(id + 1, id2 - id - 1), std::to_string(location.line()), std::to_string(location.column()),
-                fname.substr(fname.rfind('/') + 1)};
-    }
+    locationType getFileState(std::source_location location
+    = std::source_location::current());
 
 
     template<typename to_dur = std::chrono::nanoseconds, typename T>
@@ -76,9 +63,7 @@ namespace timing {
     }
 
     constexpr const char *getFunctionName(const std::source_location &location
-    = std::source_location::current()) {
-        return location.function_name();
-    }
+    = std::source_location::current());
 
     /**
      * @tparam chrono_duration_type
@@ -113,25 +98,8 @@ namespace timing {
         /**
          * Resets timers and converted double values
          */
-        void reset() {
-            assert(toTak.empty());
-            this->timers.clear();
-            this->startIngTimers.clear();
-        }
+        void reset();
 
-        /**
-         * Applies Binary Binary operation to all clocks
-         * @tparam ReturnType
-         * @tparam BinaryOperation
-         * @param startingValue
-         * @param binaryOp
-         * @return accumulated value
-         */
-        template<typename ReturnType, typename BinaryOperation>
-        ReturnType aggregate(ReturnType startingValue,
-                             BinaryOperation binaryOp) {
-            return std::accumulate(timers.begin(), timers.end(), startingValue, binaryOp);
-        }
 
         /**
          * This function starts new calculation section
@@ -140,12 +108,7 @@ namespace timing {
          * @ref timing::ClockArray< T, T2, timeGetter, src_to_loc_type, double_cast >::tak "tak()"
          */
         void tik(const std::source_location &location
-        = std::source_location::current()) {
-            auto id = sourceTypeConverter(location);
-            startIngTimers[id] = timeGetter();
-
-            toTak.push(id);
-        }
+        = std::source_location::current());
 
 
         /**
@@ -153,25 +116,7 @@ namespace timing {
          * @param location
          */
         void tak(const std::source_location &location
-        = std::source_location::current()) {
-            auto id = (*sourceTypeConverter)(location);
-            if (toTak.empty() || toTak.top()[0] != id[0]) {
-                std::string msg = "No paired tik statement found in queue\t"
-                                  "Tak values" + id[3] + ":" + id[1] + "\t"
-                                  + id[0] + '\t' + id[2];
-                throw std::logic_error(msg);
-            }
-            id[1] = toTak.top()[1];
-            id[2] = toTak.top()[2];
-            toTak.pop();
-            auto res = timeConverter((*timeGetter)(), startIngTimers[id]);
-            if (!timers.contains(id)) {
-                timers[id] = {res, 1};
-            } else {
-                timers[id].time += res;
-                timers[id].count++;
-            }
-        }
+        = std::source_location::current());
 
         /**
          * This function returns it's source location to chain several
@@ -191,14 +136,13 @@ namespace timing {
         = std::source_location::current()) {
             tik(location);
             return sourceTypeConverter(location);
-
         }
 
         /**
          * @param location
          * @return pair of std::source_location, location_type
          */
-        std::pair<std::source_location, locationType> tikLoc2(const std::source_location &location
+        std::pair<std::source_location, locationType> tikPair(const std::source_location &location
         = std::source_location::current()) {
             return std::make_pair(location, tikLoc(location));
         }
@@ -222,9 +166,11 @@ namespace timing {
         friend std::ostream &
         operator<<(std::ostream &out,
                    const clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter> &ts) {
-            out << "Function name\tLine\tTime\n";
+            out << "Function name\tThread\tLine\tTime\n";
             for (auto &val: ts)
-                out << val.first[0] << '\t' << val.first[3] << ":" << val.first[1] << '\t' << val.second << '\n';
+                out << val.first[0] << '\t' << val.first[4] << '\t'
+                    << val.first[3] << ":" << val.first[1]
+                    << '\t' << val.second << '\n';
             return out;
         }
 
@@ -232,7 +178,7 @@ namespace timing {
             return timers[loc];
         }
 
-        bool contains(const locationType &loc) const {
+        [[nodiscard]] bool contains(const locationType &loc) const {
             return timers.contains(loc);
         }
 
@@ -241,9 +187,81 @@ namespace timing {
 
         std::unordered_map<locationType, inType> startIngTimers;
         std::stack<locationType> toTak;
+        static inline std::mutex s_mutex;
+        using guardType = std::lock_guard<std::mutex>;
     };
 
 }
+
+
+template<typename T, size_t sz>
+requires std::is_convertible_v<T, std::string>
+std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr) {
+    int i = 0;
+    for (; i < sz - 1; ++i) {
+        out << arr[i] << '\t';
+    }
+    out << arr[i] << '\n';
+    return out;
+}
+
+
+namespace timing
+{
+    template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
+            std::source_location), OutType (*timeConverter)(inType, inType)>
+    requires std::is_floating_point_v<OutType>void
+    clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter>::tak(
+            const std::source_location &location) {
+        const guardType guard{s_mutex};
+        auto id = (*sourceTypeConverter)(location);
+        if (toTak.empty() || toTak.top()[0] != id[0]) {
+            std::string msg = "No paired tik statement found in queue\t"
+                              "Tak values" + id[3] + ":" + id[1] + "\t"
+                              + id[0] + '\t' + id[2];
+            throw std::logic_error(msg);
+        }
+        id[1] = toTak.top()[1];
+        id[2] = toTak.top()[2];
+        toTak.pop();
+        auto res = timeConverter((*timeGetter)(), startIngTimers[id]);
+        if (!timers.contains(id)) {
+            timers[id] = {res, 1};
+        } else {
+            timers[id].time += res;
+            timers[id].count++;
+        }
+    }
+
+    template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
+            std::source_location), OutType (*timeConverter)(inType, inType)>
+    requires std::is_floating_point_v<OutType>void
+    clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter>::tik(
+            const std::source_location &location) {
+        const guardType guard{s_mutex};
+        auto id = sourceTypeConverter(location);
+        startIngTimers[id] = timeGetter();
+
+        toTak.push(id);
+    }
+
+    template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
+            std::source_location), OutType (*timeConverter)(inType, inType)>
+    requires std::is_floating_point_v<OutType>void
+    clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter>::reset() {
+        assert(toTak.empty());
+        this->timers.clear();
+        this->startIngTimers.clear();
+    }
+}
+
+
+
+
+
+
+
+
 
 
 #endif // DATA_DEDUPLICATION_SERVICE_CLOCKARRAY_H

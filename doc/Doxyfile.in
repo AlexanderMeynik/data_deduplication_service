@@ -41,7 +41,7 @@ HIDE_IN_BODY_DOCS = YES
 
 SHOW_HEADERFILE = NO
 
-INPUT = ../../src ../../include md
+INPUT = ../../src ../../include ../../lib md
 EXCLUDE =  ../../include/expected.hpp
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should

@@ -408,7 +408,8 @@ namespace db_services {
                 copyStream
                         << std::make_tuple(
                                 blockIndex,
-                                pqxx::binary_cast(bff), pqxx::binarystring(mmd, hash_function_size[hash]));
+                                pqxx::binary_cast(bff),
+                                pqxx::binarystring(mmd, hash_function_size[hash]));
             }
             copyStream.complete();
             txn.commit();
