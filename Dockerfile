@@ -59,4 +59,12 @@ RUN cd /home/deps && \
     cmake --build . && \
     ninja install
 
+
+RUN cd /home/deps && \
+    git clone https://github.com/hosseinmoein/Leopard && \
+    cd cd Leopard && \
+    mkdir build&&cd build && \
+    cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
+    cmake --install . \
+
 WORKDIR /usr/application/src
