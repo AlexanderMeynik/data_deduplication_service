@@ -37,7 +37,9 @@ RUN git clone https://github.com/google/glog.git&& \
     cd glog && \
     mkdir build && \
     cd build && \
-    cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
+    cmake -G Ninja  \
+      -DCMAKE_C_COMPILER:PATH="/usr/bin/clang"  \
+      -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
     cmake --build . && \
     ninja install
 
@@ -45,7 +47,9 @@ RUN cd /home/deps && \
     git clone https://github.com/jtv/libpqxx.git && \
     cd libpqxx && \
     mkdir build&&cd build && \
-    cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
+    cmake -G Ninja  \
+      -DCMAKE_C_COMPILER:PATH="/usr/bin/clang"  \
+      -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
     cmake --build . && \
     ninja install # buildkit
 
@@ -55,7 +59,9 @@ RUN cd /home/deps && \
     git clone https://github.com/google/googletest && \
     cd googletest && \
     mkdir build&&cd build && \
-    cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
+    cmake -G Ninja \
+      -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
+      -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
     cmake --build . && \
     ninja install
 
@@ -64,7 +70,9 @@ RUN cd /home/deps && \
     git clone https://github.com/hosseinmoein/Leopard && \
     cd Leopard && \
     mkdir build && cd build && \
-    cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
+    cmake -G Ninja \
+      -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
+      -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. || true && \
     cmake --install .
 
 WORKDIR /usr/application/src
