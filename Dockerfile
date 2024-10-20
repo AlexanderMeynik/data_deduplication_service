@@ -62,7 +62,7 @@ RUN cd /home/deps && \
 
 RUN cd /home/deps && \
     git clone https://github.com/hosseinmoein/Leopard && \
-    cd cd Leopard && \
+    cd Leopard && \
     mkdir build && cd build && \
     cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. && \
     cmake --install .
