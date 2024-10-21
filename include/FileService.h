@@ -90,9 +90,8 @@ namespace file_services {
 
     /**
      * this class handles file/directory management and uses @ref db_services::dbManager "dbManager" to perform calls
-     * @tparam segment_size
      */
-    template<unsigned long segment_size>
+    
     class FileParsingService {
     public:
         using index_type = db_services::indexType;
@@ -122,9 +121,10 @@ namespace file_services {
          * @tparam data_insertion_str
          * @tparam hash
          * @param dirPath
+         * @param segment_size
          */
         template<dataInsetionStrategy data_insertion_str = PreserveOld, hash_function hash = SHA_256>
-        int processDirectory(std::string_view dirPath);
+        int processDirectory(std::string_view dirPath, size_t segment_size);
 
         /** @details Creates entry for file in database.
          * @details Load file segments into temp table.
@@ -134,11 +134,11 @@ namespace file_services {
          * @tparam existence_checks
          * @tparam hash
          * @param filePath
-         * @typedef ss
+         * @param segmentSize
          */
         template<dataInsetionStrategy data_insertion_str = PreserveOld, bool existence_checks = true,
                 hash_function hash = SHA_256>
-        int processFile(std::string_view filePath);
+        int processFile(std::string_view filePath, size_t segmentSize);
 
         /**
          * Retrieves directory from database to to_dir
@@ -179,12 +179,7 @@ namespace file_services {
             return manager_.checkConnection();
         }
 
-        int clearSegments() {
-            gClk.tik();
-            auto rr = manager_.clearSegments();
-            gClk.tak();
-            return rr;
-        }
+        int clearSegments();
 
         /**
          * Wrapper for associated dbManger member function
@@ -209,39 +204,17 @@ namespace file_services {
             return manager_.executeInTransaction(call, std::forward<Args>(args)...);
         }
     private:
-        dbManager<segment_size> manager_;
+        dbManager manager_;
     };
 
-    template<unsigned long segment_size>
-    int FileParsingService<segment_size>::deleteFile(std::string_view filePath) {
-        fs::path file_abs_path = getNormalAbs(filePath);
-
-        auto res = manager_.deleteFile(file_abs_path.string());
-
-        if (res == returnCodes::ErrorOccured) {
-            VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", file_abs_path.c_str());
-        }
-        return res;
-    }
-
-    template<unsigned long segment_size>
-
-    int FileParsingService<segment_size>::deleteDirectory(std::string_view dirPath) {
-        fs::path dir_abs_path = getNormalAbs(dirPath);
-
-        auto res = manager_.deleteDirectory(dir_abs_path.string());
-
-        if (res == returnCodes::ErrorOccured) {
-            VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", dir_abs_path.c_str());
-        }
-        return res;
-    }
+    
 
 
-    template<unsigned long segment_size>
+
+    
     //todo create regular expression grabber for files
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr, bool from_load_dir>
-    int FileParsingService<segment_size>::loadFile(std::string_view from_file, std::string_view toFile,
+    int FileParsingService::loadFile(std::string_view from_file, std::string_view toFile,
                                                    index_type fileId) {
         fs::path toFilePath;
         fs::path fromFilePath;
@@ -306,9 +279,9 @@ namespace file_services {
     }
 
 
-    template<unsigned long segment_size>
+    
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr>
-    int FileParsingService<segment_size>::loadDirectory(std::string_view fromDir, std::string_view toDir) {
+    int FileParsingService::loadDirectory(std::string_view fromDir, std::string_view toDir) {
         fs::path newDirPath;
         fs::path fromDirPath = getNormalAbs(fromDir);
 
@@ -362,13 +335,13 @@ namespace file_services {
         return 0;
     }
 
-    template<unsigned long segment_size>
+    
     template<dbUsageStrategy str, hash_function hash>
-    int FileParsingService<segment_size>::dbLoad(std::string &dbName, std::string_view configurationFile) {
+    int FileParsingService::dbLoad(std::string &dbName, std::string_view configurationFile) {
         auto CString = db_services::loadConfiguration(configurationFile);
         CString.setDbname(dbName);
 
-        manager_ = dbManager<segment_size>(CString);
+        manager_ = dbManager(CString);
 
         if constexpr (str == create) {
 
@@ -402,9 +375,9 @@ namespace file_services {
     }
 
 
-    template<unsigned long segment_size>
+    
     template<dataInsetionStrategy strategy, bool existence_checks, hash_function hash>
-    int FileParsingService<segment_size>::processFile(std::string_view filePath) {
+    int FileParsingService::processFile(std::string_view filePath, size_t segmentSize) {
         std::string file;
         if constexpr (existence_checks) {
             auto result = checkFileExistence(filePath);
@@ -446,7 +419,7 @@ namespace file_services {
         std::basic_ifstream<SymbolType> in(file);
 
         gClk.tik();
-        auto res1 = manager_.template insertFileFromStream<hash>(file, in, size);
+        auto res1 = manager_.template insertFileFromStream<hash>(segmentSize, file, in, size);
         gClk.tak();
 
         if (res1 == returnCodes::ErrorOccured) {
@@ -469,9 +442,9 @@ namespace file_services {
     }
 
 
-    template<unsigned long segment_size>
+    
     template<dataInsetionStrategy strategy, hash_function hash>
-    int FileParsingService<segment_size>::processDirectory(std::string_view dirPath) {
+    int FileParsingService::processDirectory(std::string_view dirPath, size_t segment_size) {
         fs::path pp;
 
         auto result = checkDirectoryExistence(dirPath);
@@ -484,7 +457,7 @@ namespace file_services {
             if (!fs::is_directory(entry)) {
                 auto file = fs::canonical(entry.path()).string();
                 gClk.tik();
-                auto results = this->template processFile<strategy, false, hash>(file);
+                auto results = this->template processFile<strategy, false, hash>(file, segment_size);
                 gClk.tak();
                 if (results == AlreadyExists) {
                     continue;

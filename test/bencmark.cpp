@@ -10,10 +10,10 @@ namespace fs = std::filesystem;
 std::string parent_path = "../../testDirectories/";
 std::string new_dir_prefix = "../../testDirectoriesRes/";
 std::vector<fs::path> from_dirs = {"images",
-                                   "shakespear",
+                                   "res",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
-constexpr std::array<int,5> indx={0,1,2,3,4};
+constexpr std::array<int,1> indx={0};
 constexpr std::array<int,3> multipliers={2,4,8};//,16,64,256};
 
 template<int hashNum,int multip>
@@ -25,16 +25,16 @@ void performStuff()
     std::ofstream sizes2("bench_sizes2.txt",std::ios::app);
     gClk.tik();
     constexpr auto segment_size=multip*hash_function_size[hashNum];
-    FileParsingService<segment_size> fs;
+    FileParsingService fs;
 
     std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
     std::cout<<dbName<<'\n';
     fs.template dbLoad<dbUsageStrategy::create, static_cast<hash_function>(hashNum)>(dbName);
     gClk.tak();
 
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 2; ++i) {
         gClk.tik();//test for simialr cases
-        fs.template processDirectory<PreserveOld, static_cast<hash_function>(hashNum)>(from_dirs[i].string());
+        fs.template processDirectory<PreserveOld, static_cast<hash_function>(hashNum)>(from_dirs[i].string(),segment_size);
         gClk.tak();
         gClk.tik();
         fs.template loadDirectory<rootDirectoryHandlingStrategy::CreateMain>(from_dirs[i].string(), to_dirs[i].string());
@@ -57,7 +57,7 @@ void performStuff()
     sizes2<<'\n';
 
     gClk.tik();
-    fs.dbDrop(dbName);
+//    fs.dbDrop(dbName);
     gClk.tak();
 
     timers << dbName << '\n' << gClk << "\n";

@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     google::InitGoogleLogging(argv[0]);
     google::SetVLOGLevel("*", 3);
-    FileParsingService<64> fs;
+    FileParsingService fs;
     std::string dbName = "deduplication12";
     gClk.tik();
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 1; i < 2; ++i) {
         gClk.tik();//test for simialr cases
-        fs.processDirectory(from_dirs[i].string());
+        fs.processDirectory(from_dirs[i].string(),64);
         gClk.tak();
         gClk.tik();
         fs.loadDirectory<rootDirectoryHandlingStrategy::CreateMain>(from_dirs[i].string(), to_dirs[i].string());

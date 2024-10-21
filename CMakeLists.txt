@@ -17,7 +17,7 @@ add_subdirectory(test)
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Xml)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Xml Core Charts)
 
 
 
@@ -49,7 +49,9 @@ if(BUILD_DOC)
 endif (BUILD_DOC)
 
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+add_executable(qt_main src/runQt.cpp src/MainWindow.ui src/MainWindow.cpp)
 
-add_executable(qt_main src/runQt.cpp)
-
-target_link_libraries(qt_main  Qt6::Widgets Qt6::Xml FileUtilsLib)
+target_link_libraries(qt_main  Qt6::Widgets Qt6::Core Qt6::Xml Qt6::Gui Qt6::Charts FileUtilsLib)

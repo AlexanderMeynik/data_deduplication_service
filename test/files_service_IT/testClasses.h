@@ -10,7 +10,7 @@
 #include "../testUtils.h"
 
 using namespace db_services;
-using mType = dbManager<64>;
+using mType = dbManager;
 
 template<typename Ret, typename ... Args>
 tl::expected<Ret, int> wrap_non_trans_function(Ret (*call)(nonTransType &, Args ...), Args ... args) {

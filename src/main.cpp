@@ -10,7 +10,7 @@
 int main() {
 
     auto resss = getHashStr("3");
-    db_services::dbManager<64> sample;
+    db_services::dbManager sample;
     auto c=db_services::defaultConfiguration();
     c.setDbname("testbytea");
     sample.setCString(c);

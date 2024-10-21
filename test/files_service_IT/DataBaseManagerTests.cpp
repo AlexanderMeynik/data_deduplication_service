@@ -6,7 +6,7 @@ public:
 
     static void SetUpTestSuite() {
         dbName = "dedup_test_" + std::to_string(0);
-        manager_ = dbManager<64>();
+        manager_ = dbManager();
         c_str = defaultConfiguration();
         c_str.setDbname(dbName);
         manager_.createDatabase(dbName);

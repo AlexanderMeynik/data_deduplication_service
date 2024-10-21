@@ -10,7 +10,7 @@ class DbFile_Dir_tests : public ::testing::TestWithParam<fs::path> {
 public:
     static void SetUpTestSuite() {
         dbName = "dedup_test_" + std::to_string(1);
-        manager_ = dbManager<64>();
+        manager_ = dbManager();
         c_str = defaultConfiguration();
         c_str.setDbname(dbName);
         manager_.createDatabase(dbName);
@@ -25,10 +25,11 @@ public:
     }
 
 protected:
-    inline static dbManager<64> manager_;
+    inline static mType manager_;
     inline static std::string dbName;
     inline static myConnString c_str;
     inline static conPtr conn_;
+    inline static size_t segmentSize=64;
 };
 
 TEST_F(DbFile_Dir_tests, test_file_eq) {
@@ -76,7 +77,7 @@ TEST_P(DbFile_Dir_tests, insert_segments) {
     manager_.createFile(f_in.c_str(), fs::file_size(f_in));
     std::ifstream in(f_in);
 
-    manager_.insertFileFromStream(f_in.c_str(), in, fs::file_size(f_in));
+    manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
     in.close();
 
     ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<64, check_from::temporary_table>, f_in),
@@ -97,7 +98,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_retrieve) {
     auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in));
     std::ifstream in(f_in);
 
-    manager_.insertFileFromStream(f_in.c_str(), in, fs::file_size(f_in));
+    manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
     in.close();
 
     manager_.finishFileProcessing(f_in.c_str(), file_id);
@@ -150,7 +151,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
     auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in));
     std::ifstream in(f_in);
 
-    manager_.insertFileFromStream(f_in.c_str(), in, fs::file_size(f_in));
+    manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
     in.close();
 
     manager_.finishFileProcessing(f_in.c_str(), file_id);
