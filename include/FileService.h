@@ -20,7 +20,7 @@ namespace fs = std::filesystem;
 
 /// file services namespace
 namespace file_services {
-
+    using myConcepts::gClk;
     /**
      * @ingroup utility
      * Database usage strategy
@@ -39,7 +39,7 @@ namespace file_services {
     enum dataInsetionStrategy {
         /// will ignore files that already exist
         PreserveOld,
-        /// will replace file conents
+        /// will replace file contents
         ReplaceWithNew
     };
 

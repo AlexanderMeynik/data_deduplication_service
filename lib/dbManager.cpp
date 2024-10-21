@@ -1,6 +1,5 @@
 #include "dbManager.h"
 namespace db_services {
-
     void diconnect(db_services::conPtr &conn) {
         if (conn) {
             conn->close();
@@ -218,30 +217,63 @@ namespace db_services {
             gClk.tik();
             txn.exec(q).one_row();
             gClk.tak();
+
+
             q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count, t.hash "
                         "FROM \"%s\" t "
                         "GROUP BY t.data,t.hash;", aggregationTableName.c_str(), tableName.c_str());
             gClk.tik();
             txn.exec(q);
             gClk.tak();
+
+
             VLOG(2) << vformat(
                     "Segment data was aggregated into %s for file %s.",
                     aggregationTableName.c_str(),
                     filePath.data());
 
+            //todo test properly
+            /*q = vformat("create index  %s_index on \"%s\"(hash);", aggregationTableName.c_str(), aggregationTableName.c_str());
+            gClk.tik();
+            txn.exec(q);
+            gClk.tak();
+
+            VLOG(2) << vformat(
+                    "Created index %s_index for file %s.",
+                    aggregationTableName.c_str(),
+                    filePath.data());*/
+
+
+
+
 
             q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
-                        "SELECT ns.data, ns.count,ns.hash "
-                        "FROM \"%s\" ns "
-                        "ON CONFLICT (segment_hash) "
-                        "DO UPDATE "
-                        "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
-                        aggregationTableName.c_str());
+                        "SELECT ns.data, 0 ,ns.hash "
+                        "FROM \"%s\" ns"
+                        " left outer join  public.segments s on ns.hash=s.segment_hash "
+                        "where s.segment_hash IS NULL;"
+                        ,aggregationTableName.c_str());
             gClk.tik();
             txn.exec(q);
             gClk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", filePath.data());
+
+
+            q = vformat("update public.segments "
+                        "set segment_count=segment_count+inter.count "
+                        "from "
+                        "(SELECT ns.count,ns.hash "
+                        "FROM \"%s\" ns inner join  public.segments s1 on ns.hash=s1.segment_hash) as inter "
+                        "where inter.hash=segment_hash;"
+                        ,aggregationTableName.c_str());
+            gClk.tik();
+            txn.exec(q);
+            gClk.tak();
+            VLOG(2) << vformat("Segment counts vere updated for file \"%s\".", filePath.data());
+
+
             q = vformat("drop table \"%s\";", aggregationTableName.c_str());
+
             gClk.tik();
             txn.exec(q);
             gClk.tak();
@@ -265,8 +297,8 @@ namespace db_services {
             txn.exec(q);
             gClk.tak();
             VLOG(2) << vformat("Temp data table %s was deleted.", tableName.c_str());
-
             txn.commit();
+
         } catch (const pqxx::sql_error &e) {
             VLOG(1) << "SQL Error: " << e.what()
                     << "Query: " << e.query()
@@ -507,7 +539,7 @@ namespace db_services {
             std::string query = vformat("create schema if not exists public;"
                                         "create table public.segments"
                                         "("
-                                        "    segment_hash bytea NOT NULL primary key,"
+                                        "    segment_hash bytea NOT NULL,"
                                         "    segment_data bytea NOT NULL,"
                                         "    segment_count bigint NOT NULL"
                                         ");");
@@ -533,7 +565,7 @@ namespace db_services {
 
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
-                    ""
+                    "create index if not exists hash_index on public.segments(segment_hash);"
                     ""
                     "create index if not exists gin_f_name ON files USING GIN "
                     "(to_tsvector('simple',replace(file_name,'_', '/')));";

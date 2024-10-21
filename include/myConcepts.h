@@ -13,12 +13,12 @@
 
 /// concepts namespace
 namespace myConcepts {
-
     /**
-     * Global clock used for time measurement
-     */
+    * Global clock used for time measurement
+    */
     using clockType = timing::chronoClockTemplate<std::chrono::milliseconds>;
-    static clockType gClk;  // todo move away
+    extern  clockType gClk;
+
 
     template<typename T>
     concept printable = requires(const T &elem, std::ofstream &out){

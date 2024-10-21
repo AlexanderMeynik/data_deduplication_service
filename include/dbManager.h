@@ -12,13 +12,15 @@
 #include "dbCommon.h"
 #include "HashUtils.h"
 
-/// db_services namespace
-using myConcepts::paramType,myConcepts::gClk;
+
+using myConcepts::paramType/*, myConcepts::gClk*/;
 using enum myConcepts::paramType;
 using namespace hash_utils;
 
-namespace db_services {
 
+/// db_services namespace
+namespace db_services {
+    using myConcepts::gClk;
     /**
      * Closes and deletes connection
      * @param conn
