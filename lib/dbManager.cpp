@@ -1,4 +1,5 @@
 #include "dbManager.h"
+
 namespace db_services {
     void diconnect(db_services::conPtr &conn) {
         if (conn) {
@@ -199,11 +200,6 @@ namespace db_services {
     }
 
 
-
-
-
-
-
     int dbManager::finishFileProcessing(std::string_view filePath, indexType fileId) {
         try {
             trasnactionType txn(*conn_);
@@ -232,44 +228,29 @@ namespace db_services {
                     aggregationTableName.c_str(),
                     filePath.data());
 
-            //todo test properly
-            /*q = vformat("create index  %s_index on \"%s\"(hash);", aggregationTableName.c_str(), aggregationTableName.c_str());
+            //todo more tests
+            /*q = vformat("MERGE INTO public.segments s "
+                        "USING \"%s\" t "
+                        "ON t.hash=s.segment_hash "
+                        "WHEN MATCHED THEN "
+                        "    UPDATE SET segment_count= segment_count + t.count "
+                        "WHEN NOT MATCHED THEN "
+                        "    INSERT (segment_hash, segment_data, segment_count) "
+                        "    VALUES (t.hash,t.data,t.count);", aggregationTableName.c_str());
             gClk.tik();
             txn.exec(q);
-            gClk.tak();
-
-            VLOG(2) << vformat(
-                    "Created index %s_index for file %s.",
-                    aggregationTableName.c_str(),
-                    filePath.data());*/
-
-
-
-
-
-            q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
-                        "SELECT ns.data, 0 ,ns.hash "
-                        "FROM \"%s\" ns"
-                        " left outer join  public.segments s on ns.hash=s.segment_hash "
-                        "where s.segment_hash IS NULL;"
-                        ,aggregationTableName.c_str());
-            gClk.tik();
-            txn.exec(q);
-            gClk.tak();
+            gClk.tak();*/
+             q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
+                         "SELECT ns.data, ns.count,ns.hash "
+                         "FROM \"%s\" ns "
+                         "ON CONFLICT (segment_hash) "
+                         "DO UPDATE "
+                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
+                         aggregationTableName.c_str());
+             gClk.tik();
+             txn.exec(q);
+             gClk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", filePath.data());
-
-
-            q = vformat("update public.segments "
-                        "set segment_count=segment_count+inter.count "
-                        "from "
-                        "(SELECT ns.count,ns.hash "
-                        "FROM \"%s\" ns inner join  public.segments s1 on ns.hash=s1.segment_hash) as inter "
-                        "where inter.hash=segment_hash;"
-                        ,aggregationTableName.c_str());
-            gClk.tik();
-            txn.exec(q);
-            gClk.tak();
-            VLOG(2) << vformat("Segment counts vere updated for file \"%s\".", filePath.data());
 
 
             q = vformat("drop table \"%s\";", aggregationTableName.c_str());
@@ -316,7 +297,6 @@ namespace db_services {
         }
         return returnCodes::ReturnSucess;
     }
-
 
 
     indexType dbManager::createFile(std::string_view filePath, int fileSize) {
@@ -387,7 +367,6 @@ namespace db_services {
     }
 
 
-
     int dbManager::connectToDb() {
         if (checkConnection()) {
             return returnCodes::ReturnSucess;
@@ -401,7 +380,6 @@ namespace db_services {
         }
         return returnCodes::ReturnSucess;
     }
-
 
 
     int dbManager::dropDatabase(std::string_view dbName) {
@@ -468,7 +446,6 @@ namespace db_services {
     }
 
 
-
     int dbManager::createDatabase(std::string_view dbName) {
         conn_ = nullptr;
 
@@ -529,7 +506,6 @@ namespace db_services {
     }
 
 
-
     int dbManager::fillSchemas() {
         try {
 
@@ -539,7 +515,7 @@ namespace db_services {
             std::string query = vformat("create schema if not exists public;"
                                         "create table public.segments"
                                         "("
-                                        "    segment_hash bytea NOT NULL,"
+                                        "    segment_hash bytea NOT NULL primary key,"
                                         "    segment_data bytea NOT NULL,"
                                         "    segment_count bigint NOT NULL"
                                         ");");
@@ -565,7 +541,7 @@ namespace db_services {
 
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
-                    "create index if not exists hash_index on public.segments(segment_hash);"
+                    /*"create index if not exists hash_index on public.segments(segment_hash);"*/
                     ""
                     "create index if not exists gin_f_name ON files USING GIN "
                     "(to_tsvector('simple',replace(file_name,'_', '/')));";
@@ -595,7 +571,6 @@ namespace db_services {
         }
         return ReturnSucess;
     }
-
 
 
 }

@@ -10,13 +10,12 @@
 int main() {
 
     std::ifstream in("../test/bench_timers.txt");
-    if(!in)
+    if (!in)
         return -1;
-    while (!in.eof())
-    {
+    while (!in.eof()) {
         std::string aa;
-        std::getline(in,aa);
-        std::cout<<aa<<'\n';
+        std::getline(in, aa);
+        std::cout << aa << '\n';
     }
 /*
     auto resss = getHashStr("3");

@@ -52,6 +52,6 @@ endif (BUILD_DOC)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-add_executable(qt_main src/runQt.cpp src/MainWindow.ui src/MainWindow.cpp)
+add_executable(qt_main src/runQt.cpp src/MainWindow.cpp src/SettingsWindow.cpp src/FileLineEdit.cpp src/qledindicator.cpp)
 
 target_link_libraries(qt_main  Qt6::Widgets Qt6::Core Qt6::Xml Qt6::Gui Qt6::Charts FileUtilsLib)

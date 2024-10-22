@@ -18,13 +18,13 @@ using enum myConcepts::returnCodes;
 namespace db_services {
 
     #ifdef IT_test
-    static std::string resDirPath = "../../conf/";
+    static inline std::string resDirPath = "../../conf/";
     #else
-    static std::string resDirPath = "../../conf/";
+    static inline std::string resDirPath = "../../conf/";
     #endif
 
     ///  default configuration file path
-    static std::string cfileName = resDirPath.append("config.txt");
+    static inline std::string cfileName = resDirPath.append("config.txt");
     static constexpr const char *const sqlLimitBreachedState = "23505";
     static constexpr const char *const sqlFqConstraight = "23503";
     static const char *const sampleTempDb = "template1";

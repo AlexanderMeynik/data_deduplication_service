@@ -108,7 +108,7 @@ namespace file_services {
          * @param dbName
          * @param configurationFile
          */
-        template<dbUsageStrategy db_usage_str = use, hash_function hash = SHA_256>
+        template<dbUsageStrategy db_usage_str = use>
         int dbLoad(std::string &dbName, std::string_view configurationFile = db_services::cfileName);
 
         int dbDrop(std::string_view dbName) {
@@ -336,7 +336,7 @@ namespace file_services {
     }
 
     
-    template<dbUsageStrategy str, hash_function hash>
+    template<dbUsageStrategy str>
     int FileParsingService::dbLoad(std::string &dbName, std::string_view configurationFile) {
         auto CString = db_services::loadConfiguration(configurationFile);
         CString.setDbname(dbName);

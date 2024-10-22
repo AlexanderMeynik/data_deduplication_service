@@ -29,7 +29,7 @@ void performStuff()
 
     std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
     std::cout<<dbName<<'\n';
-    fs.template dbLoad<dbUsageStrategy::create, static_cast<hash_function>(hashNum)>(dbName);
+    fs.template dbLoad<dbUsageStrategy::create>(dbName);
     gClk.tak();
 
     for (int i = 0; i < 2; ++i) {
@@ -57,7 +57,7 @@ void performStuff()
     sizes2<<'\n';
 
     gClk.tik();
-    //fs.dbDrop(dbName);
+    fs.dbDrop(dbName);
     gClk.tak();
 
     timers << dbName << '\n' << gClk << "\n";
