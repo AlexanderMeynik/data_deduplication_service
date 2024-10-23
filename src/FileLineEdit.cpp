@@ -1,44 +1,117 @@
+#include <QHBoxLayout>
 #include "FileLineEdit.h"
 #include "dbCommon.h"
 
 namespace windows {
-    FileLineEdit::FileLineEdit(QWidget *parent, QString dirPath) :
-            QWidget(parent), dirPath(dirPath) {
+    FileLineEdit::FileLineEdit(QWidget *parent,
+                               QString dirPath,
+                               bool saveFile,
+                               bool LineAcess) :
+            QWidget(parent),
+            dirPath(dirPath),
+            saveFile(saveFile) {
         setUpUi();
+        lineEdit->setReadOnly(LineAcess);
+
+
+        connect(pushButton, &QPushButton::pressed, this, &FileLineEdit::onBrowse);
+        connect(lineEdit, &QLineEdit::textChanged, [&](const QString &str) {
+            emit FileLineEdit::contentChanged(str);
+        });
+
     }
 
 
     void FileLineEdit::setUpUi() {
-        QHBoxLayout *qh = new QHBoxLayout(this);
-
-
+        mainLayout = new QHBoxLayout(this);
         lineEdit = new QLineEdit(this);
-        lineEdit->setText(QString::fromStdString(db_services::cfileName));
 
         pushButton = new QPushButton(this);
         pushButton->setText("Browse");
-        qh->addWidget(lineEdit);
-        qh->addWidget(pushButton);
 
-        connect(pushButton, &QPushButton::pressed, this, &FileLineEdit::onBrowse);
-        this->setLayout(qh);
+        mainLayout->addWidget(lineEdit);
+        mainLayout->addWidget(pushButton);
+
+        this->setLayout(mainLayout);
     }
 
-    void FileLineEdit::onBrowse() {
 
+    void FileLineEdit::onBrowse() {
         QFileDialog::Options options;
 
         options |= QFileDialog::DontUseNativeDialog;
-
         QString selectedFilter;
-        QString directory = QFileDialog::getOpenFileName(this,
-                                                         tr("Find Files"),
-                                                         dirPath,
-                                                         QString(),
-                                                         &selectedFilter,
-                                                         options);
-        if (!directory.isEmpty()) {
-            lineEdit->setText(directory);
+        QString result;
+
+        if (saveFile) {
+            result = QFileDialog::getSaveFileName(this,
+                                                  tr("Save Files"),
+                                                  dirPath,
+                                                  QString(),
+                                                  &selectedFilter,
+                                                  options);
+        } else {
+            result = QFileDialog::getOpenFileName(this,
+                                                  tr("Find Files"),
+                                                  dirPath,
+                                                  QString(),
+                                                  &selectedFilter,
+                                                  options);
+        }
+
+        if (!result.isEmpty()) {
+            lineEdit->setText(result);
         }
     }
+
+    void FileLineEdit::setSaveFile(bool saveFile) {
+        FileLineEdit::saveFile = saveFile;
+    }
+
+    bool FileLineEdit::isSaveFile() const {
+        return saveFile;
+    }
+
+
+    FileLineEditWithOption::FileLineEditWithOption(QWidget *parent,
+                                                   QString dirPath,
+                                                   bool saveFile,
+                                                   bool LineAcess) :
+            FileLineEdit(parent,
+                         std::move(dirPath),
+                         saveFile,
+                         LineAcess) {
+
+        selectModeCheckBox = new QCheckBox(this);
+        selectModeCheckBox->setChecked(false);
+        selectModeCheckBox->setToolTip("Directory view mode!");
+        mainLayout->addWidget(selectModeCheckBox);
+
+        connect(selectModeCheckBox,&QCheckBox::stateChanged,[&]{lineEdit->setText("");});
+        //if we chnage mode of selection previous result must be deleted
+    }
+
+
+    void FileLineEditWithOption::onBrowse() {
+        QString result;
+        if (!selectModeCheckBox->isChecked()) {
+            FileLineEdit::onBrowse();
+            return;
+        } else {
+
+            QFileDialog::Options options;
+            options |= QFileDialog::DontUseNativeDialog;
+            QString selectedFilter;
+            result = QFileDialog::getExistingDirectory(this,
+                                                       tr("Find Files"),
+                                                       dirPath);
+        }
+
+
+        if (!result.isEmpty()) {
+            lineEdit->setText(result);
+        }
+    }
+
+
 } // windows

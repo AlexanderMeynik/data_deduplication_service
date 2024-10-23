@@ -41,9 +41,6 @@ namespace windows {
         void checkConditions();
 
     private:
-
-
-        // Widgets
         QLineEdit *dbHostInput;
         QLineEdit *dbPortInput;
         QLineEdit *dbUserInput;
@@ -58,20 +55,13 @@ namespace windows {
         QPushButton *saveButton;
 
 
-        // Layouts
         QFormLayout *formLayout;
         QVBoxLayout *mainLayout;
 
         FileLineEdit *fileLineEdit;
-
-
-        QLedIndicator * qLedIndicator;
+        QLedIndicator *qLedIndicator;
 
         void setupUI();
-
-
-
-
     };//SettingsWindow class
 
 

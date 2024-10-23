@@ -32,12 +32,11 @@ namespace windows {
 
         setWindowTitle("Database Settings");
 
-        Lines=QVector<QLineEdit*>();
+        Lines = QVector<QLineEdit *>();
 
         mainLayout = new QVBoxLayout(this);
 
         formLayout = new QFormLayout();
-
 
 
         dbHostInput = new QLineEdit(this);
@@ -65,7 +64,7 @@ namespace windows {
         auto prevFileDir = QString::fromStdString(std::filesystem::absolute(
                 std::filesystem::path(db_services::cfileName).parent_path().lexically_normal()
         ).string());
-        fileLineEdit = new FileLineEdit(this, prevFileDir);
+        fileLineEdit = new FileLineEditWithOption(this, prevFileDir);
 
         auto d1 = new QHBoxLayout();
         auto d2 = new QHBoxLayout();
@@ -77,10 +76,12 @@ namespace windows {
         testConnectionButton = new QPushButton("testConnection", this);
         saveButton = new QPushButton("Save", this);
 
-        qLedIndicator=new QLedIndicator(this);
+        qLedIndicator = new QLedIndicator(this);
         qLedIndicator->setChecked(false);
-        qLedIndicator->setOffColor2(QColor(1,0,0));
-        qLedIndicator->setOffColor1(QColor(1,0,0));
+
+
+        qLedIndicator->setOffColor1(QColor(255, 0, 0, 255));
+        qLedIndicator->setOffColor2(QColor(255, 0, 0, 255));
 
         d1->addWidget(loadButton);
         d1->addWidget(saveButton);
@@ -101,15 +102,12 @@ namespace windows {
 
 
     void SettingsWindow::onLoadConfig() {
-        qInfo("Load");
-
         QFile file;
         file.setFileName(fileLineEdit->getContent());
         file.open(QIODevice::ReadOnly);
 
         if (!file.isOpen()) {
             qWarning("Unable to open file");
-            /*dbNameInput->setStyle(new QStyle())*/
             return;
         }
         QTextStream in(&file);
@@ -131,11 +129,6 @@ namespace windows {
     }
 
     void SettingsWindow::onSaveConfig() {
-        qInfo("Save");
-        auto a = fileLineEdit->getContent().toStdString();
-        std::cout << a << '\n';
-
-
         auto prevFileDir = QString::fromStdString(std::filesystem::absolute(
                 std::filesystem::path(db_services::cfileName).parent_path().lexically_normal()
         ).string());
@@ -144,6 +137,7 @@ namespace windows {
                                                         tr("Save Conf"),
                                                         prevFileDir);
         if (fileName.isEmpty()) {
+            //todo print something
             qInfo("nothing");
             return;
         }
@@ -176,25 +170,19 @@ namespace windows {
 
     void SettingsWindow::onTestConnection() {
 
-        //todo move this stuff to designated function in dbCommon
         std::string css = this->getConfiguration().operator std::string();
 
-        bool check=false;
+        bool check = false;
         try {
             auto c = std::make_shared<pqxx::connection>(css);
-            check=db_services::checkConnection(c);
+            check = db_services::checkConnection(c);
             c->close();
-            c= nullptr;
+            c = nullptr;
         }
-        catch (...)
-        {
+        catch (...) {
         }
-
-
 
         qLedIndicator->setChecked(check);
-        qInfo(std::to_string(check).c_str());
-
     }
 
     void SettingsWindow::onApply() {

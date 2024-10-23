@@ -17,7 +17,7 @@ add_subdirectory(test)
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Xml Core Charts)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Xml Core Charts Sql)
 
 
 
@@ -37,10 +37,10 @@ add_library(FileUtilsLib lib/FileService.cpp)
 target_link_libraries(FileUtilsLib commonLibrary dbUtilsLib)
 
 
-add_executable(file_service src/fileServiceTest.cpp)
+add_executable(file_service src/exampl/fileServiceTest.cpp)
 target_link_libraries(file_service FileUtilsLib)
 
-add_executable(ssltest src/main.cpp)
+add_executable(ssltest src/exampl/main.cpp)
 target_link_libraries(ssltest FileUtilsLib commonLibrary )
 
 option(BUILD_DOC "Build documentation" OFF)
@@ -52,6 +52,7 @@ endif (BUILD_DOC)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-add_executable(qt_main src/runQt.cpp src/MainWindow.cpp src/SettingsWindow.cpp src/FileLineEdit.cpp src/qledindicator.cpp)
+file(GLOB GUI_SOURCES src/*.cpp)
+add_executable(qt_main ${GUI_SOURCES})
 
-target_link_libraries(qt_main  Qt6::Widgets Qt6::Core Qt6::Xml Qt6::Gui Qt6::Charts FileUtilsLib)
+target_link_libraries(qt_main  Qt6::Widgets Qt6::Core Qt6::Xml Qt6::Gui Qt6::Sql Qt6::Charts FileUtilsLib)

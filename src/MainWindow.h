@@ -13,12 +13,10 @@
 #include <QLabel>
 
 #include "FileService.h"
+#include "FileLineEdit.h"
 #include "myConnString.h"
 
 namespace windows {
-    /*QT_BEGIN_NAMESPACE
-    namespace Ui { class MainWindow; }
-    QT_END_NAMESPACE*/
 
 
     class MainWindow : public QMainWindow {
@@ -31,6 +29,8 @@ namespace windows {
 
     private slots:
 
+        void chekConditions();
+
         void onImport();
 
         void onExport();
@@ -40,25 +40,27 @@ namespace windows {
         void onSettings();
 
     private:
-        // Widgets
         QWidget *centralWidget;
-        QLineEdit *inputPathChooser;
-        QLineEdit *outputPathChooser;
+
+        FileLineEditWithOption *inputFile;
+        FileLineEditWithOption *outputFile;
+
         QComboBox *hashComboBox;
         QComboBox *segmentSizeComboBox;
         QPushButton *importButton;
         QPushButton *exportButton;
         QPushButton *deleteButton;
-        QPushButton *settingsButton;
+        /* QPushButton *settingsButton;*/
         QTableWidget *dataTable;
         QTextEdit *logTextField;
 
-        // Layouts
         QVBoxLayout *mainLayout;
-        QHBoxLayout *fileChooserLayout;
-        QHBoxLayout *outputChooserLayout;
+
         QHBoxLayout *optionsLayout;
         QHBoxLayout *buttonLayout;
+
+
+        QAction *settingsAction;
 
         /*file_services::FileParsingService fileService;*/
         db_services::myConnString c_str;
