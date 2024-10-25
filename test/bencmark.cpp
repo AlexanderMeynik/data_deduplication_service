@@ -13,8 +13,8 @@ std::vector<fs::path> from_dirs = {"images",
                                    "res",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
-constexpr std::array<int,1> indx={0};
-constexpr std::array<int,3> multipliers={2,4,8};//,16,64,256};
+constexpr std::array<int,5> indx={0,1,2,3,4};
+constexpr std::array<int,6> multipliers={2,4,8,16,64,256};
 
 template<int hashNum,int multip>
 void performStuff()
@@ -39,9 +39,7 @@ void performStuff()
         gClk.tik();
         fs.template loadDirectory<rootDirectoryHandlingStrategy::CreateMain>(from_dirs[i].string(), to_dirs[i].string());
         gClk.tak();
-        gClk.tik();
-        //fs.delete_directory(from_dirs[i].string());
-        gClk.tak();
+
     }
 
     auto total_file_size= fs.executeInTransaction(&db_services::getTotalFileSize);
@@ -52,13 +50,28 @@ void performStuff()
     sizes<<'\n';
 
     auto dedup_data= fs.executeInTransaction(&db_services::getDedupCharacteristics, (indexType) segment_size);
+    auto sizes_data= fs.executeInTransaction(&db_services::getFileSizes);
+
     sizes2<<dbName<<"\n";
     db_services::printRes(dedup_data.value(), sizes2);
     sizes2<<'\n';
+    db_services::printRes(sizes_data.value(), sizes2);
+    sizes2<<'\n';
+
+
+    for (int i = 0; i < 2; ++i) {
+        gClk.tik();
+        fs.deleteDirectory(from_dirs[i].string());
+        gClk.tak();
+    }
+
 
     gClk.tik();
     fs.dbDrop(dbName);
     gClk.tak();
+
+
+
 
     timers << dbName << '\n' << gClk << "\n";
 

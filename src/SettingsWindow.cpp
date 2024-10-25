@@ -170,22 +170,21 @@ namespace windows {
 
     void SettingsWindow::onTestConnection() {
 
-        std::string css = this->getConfiguration().operator std::string();
+        /*std::string css = this->getConfiguration().operator std::string();*/
 
-        bool check = false;
-        try {
-            auto c = std::make_shared<pqxx::connection>(css);
-            check = db_services::checkConnection(c);
-            c->close();
-            c = nullptr;
-        }
-        catch (...) {
-        }
+        bool check = checkConnString(this->getConfiguration());
 
         qLedIndicator->setChecked(check);
     }
 
+
     void SettingsWindow::onApply() {
+        onTestConnection();
+        if(!qLedIndicator->isChecked())
+        {
+            reject();
+            return;
+        }
         accept();
     }
 

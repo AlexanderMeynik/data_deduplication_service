@@ -8,7 +8,6 @@
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QFileSelector>
-
 #include "dbCommon.h"
 
 #include "FileLineEdit.h"

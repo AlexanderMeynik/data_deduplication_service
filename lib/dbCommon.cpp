@@ -200,25 +200,39 @@ namespace db_services {
     resType
     getDedupCharacteristics(trasnactionType &txn, indexType segmentSize) {
         std::string query = "with segments as( "
-                            "select f.file_name,d.segment_hash ,count(d.segment_hash) from files f "
+                            "select f.file_name,d.segment_hash ,count(d.segment_hash),f.created_at from files f "
                             "        inner join public.data d on f.file_id = d.file_id "
-                            "group by f.file_name,d.segment_hash "
+                            "group by f.file_name,f.created_at,d.segment_hash "
                             "order by f.file_name) "
                             ", "
                             "unique_segments_count as( "
-                            "select file_name,count(segment_hash) as unique_count  from segments "
-                            "group by file_name) "
+                            "select file_name,count(segment_hash) as unique_count,created_at  from segments "
+                            "group by file_name, created_at) "
                             " "
                             " "
                             "select '/'||replace(f.file_name,' ','/') as path,size_in_bytes,aa.unique_count, "
                             "       ceil(size_in_bytes::float8/$1 "
                             "       ) as segment_count,(aa.unique_count /ceil(size_in_bytes::float8/$1 "
                             "                          )::float8)*100 as unique_percenatage "
+                            ", aa.created_at "
                             "from files f\n"
                             "inner join  unique_segments_count aa on f.file_name=aa.file_name;";
         return txn.exec(query, pqxx::params(segmentSize));
     }
 
+    resType
+    getFileSizes(trasnactionType &txn) {
+        std::string query = "with data as( "
+                            "select '/'||replace(file_name,' ','/') as path, sum(octet_length(data.segment_hash)+8) as data_size, "
+                            "       size_in_bytes as original_size "
+                            "from data "
+                            "inner join public.files f on data.file_id = f.file_id "
+                            "group by f.file_name,size_in_bytes "
+                            "order by file_name) "
+                            "select *,data_size::float8/original_size*100 as ratio "
+                            "from data;";
+        return txn.exec(query);
+    }
     void printRes(resType &rss, std::ostream &out) {
         int i = 0;
         for (; i < rss[0].size() - 1; ++i) {
@@ -250,6 +264,7 @@ namespace db_services {
     }
 
     indexType getTotalFileSize(trasnactionType &txn) {
+        //todo turn to expected
         return txn.query_value<indexType>("select sum(size_in_bytes) from files;");
     }
 
@@ -273,6 +288,19 @@ namespace db_services {
 
     bool checkConnection(const conPtr &conn) {
         return conn && conn->is_open();
+    }
+
+    bool checkConnString(const myConnString &connString) {
+        bool check = false;
+        try {
+            auto c = std::make_shared<pqxx::connection>(connString.c_str());
+            check = checkConnection(c);
+            c->close();
+            c = nullptr;
+        }
+        catch (...) {
+        }
+        return check;
     }
 }
 

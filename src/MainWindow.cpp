@@ -5,7 +5,7 @@
 #include <QSqlQueryModel>
 
 
-#include "SettingsWindow.h"
+
 
 std::initializer_list<QString> ll = {"2", "4", "8", "16", "32"};//todo remake
 
@@ -25,14 +25,26 @@ namespace windows {
         connect(settingsAction, &QAction::triggered, this, &MainWindow::onSettings);
 
 
-        connect(inputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::chekConditions);
-        connect(outputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::chekConditions);
+        connect(inputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
+        connect(outputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
+
+
+        connect(loadDb, &QPushButton::pressed, this,&MainWindow::onloadDatabase);
+
+        connect(dataseName,&QLineEdit::textChanged,[&](){
+            loadDb->setEnabled(!dataseName->text().isEmpty());
+        });
+
+
 
         for (const char *hashName: hash_utils::hash_function_name) {
             hashComboBox->addItem(hashName);
         }
         segmentSizeComboBox->addItems(ll);
-        chekConditions();
+
+
+        dbConnection=false;
+        activateButtonsd();
 
     }
 
@@ -156,26 +168,74 @@ namespace windows {
         includeOptionsArea->setLayout(incudeOptionLay);
 
 
-        auto exportOptionsArea = new QGroupBox(tr("FileExportOptions"));
+        exportOptionsArea=new QGroupBox(tr("FileExportOptions"));
+
         deleteFiles = new QCheckBox();
         deleteFiles->setToolTip("If checked will delete file/directory after export.");
         createMain = new QCheckBox();
         createMain->setToolTip("If checked  new directory will be created if out path does not exist!");
+
+        errorCount=new QLCDNumber();
+        /*errorCount->setDigitCount(10);*/
+        exportTime=new QLCDNumber();
+
+
         auto exportOptionLay = new QGridLayout();
-        exportOptionLay->addWidget(deleteFiles);
-        exportOptionLay->addWidget(createMain);
+        exportOptionLay->addWidget(new QLabel("Delete file/directory"),0,0,1,1);
+        exportOptionLay->addWidget(deleteFiles,0,1,1,1);
+        exportOptionLay->addWidget(new QLabel("Create root directory"),0,2,1,1);
+        exportOptionLay->addWidget(createMain,0,3,1,1);
+
+
+        exportOptionLay->addWidget(new QLabel("Export time (ms)"),
+                                   1, 0, 1, 1);
+        exportOptionLay->addWidget(exportTime,
+                                   1, 1, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Error count"),
+                                   1, 2, 1, 1);
+        exportOptionLay->addWidget(errorCount,
+                                   1, 3, 1, 1);
+
+        createMain->setChecked(true);
+
         exportOptionsArea->setLayout(exportOptionLay);
+
+        databaseConfiguration=new QGroupBox(tr("Database configiration"));
+        auto dbOptionLay = new QGridLayout();
+
+        createNewDbCB=new QCheckBox();
+        loadDb=new QPushButton("Connect");
+        loadDb->setEnabled(false);
+        dataseName=new QLineEdit();
+
+        dataseName=new QLineEdit();
+        QRegularExpression re("^[a-z_][A-Za-z0-9_]{1,62}");
+        QRegularExpressionValidator *validator = new QRegularExpressionValidator(re, this);
+        dataseName->setValidator(validator);
+
+        dbOptionLay->addWidget(new QLabel("Database name:"),0,0,1,1);
+        dbOptionLay->addWidget(dataseName,0,1,1,1);
+
+        dbOptionLay->addWidget(new QLabel("Create new database"),1,0,1,1);
+        dbOptionLay->addWidget(createNewDbCB,1,1,1,1);
+        dbOptionLay->addWidget(loadDb,1,2,1,1);
+
+
+
+        databaseConfiguration->setLayout(dbOptionLay);
 
 
         VV->addWidget(includeOptionsArea);
+        VV->addWidget(databaseConfiguration);
         VV->addWidget(logTextField);
         VV->addWidget(exportOptionsArea);
 
 
         mmm->addLayout(VV);
 
-        /*mainLayout->addWidget(logTextField);*/
         centralWidget()->setLayout(mmm);
+
+        settingsWindow=new  SettingsWindow(this);
     }
 
     void MainWindow::onImport() {
@@ -191,7 +251,6 @@ namespace windows {
     }
 
     void MainWindow::onExport() {
-        // Example of calling loadDirectory or loadFile from FileParsingService
         QString outputPath = outputFile->getContent();
         QString fromPath = inputFile->getContent();
         if (QFileInfo(fromPath).isDir()) {
@@ -204,7 +263,6 @@ namespace windows {
     }
 
     void MainWindow::onDelete() {
-        // Example of calling deleteFile or deleteDirectory from FileParsingService
         QString path = inputFile->getContent();
         if (QFileInfo(path).isDir()) {
             writeLog("delete directory");
@@ -217,20 +275,26 @@ namespace windows {
 
     void MainWindow::onSettings() {
 
-        SettingsWindow settingsWindow(this);
-        auto stat = settingsWindow.exec();
-        writeLog(std::to_string(stat).c_str());
+
+        auto stat = settingsWindow->exec();
+
+        dbConnection= (stat == QDialog::Accepted);
         if (stat == QDialog::Accepted) {
-            c_str = std::move(settingsWindow.getConfiguration());
+
+            c_str = std::move(settingsWindow->getConfiguration());
             writeLog("update settings");
+            writeLog(c_str.c_str());
+
+        } else
+        {
+            writeLog("Rejected connection",ERROR);
         }
+        activateButtonsd();
+        settingsWindow->close();
 
-        settingsWindow.close();
-
-        writeLog(c_str.c_str());
     }
 
-    void MainWindow::chekConditions() {
+    void MainWindow::activateButtonsd() {
 
         //todo if no connection all button will be disabled(+ add label to show that)
 
@@ -240,14 +304,41 @@ namespace windows {
         bool cond = QFileInfo(in).isDir() ==
                     QFileInfo(out).isDir();
 
-        importButton->setEnabled(!in.isEmpty());
-        exportButton->setEnabled(!in.isEmpty() && !out.isEmpty()
+        /*importButton->setEnabled(dbConnection&&!in.isEmpty());
+        exportButton->setEnabled(dbConnection&&!in.isEmpty() && !out.isEmpty()
                                  && cond);
-        deleteButton->setEnabled(!in.isEmpty());
+        deleteButton->setEnabled(dbConnection&&!in.isEmpty());*/
+
+        importButton->setEnabled(dbConnection);
+        exportButton->setEnabled(dbConnection);
+        deleteButton->setEnabled(dbConnection);
     }
 
     void MainWindow::writeLog(QString qss, LogLevel lg) {
         logTextField->setTextColor(colourLookUp[lg]);
         logTextField->append(QString(logLevelLookUp[lg]).arg(qss));
+    }
+
+    void MainWindow::onloadDatabase() {
+
+        this->c_str.setDbname(dataseName->text().toStdString());
+
+        dbConnection=checkConnString(c_str);
+
+        activateButtonsd();
+
+        if(createNewDbCB->isChecked())
+        {
+            if(dbConnection)
+            {
+                writeLog("database aleady exists");
+            }
+            //todo create database
+        }
+        else
+        {
+            //todo dbload
+        }
+
     }
 }

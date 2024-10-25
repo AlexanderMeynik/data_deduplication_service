@@ -12,37 +12,43 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QGroupBox>
-
 #include <QLCDNumber>
+#include <QValidator>
 
+#include "common.h"
 #include "FileService.h"
 #include "FileLineEdit.h"
-#include "myConnString.h"
+#include "SettingsWindow.h"
 
 namespace windows {
 
-    enum LogLevel
+
+    class MyPqxxModel: public QAbstractTableModel
     {
-        INFO,
-        WARNING,
-        ERROR,
-        RESULT
+    public:
+        //todo execute transcation
+    private:
+        int rowCount(const QModelIndex &parent) const
+        {
+           return res.size();
+        }
+        int columnCount(const QModelIndex &parent) const
+        {
+            return res.columns();
+        }
+        QVariant data(const QModelIndex &index, int role) const
+        {
+            if (role == Qt::DisplayRole) {
+                QString unswer = QString("row = ") + QString::number(index.row()) + "  col = " + QString::number(index.column());
+                // строкой выше мы формируем ответ. QString::number преобразует число в текст
+                return QVariant(unswer);
+            }
+            return QVariant();
+        }
+        pqxx::result& res;
     };
 
-    static constexpr std::array<const char*,4> logLevelLookUp=
-            {
-                    "[INFO] %1",
-                    "[WARNING] %1",
-                    "[ERROR] %1",
-                    "[RESULT] %1",
-            };
-    static constexpr std::array<Qt::GlobalColor,4> colourLookUp
-{
-        Qt::black,
-        Qt::darkYellow,
-        Qt::red,
-        Qt::darkGreen
-};
+
     class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -54,7 +60,7 @@ namespace windows {
 
     private slots:
 
-        void chekConditions();
+        void activateButtonsd();
 
         void onImport();
 
@@ -65,6 +71,8 @@ namespace windows {
         void onSettings();
 
         void writeLog(QString qss,LogLevel lg=RESULT);
+
+        void onloadDatabase();
     //todo at osme point we need either to create or to use existing database
     private:
 
@@ -73,9 +81,13 @@ namespace windows {
 
         QComboBox *hashComboBox;
         QComboBox *segmentSizeComboBox;
+
+
         QPushButton *importButton;
         QPushButton *exportButton;
         QPushButton *deleteButton;
+        QPushButton *loadDb;
+
         QTableWidget *dataTable;
         QTextEdit *logTextField;
 
@@ -91,14 +103,16 @@ namespace windows {
 
         QLabel *labelSegmentSize;
         QLabel *labelHashFunction;
-        /*file_services::FileParsingService fileService;*/
-        db_services::myConnString c_str;
 
         QGroupBox* includeOptionsArea;
+        QGroupBox * exportOptionsArea;
+        QGroupBox * databaseConfiguration;
 
         QCheckBox *replaceCB;
         QCheckBox* createMain;
         QCheckBox* deleteFiles;
+
+
 
         QLCDNumber * numberBlocks;
         QLCDNumber * totalSize;
@@ -109,8 +123,18 @@ namespace windows {
         QLCDNumber * importTime;
 
         QLCDNumber * exportTime;
+        QLCDNumber * errorCount;//todo run checks on the resulting files
+        QCheckBox* createNewDbCB;
+        QLineEdit * dataseName;
 
+        bool dbConnection;
+        db_services::myConnString c_str;
+
+
+        SettingsWindow * settingsWindow;
         void setupUI();
+
+        /*file_services::FileParsingService fileService;*/
     };
 }
 

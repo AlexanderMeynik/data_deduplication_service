@@ -36,6 +36,9 @@ namespace db_services {
     using resType = pqxx::result;
     using nonTransType = pqxx::nontransaction;
 
+
+
+
     std::string toSpacedPath(std::string_view path);
 
     std::string fromSpacedPath(std::string_view path);
@@ -69,6 +72,8 @@ namespace db_services {
     resType getTotalSchemaSizes(trasnactionType &txn);
 
     resType getDedupCharacteristics(trasnactionType &txn, indexType segmentSize);
+
+    resType getFileSizes(trasnactionType &txn);
 
     void printRes(resType &rss, std::ostream &out);
 
@@ -113,6 +118,9 @@ namespace db_services {
         ss << vec[i];
         return ss.str();
     }
+
+    bool checkConnString(const myConnString &connString);
+
 }
 
 #endif //DATA_DEDUPLICATION_SERVICE_DBCOMMON_H
