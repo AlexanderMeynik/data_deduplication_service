@@ -169,9 +169,6 @@ namespace windows {
     }
 
     void SettingsWindow::onTestConnection() {
-
-        /*std::string css = this->getConfiguration().operator std::string();*/
-
         bool check = checkConnString(this->getConfiguration());
 
         qLedIndicator->setChecked(check);

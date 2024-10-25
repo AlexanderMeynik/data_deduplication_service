@@ -146,7 +146,7 @@ namespace db_services {
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
         executeInTransaction(ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
-            trasnactionType txn(*conn_);
+            trasnactionType txn(*conn_);//todo if conn is null this one will segfault
             ResultType res = call(txn, std::forward<Args>(args)...);
             txn.commit();
             return res;

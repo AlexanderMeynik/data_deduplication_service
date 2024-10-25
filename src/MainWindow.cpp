@@ -15,6 +15,11 @@ namespace windows {
     MainWindow::MainWindow(QWidget *parent)
             : QMainWindow(parent) {
         this->setFixedSize(1024, 620);
+
+        fileService= file_services::FileParsingService();
+
+        //todo init file service
+
         setupUI();
 
         connect(importButton, &QPushButton::pressed, this, &MainWindow::onImport);
@@ -48,7 +53,12 @@ namespace windows {
 
     }
 
-    MainWindow::~MainWindow() {}
+    MainWindow::~MainWindow() {
+        if(mydmod)
+        {
+            delete mydmod;
+        }
+    }
 
     void MainWindow::setupUI() {
         setWindowTitle("File Processing Application");
@@ -107,11 +117,9 @@ namespace windows {
         //todo can ve create our own model using pqxx res
         /*QSqlQueryModel aa;*/
 
-        dataTable = new QTableWidget();
-        dataTable->setColumnCount(3);
-        QStringList headers;
-        headers << "File" << "Hash" << "Size";
-        dataTable->setHorizontalHeaderLabels(headers);
+        dataTable = new QTableView();
+
+
 
         logTextField = new QTextEdit();
         logTextField->setReadOnly(true);
@@ -327,6 +335,8 @@ namespace windows {
 
         activateButtonsd();
 
+        onModelSet();
+
         if(createNewDbCB->isChecked())
         {
             if(dbConnection)
@@ -340,5 +350,21 @@ namespace windows {
             //todo dbload
         }
 
+    }
+
+    void MainWindow::onModelSet() {
+        if(dbConnection) {
+            auto dbName=dataseName->text().toStdString();
+            fileService.dbLoad(dbName);
+            mydmod =new MyPqxxModel(fileService);
+            mydmod->executeInTransaction(&db_services::getFileSizes);
+            dataTable->setModel(mydmod);
+            dataTable->sizeHint();
+
+        } else
+        {
+            dataTable->setModel(nullptr);
+            delete mydmod;
+        }
     }
 }

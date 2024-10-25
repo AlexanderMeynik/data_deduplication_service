@@ -26,8 +26,34 @@ namespace windows {
     class MyPqxxModel: public QAbstractTableModel
     {
     public:
-        //todo execute transcation
-    private:
+        MyPqxxModel(file_services::FileParsingService &fs):fsRef(fs)
+        {
+            res=pqxx::result();
+            }
+        template<typename ResType1, typename ... Args>
+        void  executeInTransaction(ResType1
+                                                         (*call)(db_services::trasnactionType &, Args ...),
+                                                         Args &&... args) {
+            auto ss=fsRef.executeInTransaction(call, std::forward<Args>(args)...);
+            if(!ss.has_value())
+            {
+                res=pqxx::result();
+            }
+            res =ss.value();
+        }
+
+        template<typename ResType1, typename ... Args>
+        void
+        executeInTransaction(const std::function<ResType1(db_services::trasnactionType &, Args ...)> &call,
+                             Args &&... args) {
+            auto ss=fsRef.executeInTransaction(call, std::forward<Args>(args)...);
+            if(!ss.has_value())
+            {
+                res=pqxx::result();
+            }
+            res =ss.value();
+        }
+
         int rowCount(const QModelIndex &parent) const
         {
            return res.size();
@@ -36,16 +62,34 @@ namespace windows {
         {
             return res.columns();
         }
-        QVariant data(const QModelIndex &index, int role) const
+        QVariant headerData(int section, Qt::Orientation orientation,
+                            int role = Qt::DisplayRole) const override
         {
-            if (role == Qt::DisplayRole) {
-                QString unswer = QString("row = ") + QString::number(index.row()) + "  col = " + QString::number(index.column());
-                // строкой выше мы формируем ответ. QString::number преобразует число в текст
-                return QVariant(unswer);
+
+            //qInfo(std::to_string(section).c_str());
+            if(role == Qt::DisplayRole)
+            {
+                if(orientation==Qt::Orientation::Vertical)
+                {
+                    return QVariant(section);
+                }
+               return QVariant(QString::fromStdString(res.column_name(section)));
             }
             return QVariant();
         }
-        pqxx::result& res;
+        QVariant data(const QModelIndex &index, int role) const
+        {
+
+            if (role == Qt::DisplayRole &&index.row()<res.size()&&index.column()<res.columns()) {
+                /*QString unswer = QString("row = ") + QString::number(index.row()) + "  col = " + QString::number(index.column());*/
+                return QVariant(QString::fromStdString(
+
+                        res[index.row()][index.column()].as<std::string>()));
+            }
+            return QVariant();
+        }
+        pqxx::result res;
+    file_services::FileParsingService& fsRef;
     };
 
 
@@ -73,7 +117,8 @@ namespace windows {
         void writeLog(QString qss,LogLevel lg=RESULT);
 
         void onloadDatabase();
-    //todo at osme point we need either to create or to use existing database
+
+        void onModelSet();
     private:
 
         FileLineEditWithOption *inputFile;
@@ -87,8 +132,9 @@ namespace windows {
         QPushButton *exportButton;
         QPushButton *deleteButton;
         QPushButton *loadDb;
+        QPushButton *dropDb;
 
-        QTableWidget *dataTable;
+        QTableView *dataTable;
         QTextEdit *logTextField;
 
         QVBoxLayout *mainLayout;
@@ -132,9 +178,11 @@ namespace windows {
 
 
         SettingsWindow * settingsWindow;
+
+        MyPqxxModel* mydmod;
         void setupUI();
 
-        /*file_services::FileParsingService fileService;*/
+        file_services::FileParsingService fileService;//todo save configuration path to xml(or copy one from form)
     };
 }
 
