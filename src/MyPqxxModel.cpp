@@ -1,10 +1,9 @@
 #include "MyPqxxModel.h"
 
 
-MyPqxxModel::MyPqxxModel(myConnString &cstring, QObject *parent) : QAbstractTableModel(parent) {
-    this->connection_ = connectIfPossible(cstring.c_str()).value_or(nullptr);
-    good = db_services::checkConnection(this->connection_);
+MyPqxxModel::MyPqxxModel(QObject *parent) : QAbstractTableModel(parent) {
     res = pqxx::result();
+    isEmpty_= true;
 }
 
 QVariant MyPqxxModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -29,8 +28,16 @@ QVariant MyPqxxModel::data(const QModelIndex &index, int role) const {
 
 void MyPqxxModel::setColumnsTypes() {
     columnTypes.resize(res.columns());
+    columnNames.resize(res.columns());
     for (int i = 0; i < res.columns(); ++i) {
         columnTypes[i] = res.column_type(i);
+        columnNames[i]=res.column_name(i);
     }
+}
+
+bool MyPqxxModel::performConnection(myConnString &cstring) {
+    this->connection_ = connectIfPossible(cstring.c_str()).value_or(nullptr);
+    good = db_services::checkConnection(this->connection_);
+    return good;
 }
 

@@ -38,4 +38,17 @@ void inline writeLog(QTextEdit *logTextField,QString qss,LogLevel lg=RESULT)
     logTextField->setTextColor(colourLookUp[lg]);
     logTextField->append(QString(logLevelLookUp[lg]).arg(qss));
 }
+
+double inline smartCeil(double vaL,uint num)
+{
+    if(num==0)
+    {
+        return vaL;
+    }
+
+    double c= pow(10,num);
+    return ((int64_t)(vaL*c))/c;
+
+}
+
 #endif //DATA_DEDUPLICATION_SERVICE_COMMON_H

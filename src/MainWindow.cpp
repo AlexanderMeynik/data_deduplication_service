@@ -16,9 +16,20 @@ namespace windows {
 
         fileService = file_services::FileParsingService();
 
-        //todo init file service
 
         setupUI();
+
+        mydmod = new MainTableModel(this);
+        proxyModel = new MySortFilterProxyModel(this);
+        proxyModel->setSourceModel(mydmod);
+        dataTable->setModel(proxyModel);
+
+        QCompleter* completer = new QCompleter( this );//todo check
+        completer->setModel( proxyModel );
+        completer->setCompletionColumn(0);
+        completer->setCompletionRole(Qt::DisplayRole);
+
+        fileExportField->setCompleter(completer);
 
         connect(importButton, &QPushButton::pressed, this, &MainWindow::onImport);
         connect(exportButton, &QPushButton::pressed, this, &MainWindow::onExport);
@@ -42,10 +53,57 @@ namespace windows {
             loadDb->setEnabled(!dataseName->text().isEmpty());
         });
 
+        connect(fileExportField,&QLineEdit::textChanged,[&]
+                (const QString &a)
+        {
+
+            if(dynamic_cast<decltype(this->mydmod)>(proxyModel->sourceModel())->isEmpty())
+            {
+                return ;
+            }
+            if(a.isEmpty())
+            {
+                proxyModel->setFilterRegularExpression(QString());
+                return ;
+            }
+            proxyModel->setFilterRegularExpression(a);
+
+        });
+
+        connect(dataTable->selectionModel(),&QItemSelectionModel::selectionChanged,[&](const QItemSelection &selected,
+                const QItemSelection &deselected)
+        {
+            writeLog(QString::number(selected.size()));
+
+            if (!selected.indexes().isEmpty()) {
+                QModelIndex index = selected.indexes().first();
+                int row = index.row();
+                int columnCount = dataTable->model()->columnCount();
+
+                QString rowData = "Selected row: " + QString::number(row) + " | Data: ";
+
+                for (int col = 0; col < columnCount; ++col) {
+                    // Get the data for each column in the selected row
+                    QVariant data = index.sibling(row, col).data();
+                    rowData += data.toString() + " ";
+                }
+                updateLEDS(index);
+
+                writeLog(rowData);
+            } else
+            {
+                resetLeds();
+
+            }
+        });
+
+
 
         for (const char *hashName: hash_utils::hash_function_name) {
             hashComboBox->addItem(hashName);
         }
+
+
         segmentSizeComboBox->addItems(ll);
 
         dbConnection = false;
@@ -112,14 +170,10 @@ namespace windows {
         //todo add connection qled
 
 
-        //todo use tree or list model
-        //todo https://doc.qt.io/qt-6/sql-connecting.html
-        //https://doc.qt.io/qt-6/qsqlquerymodel.html
-        //todo can ve create our own model using pqxx res
-        /*QSqlQueryModel aa;*/
 
-        dataTable = new QTableView();
+        dataTable = new DeselectableTreeView(this);
 
+        /*dataTable->resizeColumnToContents(0);*/
 
         logTextField = new QTextEdit();
         logTextField->setReadOnly(true);
@@ -284,18 +338,15 @@ namespace windows {
     }
 
     void MainWindow::onSettings() {
-
-
         auto stat = settingsWindow->exec();
-
-
 
         if (stat == QDialog::Accepted) {
             c_str = std::move(settingsWindow->getConfiguration());
             writeLog("update settings");
             writeLog(c_str.c_str());
-
-        } else {
+        }
+        else
+        {
             writeLog("Rejected connection", ERROR);
         }
         settingsWindow->close();
@@ -389,24 +440,30 @@ namespace windows {
             if(dataTable->model())
             {
                 fileService.disconnect();
-                dataTable->setModel(nullptr);
-                delete mydmod;
+                mydmod->reset();
+                /*dataTable->setModel(nullptr);*/
             }
         }
         else
         {
             auto dbName = dataseName->text().toStdString();
 
-            fileService.dbLoad(dbName);
-            mydmod = new MyPqxxModel(c_str,this);
+            auto r1=fileService.dbLoad(dbName);
+            bool result=mydmod->performConnection(c_str);
 
-            proxyModel = new QSortFilterProxyModel(this);
-            proxyModel->setSourceModel(mydmod);
+            if(!result||r1!=0)
+            {
+                return;
+            }
 
-            mydmod->executeInTransaction(&db_services::getFileSizes);
-            dataTable->setModel(proxyModel);
+
+            mydmod->getData();
             dataTable->sizeHint();
             dataTable->setSortingEnabled(true);
+            dataTable->sortByColumn(-1,Qt::SortOrder::DescendingOrder);
+            /*dataTable->resizeColumnToContents(0);*/
+            dataTable->setWordWrap(true);
+            /*dataTable->resizeColumnsToContents();*/
         }
 
         activateButtonsd();
@@ -422,6 +479,25 @@ namespace windows {
 
     void MainWindow::updateModel(size_t index) {
 
-        mydmod->executeInTransaction(&db_services::getFileSizes);
+        mydmod->getData();
+    }
+
+    void MainWindow::updateLEDS(QModelIndex &idx) {
+        //todo when connection/model resets leds will also reset
+        int row=idx.row();
+        this->setStyleSheet("QLCDNumber { background-color: white; color: black; }");
+        totalSize->setDigitCount(8);
+        totalSize->display(idx.sibling(row, 2).data().toInt());
+
+        totalRepeatedpercentage->setDigitCount(5);
+        totalRepeatedpercentage->setSegmentStyle(QLCDNumber::Filled);
+        totalRepeatedpercentage->display(smartCeil(idx.sibling(row, 3).data().toDouble(),2));
+
+    }
+
+    void MainWindow::resetLeds() {
+        totalSize->display(0);
+        totalRepeatedpercentage->display(0);
+        this->setStyleSheet("");
     }
 }

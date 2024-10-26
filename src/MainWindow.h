@@ -18,6 +18,8 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamAttribute>
 #include <QSortFilterProxyModel>
+#include <QCompleter>
+#include <QTreeView>
 
 #include "common.h"
 #include "FileService.h"
@@ -61,6 +63,9 @@ namespace windows {
 
         void updateModel(size_t index);
 
+        void updateLEDS(QModelIndex&idx);
+
+        void resetLeds();
 
     private:
 
@@ -82,7 +87,7 @@ namespace windows {
         QPushButton *loadDb;
         QPushButton *dropDb;
 
-        QTableView *dataTable;
+        DeselectableTreeView *dataTable;
         QTextEdit *logTextField;
 
         QVBoxLayout *mainLayout;
@@ -90,9 +95,8 @@ namespace windows {
         QHBoxLayout *optionsLayout;
         QHBoxLayout *buttonLayout;
         QHBoxLayout *hbl;
-        //todo filter by contents of this file
-        // https://doc.qt.io/qt-6/qtwidgets-itemviews-customsortfiltermodel-example.html
-        //todo add auto complete using model
+
+
         QLineEdit *fileExportField;
 
         QAction *settingsAction;
@@ -130,8 +134,10 @@ namespace windows {
         SettingsWindow * settingsWindow;
 
 
-        MyPqxxModel* mydmod;
-        QSortFilterProxyModel *proxyModel;
+        MainTableModel* mydmod;
+        MySortFilterProxyModel *proxyModel;
+
+
         void setupUI();
 
         file_services::FileParsingService fileService;

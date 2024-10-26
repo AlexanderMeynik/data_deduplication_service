@@ -6,9 +6,13 @@
 #include <unordered_map>
 
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <pqxx/pqxx>
 
 #include <dbCommon.h>
+#include <QDate>
+#include <QTreeView>
+#include <QMouseEvent>
 
 /**
  * Type for postgresql OID storage
@@ -31,6 +35,8 @@ static const std::unordered_map<OID, returnType> oidToTypeMap = {
         {25,  std::type_identity<std::string>{}},
         {17, std::type_identity<pqxx::binarystring>{}}
 };
+
+
 template<typename Ret>
 QVariant
 toQtVariant(Ret& val) {
@@ -68,7 +74,9 @@ class MyPqxxModel : public QAbstractTableModel {
 Q_OBJECT
 public:
 
-    MyPqxxModel(myConnString &cstring, QObject *parent = nullptr);
+    MyPqxxModel( QObject *parent = nullptr);
+
+    bool performConnection(myConnString &cstring);
 
     /**
      * @ref db_services::executeInTransaction() "executeInTransaction()"
@@ -89,6 +97,7 @@ public:
         }
         res = ss.value();
         setColumnsTypes();
+        isEmpty_= false;
         endResetModel();
     }
 
@@ -112,6 +121,7 @@ public:
         }
         res = ss.value();
         setColumnsTypes();
+        isEmpty_= false;
         endResetModel();
     }
 
@@ -126,20 +136,94 @@ public:
     {
         beginResetModel();
         res=resType();
+        isEmpty_= true;
         endResetModel();
     }
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
 
     QVariant data(const QModelIndex &index, int role) const override;
+    bool connected() const
+    {
+        return good;
+    }
 
-private:
+    bool isEmpty()
+    {
+        return isEmpty_;
+    }
+
+protected:
     void setColumnsTypes();
+
     resType res;
 
     conPtr connection_;
     QList<OID> columnTypes;
+    QList<QString> columnNames;
     bool good;
+    bool isEmpty_;
+};
+class MainTableModel : public MyPqxxModel
+{
+public:
+    MainTableModel( QObject *parent = nullptr): MyPqxxModel(parent){}
+
+    void getData()
+    {
+        this->executeInTransaction(&db_services::getFileSizes);
+    }
+};
+
+
+
+class MySortFilterProxyModel : public QSortFilterProxyModel
+{
+Q_OBJECT
+
+public:
+    MySortFilterProxyModel(QObject *parent= nullptr)
+            : QSortFilterProxyModel(parent)
+    {
+    }
+
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
+    {
+        QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
+        return (sourceModel()->data(index0).toString().contains(filterRegularExpression()));
+    }
+
+private:
+};
+
+
+class DeselectableTreeView : public QTreeView
+{
+public:
+    DeselectableTreeView(QWidget *parent) : QTreeView(parent) {}
+    virtual ~DeselectableTreeView() {}
+
+private:
+    virtual void mousePressEvent(QMouseEvent *event)
+    {
+
+        //todo maybe use https://radekp.github.io/qtmoko/api/model-view-selection.html
+        QModelIndex item = indexAt(event->pos());
+
+        if (item.isValid())
+        {
+            QTreeView::mousePressEvent(event);
+        }
+        else
+        {
+            clearSelection();
+            const QModelIndex index;
+            selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+        }
+    }
+
 };
 
 
