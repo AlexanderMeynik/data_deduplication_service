@@ -33,30 +33,33 @@ static const std::unordered_map<OID, returnType> oidToTypeMap = {
         {20,  std::type_identity<int64_t>{}},
         {701, std::type_identity<double>{}},
         {25,  std::type_identity<std::string>{}},
-        {17, std::type_identity<pqxx::binarystring>{}}
+        {17,  std::type_identity<pqxx::binarystring>{}}
 };
 
 
 template<typename Ret>
 QVariant
-toQtVariant(Ret& val) {
+toQtVariant(Ret &val) {
     return QVariant();
 }
 
 template<>
-QVariant inline  toQtVariant(pqxx::binarystring& val) {
+QVariant inline toQtVariant(pqxx::binarystring &val) {
     return QVariant(QString::fromStdString(val.str()));
 }
+
 template<>
-QVariant inline  toQtVariant(std::string_view & val) {
+QVariant inline toQtVariant(std::string_view &val) {
     return QVariant(QString::fromStdString(val.data()));
 }
+
 template<>
-QVariant  inline  toQtVariant(std::string & val) {
+QVariant inline toQtVariant(std::string &val) {
     return QVariant(QString::fromStdString(val));
 }
+
 template<>
-QVariant inline  toQtVariant(double &val) {
+QVariant inline toQtVariant(double &val) {
     return val;
 }
 
@@ -74,7 +77,7 @@ class MyPqxxModel : public QAbstractTableModel {
 Q_OBJECT
 public:
 
-    MyPqxxModel( QObject *parent = nullptr);
+    MyPqxxModel(QObject *parent = nullptr);
 
     bool performConnection(myConnString &cstring);
 
@@ -97,7 +100,7 @@ public:
         }
         res = ss.value();
         setColumnsTypes();
-        isEmpty_= false;
+        isEmpty_ = false;
         endResetModel();
     }
 
@@ -121,7 +124,7 @@ public:
         }
         res = ss.value();
         setColumnsTypes();
-        isEmpty_= false;
+        isEmpty_ = false;
         endResetModel();
     }
 
@@ -132,24 +135,24 @@ public:
     int columnCount(const QModelIndex &parent) const override {
         return res.columns();
     }
-    void reset()
-    {
+
+    void reset() {
         beginResetModel();
-        res=resType();
-        isEmpty_= true;
+        res = resType();
+        isEmpty_ = true;
         endResetModel();
     }
+
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
 
     QVariant data(const QModelIndex &index, int role) const override;
-    bool connected() const
-    {
+
+    bool connected() const {
         return good;
     }
 
-    bool isEmpty()
-    {
+    bool isEmpty() {
         return isEmpty_;
     }
 
@@ -164,33 +167,28 @@ protected:
     bool good;
     bool isEmpty_;
 };
-class MainTableModel : public MyPqxxModel
-{
-public:
-    MainTableModel( QObject *parent = nullptr): MyPqxxModel(parent){}
 
-    void getData()
-    {
+class MainTableModel : public MyPqxxModel {
+public:
+    MainTableModel(QObject *parent = nullptr) : MyPqxxModel(parent) {}
+
+    void getData() {
         this->executeInTransaction(&db_services::getFileSizes);
     }
 };
 
 
-
-class MySortFilterProxyModel : public QSortFilterProxyModel
-{
+class MySortFilterProxyModel : public QSortFilterProxyModel {
 Q_OBJECT
 
 public:
-    MySortFilterProxyModel(QObject *parent= nullptr)
-            : QSortFilterProxyModel(parent)
-    {
+    MySortFilterProxyModel(QObject *parent = nullptr)
+            : QSortFilterProxyModel(parent) {
     }
 
 
 protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
-    {
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
         QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
         return (sourceModel()->data(index0).toString().contains(filterRegularExpression()));
     }
@@ -199,25 +197,21 @@ private:
 };
 
 
-class DeselectableTreeView : public QTreeView
-{
+class DeselectableTreeView : public QTreeView {
 public:
     DeselectableTreeView(QWidget *parent) : QTreeView(parent) {}
+
     virtual ~DeselectableTreeView() {}
 
 private:
-    virtual void mousePressEvent(QMouseEvent *event)
-    {
+    virtual void mousePressEvent(QMouseEvent *event) {
 
         //todo maybe use https://radekp.github.io/qtmoko/api/model-view-selection.html
         QModelIndex item = indexAt(event->pos());
 
-        if (item.isValid())
-        {
+        if (item.isValid()) {
             QTreeView::mousePressEvent(event);
-        }
-        else
-        {
+        } else {
             clearSelection();
             const QModelIndex index;
             selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);

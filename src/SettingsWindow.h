@@ -8,8 +8,8 @@
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QFileSelector>
-#include "dbCommon.h"
 
+#include "dbCommon.h"
 #include "FileLineEdit.h"
 #include "qledindicator.h"
 #include "common.h"
@@ -26,7 +26,6 @@ namespace windows {
 
         myConnString getConfiguration();
 
-
     private slots:
 
         void onLoadConfig();
@@ -40,28 +39,28 @@ namespace windows {
         void checkConditions();
 
     private:
-        QLineEdit *dbHostInput;
-        QLineEdit *dbPortInput;
-        QLineEdit *dbUserInput;
-        QLineEdit *dbPasswordInput;
-        QLineEdit *dbNameInput;
+        QLineEdit *dbHostLE;
+        QLineEdit *dbPortLE;
+        QLineEdit *dbUserLE;
+        QLineEdit *dbPasswordLE;
+        QLineEdit *dbNameLE;
 
-        QVector<QLineEdit *> Lines;
+        QVector<QLineEdit *> lineEditArray;
 
-        QPushButton *applyButton;
-        QPushButton *testConnectionButton;
-        QPushButton *loadButton;
-        QPushButton *saveButton;
+        QPushButton *applyPB;
+        QPushButton *testConnectionPB;
+        QPushButton *loadConfigurationPB;
+        QPushButton *saveConfigurationPB;
 
 
-        QFormLayout *formLayout;
+        QFormLayout *imputFormLay;
         QVBoxLayout *mainLayout;
 
         FileLineEdit *fileLineEdit;
         QLedIndicator *qLedIndicator;
 
         void setupUI();
-    };//SettingsWindow class
+    };
 
 
 } // windows

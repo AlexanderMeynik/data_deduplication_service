@@ -140,6 +140,9 @@ namespace file_services {
                 hash_function hash = SHA_256>
         int processFile(std::string_view filePath, size_t segmentSize);
 
+        int insertDirEntry(std::string_view dirPath);
+
+
         /**
          * Retrieves directory from database to to_dir
          * @tparam root_directory_str
@@ -443,7 +446,7 @@ namespace file_services {
                                        file.c_str());
             return res1;
         }
-        return 0;
+        return returnCodes::ReturnSucess;
     }
 
 
@@ -457,6 +460,10 @@ namespace file_services {
             return ErrorOccured;
         }
         pp = result.value();
+        
+        //todo remake to make less error prone
+        auto dd = fs::canonical(pp).string();
+        insertDirEntry(dd);
 
         for (const auto &entry: fs::recursive_directory_iterator(pp)) {
             if (!fs::is_directory(entry)) {
@@ -469,6 +476,11 @@ namespace file_services {
                 } else if (results == ErrorOccured) {
                     return results;
                 }
+            }
+            else//todo remake to make less error prone
+            {
+                auto dd = fs::canonical(entry.path()).string();
+                insertDirEntry(dd);
             }
         }
         return 0;

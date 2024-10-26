@@ -13,8 +13,8 @@ std::vector<fs::path> from_dirs = {"images",
                                    "res",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
-constexpr std::array<int,5> indx={0,1,2,3,4};
-constexpr std::array<int,6> multipliers={2,4,8,16,64,256};
+constexpr std::array<int,1> indx={0/*,1,2,3,4*/};
+constexpr std::array<int,3> multipliers={2,4,8/*,16,64,256*/};
 
 template<int hashNum,int multip>
 void performStuff()
@@ -27,7 +27,7 @@ void performStuff()
     constexpr auto segment_size=multip*hash_function_size[hashNum];
     FileParsingService fs;
 
-    std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
+    std::string dbName = std::string("deduplication_bench_tt")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
     std::cout<<dbName<<'\n';
     fs.template dbLoad<dbUsageStrategy::create>(dbName);
     gClk.tak();
@@ -36,10 +36,15 @@ void performStuff()
         gClk.tik();//test for simialr cases
         fs.template processDirectory<PreserveOld, static_cast<hash_function>(hashNum)>(from_dirs[i].string(),segment_size);
         gClk.tak();
+
+
+    }
+
+
+    for (int i = 0; i < 2; ++i) {
         gClk.tik();
         fs.template loadDirectory<rootDirectoryHandlingStrategy::CreateMain>(from_dirs[i].string(), to_dirs[i].string());
         gClk.tak();
-
     }
 
     auto total_file_size= fs.executeInTransaction(&db_services::getTotalFileSize);
@@ -48,7 +53,7 @@ void performStuff()
     sizes<<dbName<<"\n";
     db_services::printRes(schemas.value(), sizes);
     sizes<<'\n';
-
+    //todo those requstes wont get directories(use left join)
     auto dedup_data= fs.executeInTransaction(&db_services::getDedupCharacteristics, (indexType) segment_size);
     auto sizes_data= fs.executeInTransaction(&db_services::getFileSizes);
 
@@ -58,17 +63,17 @@ void performStuff()
     db_services::printRes(sizes_data.value(), sizes2);
     sizes2<<'\n';
 
-
-    for (int i = 0; i < 2; ++i) {
+    //todo later add
+   /* for (int i = 0; i < 2; ++i) {
         gClk.tik();
         fs.deleteDirectory(from_dirs[i].string());
         gClk.tak();
-    }
+    }*/
 
 
-    gClk.tik();
+   /* gClk.tik();
     fs.dbDrop(dbName);
-    gClk.tak();
+    gClk.tak();*/
 
 
 

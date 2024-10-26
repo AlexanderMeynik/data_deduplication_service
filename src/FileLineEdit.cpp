@@ -87,7 +87,7 @@ namespace windows {
         selectModeCheckBox->setToolTip("Directory view mode!");
         mainLayout->addWidget(selectModeCheckBox);
 
-        connect(selectModeCheckBox,&QCheckBox::stateChanged,[&]{lineEdit->setText("");});
+        connect(selectModeCheckBox, &QCheckBox::stateChanged, [&] { lineEdit->setText(""); });
         //if we chnage mode of selection previous result must be deleted
     }
 

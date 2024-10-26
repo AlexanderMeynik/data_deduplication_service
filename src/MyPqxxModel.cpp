@@ -3,7 +3,7 @@
 
 MyPqxxModel::MyPqxxModel(QObject *parent) : QAbstractTableModel(parent) {
     res = pqxx::result();
-    isEmpty_= true;
+    isEmpty_ = true;
 }
 
 QVariant MyPqxxModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -18,10 +18,10 @@ QVariant MyPqxxModel::headerData(int section, Qt::Orientation orientation, int r
 
 QVariant MyPqxxModel::data(const QModelIndex &index, int role) const {
     if (role == Qt::DisplayRole) {
-        return std::visit([&](auto v){
-                      auto a2=res[index.row()][index.column()].as<typename decltype(v)::type>();
-                      return toQtVariant(a2);
-                   }, oidToTypeMap.at(columnTypes[index.column()]));
+        return std::visit([&](auto v) {
+            auto a2 = res[index.row()][index.column()].as<typename decltype(v)::type>();
+            return toQtVariant(a2);
+        }, oidToTypeMap.at(columnTypes[index.column()]));
     }
     return QVariant();
 }
@@ -31,7 +31,7 @@ void MyPqxxModel::setColumnsTypes() {
     columnNames.resize(res.columns());
     for (int i = 0; i < res.columns(); ++i) {
         columnTypes[i] = res.column_type(i);
-        columnNames[i]=res.column_name(i);
+        columnNames[i] = res.column_name(i);
     }
 }
 

@@ -86,5 +86,15 @@ namespace file_services {
         return rr;
     }
 
+    int FileParsingService::insertDirEntry(std::string_view dirPath) {
+
+        auto size = 0;
+        gClk.tik();
+        auto file_id = manager_.createFile(dirPath, size);
+        //todo create variant that doesnt create temporary tables
+        gClk.tak();
+        return file_id;
+    }
+
 
 }

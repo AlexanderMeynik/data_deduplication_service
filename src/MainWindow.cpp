@@ -19,66 +19,61 @@ namespace windows {
 
         setupUI();
 
-        mydmod = new MainTableModel(this);
+        myViewModel = new MainTableModel(this);
         proxyModel = new MySortFilterProxyModel(this);
-        proxyModel->setSourceModel(mydmod);
-        dataTable->setModel(proxyModel);
+        proxyModel->setSourceModel(myViewModel);
+        treeView->setModel(proxyModel);
 
-        QCompleter* completer = new QCompleter( this );//todo check
-        completer->setModel( proxyModel );
+        QCompleter *completer = new QCompleter(this);//todo check
+        completer->setModel(proxyModel);
         completer->setCompletionColumn(0);
         completer->setCompletionRole(Qt::DisplayRole);
 
         fileExportField->setCompleter(completer);
 
-        connect(importButton, &QPushButton::pressed, this, &MainWindow::onImport);
-        connect(exportButton, &QPushButton::pressed, this, &MainWindow::onExport);
-        connect(deleteButton, &QPushButton::pressed, this, &MainWindow::onDelete);
+        connect(importPB, &QPushButton::pressed, this, &MainWindow::onImport);
+        connect(exportPB, &QPushButton::pressed, this, &MainWindow::onExport);
+        connect(deletePB, &QPushButton::pressed, this, &MainWindow::onDelete);
 
 
         connect(settingsAction, &QAction::triggered, this, &MainWindow::onSettings);
 
 
-        connect(inputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
-        connect(outputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
+        connect(inputFileLEWO, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
+        connect(outputFileLEWO, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
 
 
-        connect(loadDb, &QPushButton::pressed, this, &MainWindow::onloadDatabase);
+        connect(loadPB, &QPushButton::pressed, this, &MainWindow::onloadDatabase);
 
-        connect(this, &MainWindow::connectionChanged,this
-        ,&MainWindow::onConnectionChanged);
+        connect(this, &MainWindow::connectionChanged, this, &MainWindow::onConnectionChanged);
 
 
-        connect(dataseName, &QLineEdit::textChanged, [&]() {
-            loadDb->setEnabled(!dataseName->text().isEmpty());
+        connect(dataseLE, &QLineEdit::textChanged, [&]() {
+            loadPB->setEnabled(!dataseLE->text().isEmpty());
         });
 
-        connect(fileExportField,&QLineEdit::textChanged,[&]
-                (const QString &a)
-        {
+        connect(fileExportField, &QLineEdit::textChanged, [&]
+                (const QString &a) {
 
-            if(dynamic_cast<decltype(this->mydmod)>(proxyModel->sourceModel())->isEmpty())
-            {
-                return ;
+            if (dynamic_cast<decltype(this->myViewModel)>(proxyModel->sourceModel())->isEmpty()) {
+                return;
             }
-            if(a.isEmpty())
-            {
+            if (a.isEmpty()) {
                 proxyModel->setFilterRegularExpression(QString());
-                return ;
+                return;
             }
             proxyModel->setFilterRegularExpression(a);
 
         });
 
-        connect(dataTable->selectionModel(),&QItemSelectionModel::selectionChanged,[&](const QItemSelection &selected,
-                const QItemSelection &deselected)
-        {
+        connect(treeView->selectionModel(), &QItemSelectionModel::selectionChanged, [&](const QItemSelection &selected,
+                                                                                        const QItemSelection &deselected) {
             writeLog(QString::number(selected.size()));
 
             if (!selected.indexes().isEmpty()) {
                 QModelIndex index = selected.indexes().first();
                 int row = index.row();
-                int columnCount = dataTable->model()->columnCount();
+                int columnCount = treeView->model()->columnCount();
 
                 QString rowData = "Selected row: " + QString::number(row) + " | Data: ";
 
@@ -90,21 +85,19 @@ namespace windows {
                 updateLEDS(index);
 
                 writeLog(rowData);
-            } else
-            {
+            } else {
                 resetLeds();
 
             }
         });
 
 
-
         for (const char *hashName: hash_utils::hash_function_name) {
-            hashComboBox->addItem(hashName);
+            hashFunctionCoB->addItem(hashName);
         }
 
 
-        segmentSizeComboBox->addItems(ll);
+        segmentSizeCoB->addItems(ll);
 
         dbConnection = false;
         readConfiguration();
@@ -125,8 +118,8 @@ namespace windows {
         auto mmm = new QHBoxLayout();
         mainLayout = new QVBoxLayout();
 
-        inputFile = new FileLineEditWithOption(cent, QDir::currentPath());
-        outputFile = new FileLineEditWithOption(cent, QDir::currentPath(), true);
+        inputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath());
+        outputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath(), true);
 
 
         optionsLayout = new QHBoxLayout();
@@ -134,36 +127,36 @@ namespace windows {
         labelSegmentSize = new QLabel("Segment Size:");
 
 
-        hashComboBox = new QComboBox(cent);
-        segmentSizeComboBox = new QComboBox(cent);
+        hashFunctionCoB = new QComboBox(cent);
+        segmentSizeCoB = new QComboBox(cent);
 
         optionsLayout->addWidget(labelHashFunction);
-        optionsLayout->addWidget(hashComboBox);
+        optionsLayout->addWidget(hashFunctionCoB);
         optionsLayout->addWidget(labelSegmentSize);
-        optionsLayout->addWidget(segmentSizeComboBox);
+        optionsLayout->addWidget(segmentSizeCoB);
 
         buttonLayout = new QHBoxLayout();
-        importButton = new QPushButton("Import");
+        importPB = new QPushButton("Import");
 
 
-        buttonLayout->addWidget(importButton);
+        buttonLayout->addWidget(importPB);
 
 
         settingsAction = new QAction("Settings");
         menuBar()->addAction(settingsAction);
 
 
-        exportButton = new QPushButton("Export");
-        deleteButton = new QPushButton("Delete");
+        exportPB = new QPushButton("Export");
+        deletePB = new QPushButton("Delete");
 
-        hbl = new QHBoxLayout();
+        exportDeleteLay = new QHBoxLayout();
 
 
         fileExportField = new QLineEdit();
 
 
-        hbl->addWidget(exportButton);
-        hbl->addWidget(deleteButton);
+        exportDeleteLay->addWidget(exportPB);
+        exportDeleteLay->addWidget(deletePB);
 
         //todo add database status(total blocks files size) files
         //todo for import and export add fileds for segment count etc.
@@ -171,60 +164,60 @@ namespace windows {
 
 
 
-        dataTable = new DeselectableTreeView(this);
+        treeView = new DeselectableTreeView(this);
 
         /*dataTable->resizeColumnToContents(0);*/
 
         logTextField = new QTextEdit();
         logTextField->setReadOnly(true);
 
-        mainLayout->addWidget(inputFile);
+        mainLayout->addWidget(inputFileLEWO);
         mainLayout->addLayout(optionsLayout);
         mainLayout->addLayout(buttonLayout);
-        mainLayout->addWidget(dataTable);
+        mainLayout->addWidget(treeView);
         mainLayout->addWidget(fileExportField);
-        mainLayout->addWidget(outputFile);
-        mainLayout->addLayout(hbl);
+        mainLayout->addWidget(outputFileLEWO);
+        mainLayout->addLayout(exportDeleteLay);
         mmm->addLayout(mainLayout);
 
         auto VV = new QVBoxLayout();
 
 
         includeOptionsArea = new QGroupBox(tr("FileImportOptions"));
-        replaceCB = new QCheckBox();
-        replaceCB->setToolTip("If checked will replace file contents");
+        replaceFileCB = new QCheckBox();
+        replaceFileCB->setToolTip("If checked will replace file contents");
         auto incudeOptionLay = new QGridLayout();
 
-        numberBlocks = new QLCDNumber();
-        totalSize = new QLCDNumber();
-        numbErSegments = new QLCDNumber();
-        totalRepeatedBlocks = new QLCDNumber();
-        totalRepeatedpercentage = new QLCDNumber();
-        importTime = new QLCDNumber();
+        numberBlocksLCD = new QLCDNumber();
+        totalSizeLCD = new QLCDNumber();
+        fileSegmentLCD = new QLCDNumber();
+        totalRepeatedBlocksLCD = new QLCDNumber();
+        totalRepetitionPercentageLCD = new QLCDNumber();
+        importTimeLCD = new QLCDNumber();
 
         incudeOptionLay->addWidget(new QLabel("Replace files on import"), 0, 0, 1, 2);
-        incudeOptionLay->addWidget(replaceCB, 0, 2, 1, 1);
+        incudeOptionLay->addWidget(replaceFileCB, 0, 2, 1, 1);
 
 
         incudeOptionLay->addWidget(new QLabel("Load time (ms)"),
                                    0, 3, 1, 1);
-        incudeOptionLay->addWidget(importTime,
+        incudeOptionLay->addWidget(importTimeLCD,
                                    0, 4, 1, 2);
 
 
         incudeOptionLay->addWidget(new QLabel("Total file blocks"), 1, 0, 1, 1);
-        incudeOptionLay->addWidget(numberBlocks, 1, 1, 1, 1);
+        incudeOptionLay->addWidget(numberBlocksLCD, 1, 1, 1, 1);
         incudeOptionLay->addWidget(new QLabel("Total file size"), 1, 2, 1, 1);
-        incudeOptionLay->addWidget(totalSize, 1, 3, 1, 3);
+        incudeOptionLay->addWidget(totalSizeLCD, 1, 3, 1, 3);
 
 
         incudeOptionLay->addWidget(new QLabel("Files segment count"), 2, 0, 1, 1);
-        incudeOptionLay->addWidget(numbErSegments, 2, 1, 1, 1);
+        incudeOptionLay->addWidget(fileSegmentLCD, 2, 1, 1, 1);
 
         incudeOptionLay->addWidget(new QLabel("Duplicated blocks count"), 2, 2, 1, 1);
-        incudeOptionLay->addWidget(totalRepeatedBlocks, 2, 3, 1, 1);
+        incudeOptionLay->addWidget(totalRepeatedBlocksLCD, 2, 3, 1, 1);
 
-        incudeOptionLay->addWidget(totalRepeatedpercentage, 2, 4, 1, 1);
+        incudeOptionLay->addWidget(totalRepetitionPercentageLCD, 2, 4, 1, 1);
         incudeOptionLay->addWidget(new QLabel("%"), 2, 5, 1, 1);
 
         includeOptionsArea->setLayout(incudeOptionLay);
@@ -232,62 +225,62 @@ namespace windows {
 
         exportOptionsArea = new QGroupBox(tr("FileExportOptions"));
 
-        deleteFiles = new QCheckBox();
-        deleteFiles->setToolTip("If checked will delete file/directory after export.");
-        createMain = new QCheckBox();
-        createMain->setToolTip("If checked  new directory will be created if out path does not exist!");
+        deleteFilesCB = new QCheckBox();
+        deleteFilesCB->setToolTip("If checked will delete file/directory after export.");
+        createMainCB = new QCheckBox();
+        createMainCB->setToolTip("If checked  new directory will be created if out path does not exist!");
 
-        errorCount = new QLCDNumber();
+        errorCountLCD = new QLCDNumber();
         /*errorCount->setDigitCount(10);*/
-        exportTime = new QLCDNumber();
+        exportTimeLCD = new QLCDNumber();
 
 
         auto exportOptionLay = new QGridLayout();
         exportOptionLay->addWidget(new QLabel("Delete file/directory"), 0, 0, 1, 1);
-        exportOptionLay->addWidget(deleteFiles, 0, 1, 1, 1);
+        exportOptionLay->addWidget(deleteFilesCB, 0, 1, 1, 1);
         exportOptionLay->addWidget(new QLabel("Create root directory"), 0, 2, 1, 1);
-        exportOptionLay->addWidget(createMain, 0, 3, 1, 1);
+        exportOptionLay->addWidget(createMainCB, 0, 3, 1, 1);
 
 
         exportOptionLay->addWidget(new QLabel("Export time (ms)"),
                                    1, 0, 1, 1);
-        exportOptionLay->addWidget(exportTime,
+        exportOptionLay->addWidget(exportTimeLCD,
                                    1, 1, 1, 1);
         exportOptionLay->addWidget(new QLabel("Error count"),
                                    1, 2, 1, 1);
-        exportOptionLay->addWidget(errorCount,
+        exportOptionLay->addWidget(errorCountLCD,
                                    1, 3, 1, 1);
 
-        createMain->setChecked(true);
+        createMainCB->setChecked(true);
 
         exportOptionsArea->setLayout(exportOptionLay);
 
-        databaseConfiguration = new QGroupBox(tr("Database configiration"));
+        databaseConfigurationArea = new QGroupBox(tr("Database configiration"));
         auto dbOptionLay = new QGridLayout();
 
-        createNewDbCB = new QCheckBox();
-        loadDb = new QPushButton("Connect");
-        loadDb->setEnabled(false);
-        dataseName = new QLineEdit();
+        dbUsageCB = new QCheckBox();
+        loadPB = new QPushButton("Connect");
+        loadPB->setEnabled(false);
+        dataseLE = new QLineEdit();
 
-        dataseName = new QLineEdit();
+        dataseLE = new QLineEdit();
         QRegularExpression re("^[a-z_][A-Za-z0-9_]{1,62}");
         QRegularExpressionValidator *validator = new QRegularExpressionValidator(re, this);
-        dataseName->setValidator(validator);
+        dataseLE->setValidator(validator);
 
         dbOptionLay->addWidget(new QLabel("Database name:"), 0, 0, 1, 1);
-        dbOptionLay->addWidget(dataseName, 0, 1, 1, 1);
+        dbOptionLay->addWidget(dataseLE, 0, 1, 1, 1);
 
         dbOptionLay->addWidget(new QLabel("Create new database"), 1, 0, 1, 1);
-        dbOptionLay->addWidget(createNewDbCB, 1, 1, 1, 1);
-        dbOptionLay->addWidget(loadDb, 1, 2, 1, 1);
+        dbOptionLay->addWidget(dbUsageCB, 1, 1, 1, 1);
+        dbOptionLay->addWidget(loadPB, 1, 2, 1, 1);
 
 
-        databaseConfiguration->setLayout(dbOptionLay);
+        databaseConfigurationArea->setLayout(dbOptionLay);
 
 
         VV->addWidget(includeOptionsArea);
-        VV->addWidget(databaseConfiguration);
+        VV->addWidget(databaseConfigurationArea);
         VV->addWidget(logTextField);
         VV->addWidget(exportOptionsArea);
 
@@ -301,8 +294,8 @@ namespace windows {
 
     void MainWindow::onImport() {
         this->updateModel(0);
-        QString inputPath = inputFile->getContent();
-        size_t segmentSize = segmentSizeComboBox->currentText().toUInt();
+        QString inputPath = inputFileLEWO->getContent();
+        size_t segmentSize = segmentSizeCoB->currentText().toUInt();
         if (QFileInfo(inputPath).isDir()) {
             writeLog("process directory");
             //fileService.processDirectory(inputPath.toStdString(), segmentSize);
@@ -313,8 +306,8 @@ namespace windows {
     }
 
     void MainWindow::onExport() {
-        QString outputPath = outputFile->getContent();
-        QString fromPath = inputFile->getContent();
+        QString outputPath = outputFileLEWO->getContent();
+        QString fromPath = inputFileLEWO->getContent();
         if (QFileInfo(fromPath).isDir()) {
             writeLog("load directory");
             //fileService.loadDirectory(fromPath.toStdString(), outputPath.toStdString());
@@ -325,8 +318,8 @@ namespace windows {
     }
 
     void MainWindow::onDelete() {
-        mydmod->reset();
-        QString path = inputFile->getContent();
+        myViewModel->reset();
+        QString path = inputFileLEWO->getContent();
         if (QFileInfo(path).isDir()) {
             writeLog("delete directory");
 
@@ -344,13 +337,11 @@ namespace windows {
             c_str = std::move(settingsWindow->getConfiguration());
             writeLog("update settings");
             writeLog(c_str.c_str());
-        }
-        else
-        {
+        } else {
             writeLog("Rejected connection", ERROR);
         }
         settingsWindow->close();
-        bool old =dbConnection;
+        bool old = dbConnection;
         dbConnection = (stat == QDialog::Accepted);
         emit connectionChanged(old);
     }
@@ -358,8 +349,8 @@ namespace windows {
     void MainWindow::activateButtonsd() {
 
 
-        auto in = inputFile->getContent();
-        auto out = outputFile->getContent();
+        auto in = inputFileLEWO->getContent();
+        auto out = outputFileLEWO->getContent();
 
         bool cond = QFileInfo(in).isDir() ==
                     QFileInfo(out).isDir();
@@ -369,20 +360,20 @@ namespace windows {
                                  && cond);
         deleteButton->setEnabled(dbConnection&&!in.isEmpty());*/
 
-        importButton->setEnabled(dbConnection);
-        exportButton->setEnabled(dbConnection);
-        deleteButton->setEnabled(dbConnection);
+        importPB->setEnabled(dbConnection);
+        exportPB->setEnabled(dbConnection);
+        deletePB->setEnabled(dbConnection);
     }
 
 
     void MainWindow::onloadDatabase() {
-        this->c_str.setDbname(dataseName->text().toStdString());
-        bool old =dbConnection;
+        this->c_str.setDbname(dataseLE->text().toStdString());
+        bool old = dbConnection;
         dbConnection = checkConnString(c_str);
         emit connectionChanged(old);
 
 
-        if (createNewDbCB->isChecked()) {
+        if (dbUsageCB->isChecked()) {
             if (dbConnection) {
                 writeLog("database aleady exists");
                 return;
@@ -393,10 +384,6 @@ namespace windows {
         }
 
     }
-
-
-
-
 
 
     void MainWindow::readConfiguration() {
@@ -417,11 +404,11 @@ namespace windows {
                     for (auto &attr: xmlReader.attributes()) {
                         if (attr.name().toString() == "path") {
                             path = attr.value().toString().toStdString();
-                            this->c_str=db_services::loadConfiguration(path);
-                            dataseName->setText(QString::fromStdString(c_str.getDbname()));
+                            this->c_str = db_services::loadConfiguration(path);
+                            dataseLE->setText(QString::fromStdString(c_str.getDbname()));
 
 
-                            bool old =dbConnection;
+                            bool old = dbConnection;
                             dbConnection = checkConnString(c_str);
                             emit connectionChanged(old);
                             break;
@@ -435,34 +422,29 @@ namespace windows {
     }
 
     void MainWindow::onConnectionChanged(bool old) {
-        if(!dbConnection)
-        {
-            if(dataTable->model())
-            {
+        if (!dbConnection) {
+            if (treeView->model()) {
                 fileService.disconnect();
-                mydmod->reset();
+                myViewModel->reset();
                 /*dataTable->setModel(nullptr);*/
             }
-        }
-        else
-        {
-            auto dbName = dataseName->text().toStdString();
+        } else {
+            auto dbName = dataseLE->text().toStdString();
 
-            auto r1=fileService.dbLoad(dbName);
-            bool result=mydmod->performConnection(c_str);
+            auto r1 = fileService.dbLoad(dbName);
+            bool result = myViewModel->performConnection(c_str);
 
-            if(!result||r1!=0)
-            {
+            if (!result || r1 != 0) {
                 return;
             }
 
 
-            mydmod->getData();
-            dataTable->sizeHint();
-            dataTable->setSortingEnabled(true);
-            dataTable->sortByColumn(-1,Qt::SortOrder::DescendingOrder);
+            myViewModel->getData();
+            treeView->sizeHint();
+            treeView->setSortingEnabled(true);
+            treeView->sortByColumn(-1, Qt::SortOrder::DescendingOrder);
             /*dataTable->resizeColumnToContents(0);*/
-            dataTable->setWordWrap(true);
+            treeView->setWordWrap(true);
             /*dataTable->resizeColumnsToContents();*/
         }
 
@@ -473,31 +455,31 @@ namespace windows {
     void MainWindow::resizeEvent(QResizeEvent *event) {
         QWidget::resizeEvent(event);
 
-        dataTable->sizeHint();
+        treeView->sizeHint();
         writeLog("resized");
     }
 
     void MainWindow::updateModel(size_t index) {
 
-        mydmod->getData();
+        myViewModel->getData();
     }
 
     void MainWindow::updateLEDS(QModelIndex &idx) {
         //todo when connection/model resets leds will also reset
-        int row=idx.row();
+        int row = idx.row();
         this->setStyleSheet("QLCDNumber { background-color: white; color: black; }");
-        totalSize->setDigitCount(8);
-        totalSize->display(idx.sibling(row, 2).data().toInt());
+        totalSizeLCD->setDigitCount(8);
+        totalSizeLCD->display(idx.sibling(row, 2).data().toInt());
 
-        totalRepeatedpercentage->setDigitCount(5);
-        totalRepeatedpercentage->setSegmentStyle(QLCDNumber::Filled);
-        totalRepeatedpercentage->display(smartCeil(idx.sibling(row, 3).data().toDouble(),2));
+        totalRepetitionPercentageLCD->setDigitCount(5);
+        totalRepetitionPercentageLCD->setSegmentStyle(QLCDNumber::Filled);
+        totalRepetitionPercentageLCD->display(smartCeil(idx.sibling(row, 3).data().toDouble(), 2));
 
     }
 
     void MainWindow::resetLeds() {
-        totalSize->display(0);
-        totalRepeatedpercentage->display(0);
+        totalSizeLCD->display(0);
+        totalRepetitionPercentageLCD->display(0);
         this->setStyleSheet("");
     }
 }

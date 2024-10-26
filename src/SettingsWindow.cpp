@@ -17,12 +17,12 @@ namespace windows {
 
         setupUI();
 
-        connect(loadButton, &QPushButton::clicked, this, &SettingsWindow::onLoadConfig);
-        connect(saveButton, &QPushButton::clicked, this, &SettingsWindow::onSaveConfig);
-        connect(testConnectionButton, &QPushButton::clicked, this, &SettingsWindow::onTestConnection);
-        connect(applyButton, &QPushButton::clicked, this, &SettingsWindow::onApply);
+        connect(loadConfigurationPB, &QPushButton::clicked, this, &SettingsWindow::onLoadConfig);
+        connect(saveConfigurationPB, &QPushButton::clicked, this, &SettingsWindow::onSaveConfig);
+        connect(testConnectionPB, &QPushButton::clicked, this, &SettingsWindow::onTestConnection);
+        connect(applyPB, &QPushButton::clicked, this, &SettingsWindow::onApply);
 
-        for (QLineEdit *line: Lines) {
+        for (QLineEdit *line: lineEditArray) {
             connect(line, &QLineEdit::textChanged, this, &SettingsWindow::checkConditions);
         }
 
@@ -32,35 +32,35 @@ namespace windows {
 
         setWindowTitle("Database Settings");
 
-        Lines = QVector<QLineEdit *>();
+        lineEditArray = QVector<QLineEdit *>();
 
         mainLayout = new QVBoxLayout(this);
 
-        formLayout = new QFormLayout();
+        imputFormLay = new QFormLayout();
 
 
-        dbHostInput = new QLineEdit(this);
-        dbPortInput = new QLineEdit(this);
-        dbUserInput = new QLineEdit(this);
-        dbPasswordInput = new QLineEdit(this);
-        dbPasswordInput->setEchoMode(QLineEdit::Password);
-        dbNameInput = new QLineEdit(this);
+        dbHostLE = new QLineEdit(this);
+        dbPortLE = new QLineEdit(this);
+        dbUserLE = new QLineEdit(this);
+        dbPasswordLE = new QLineEdit(this);
+        dbPasswordLE->setEchoMode(QLineEdit::Password);
+        dbNameLE = new QLineEdit(this);
 
-        Lines.push_back(dbHostInput);
-        Lines.push_back(dbPortInput);
-        Lines.push_back(dbUserInput);
-        Lines.push_back(dbPasswordInput);
-        Lines.push_back(dbHostInput);
-        Lines.push_back(dbNameInput);
+        lineEditArray.push_back(dbHostLE);
+        lineEditArray.push_back(dbPortLE);
+        lineEditArray.push_back(dbUserLE);
+        lineEditArray.push_back(dbPasswordLE);
+        lineEditArray.push_back(dbHostLE);
+        lineEditArray.push_back(dbNameLE);
 
-        formLayout->addRow("Database Name:", dbNameInput);
-        formLayout->addRow("Database User:", dbUserInput);
-        formLayout->addRow("Database Password:", dbPasswordInput);
-        formLayout->addRow("Database Host:", dbHostInput);
-        formLayout->addRow("Database Port:", dbPortInput);
+        imputFormLay->addRow("Database Name:", dbNameLE);
+        imputFormLay->addRow("Database User:", dbUserLE);
+        imputFormLay->addRow("Database Password:", dbPasswordLE);
+        imputFormLay->addRow("Database Host:", dbHostLE);
+        imputFormLay->addRow("Database Port:", dbPortLE);
 
 
-        dbPortInput->setValidator(new QIntValidator(0, 65535, this));
+        dbPortLE->setValidator(new QIntValidator(0, 65535, this));
         auto prevFileDir = QString::fromStdString(std::filesystem::absolute(
                 std::filesystem::path(db_services::cfileName).parent_path().lexically_normal()
         ).string());
@@ -71,10 +71,10 @@ namespace windows {
         auto d3 = new QHBoxLayout();
 
 
-        loadButton = new QPushButton("Load", this);
-        applyButton = new QPushButton("Apply", this);
-        testConnectionButton = new QPushButton("testConnection", this);
-        saveButton = new QPushButton("Save", this);
+        loadConfigurationPB = new QPushButton("Load", this);
+        applyPB = new QPushButton("Apply", this);
+        testConnectionPB = new QPushButton("testConnection", this);
+        saveConfigurationPB = new QPushButton("Save", this);
 
         qLedIndicator = new QLedIndicator(this);
         qLedIndicator->setChecked(false);
@@ -83,13 +83,13 @@ namespace windows {
         qLedIndicator->setOffColor1(QColor(255, 0, 0, 255));
         qLedIndicator->setOffColor2(QColor(255, 0, 0, 255));
 
-        d1->addWidget(loadButton);
-        d1->addWidget(saveButton);
-        d2->addWidget(testConnectionButton);
+        d1->addWidget(loadConfigurationPB);
+        d1->addWidget(saveConfigurationPB);
+        d2->addWidget(testConnectionPB);
         d2->addWidget(qLedIndicator);
-        d3->addWidget(applyButton);
+        d3->addWidget(applyPB);
 
-        mainLayout->addLayout(formLayout);
+        mainLayout->addLayout(imputFormLay);
         mainLayout->addWidget(fileLineEdit);
 
         mainLayout->addLayout(d1);
@@ -119,11 +119,11 @@ namespace windows {
             return;
         }
 
-        dbUserInput->setText(user);
-        dbPasswordInput->setText(password);
-        dbNameInput->setText(dbName);
-        dbHostInput->setText(hostname);
-        dbPortInput->setText(port);
+        dbUserLE->setText(user);
+        dbPasswordLE->setText(password);
+        dbNameLE->setText(dbName);
+        dbHostLE->setText(hostname);
+        dbPortLE->setText(port);
 
 
     }
@@ -152,11 +152,11 @@ namespace windows {
         }
         QTextStream out(&file);
 
-        out << dbNameInput->text() << '\n'
-            << dbUserInput->text() << '\n'
-            << dbPasswordInput->text() << '\n'
-            << dbHostInput->text() << '\n'
-            << dbPortInput->text();
+        out << dbNameLE->text() << '\n'
+            << dbUserLE->text() << '\n'
+            << dbPasswordLE->text() << '\n'
+            << dbHostLE->text() << '\n'
+            << dbPortLE->text();
 
         if (out.status() != QTextStream::Ok) {
             qInfo("Error occurred during write");
@@ -177,14 +177,12 @@ namespace windows {
 
     void SettingsWindow::onApply() {
         onTestConnection();
-        if(!qLedIndicator->isChecked())
-        {
+        if (!qLedIndicator->isChecked()) {
             reject();
             return;
         }
 
-        if(!fileLineEdit->getContent().isEmpty())
-        {
+        if (!fileLineEdit->getContent().isEmpty()) {
             QFile file(confName);
             file.open(QIODevice::WriteOnly);
             QXmlStreamWriter xmlWriter(&file);
@@ -194,7 +192,7 @@ namespace windows {
             xmlWriter.writeStartElement("resources");
 
             xmlWriter.writeStartElement(parentTag);
-            xmlWriter.writeAttribute("path",fileLineEdit->getContent());
+            xmlWriter.writeAttribute("path", fileLineEdit->getContent());
             xmlWriter.writeEndElement();
 
 
@@ -207,27 +205,27 @@ namespace windows {
     }
 
     myConnString SettingsWindow::getConfiguration() {
-        return {dbUserInput->text().toStdString(),
-                dbPasswordInput->text().toStdString(),
-                dbHostInput->text().toStdString(),
-                dbNameInput->text().toStdString(),
-                dbPortInput->text().toUInt()};
+        return {dbUserLE->text().toStdString(),
+                dbPasswordLE->text().toStdString(),
+                dbHostLE->text().toStdString(),
+                dbNameLE->text().toStdString(),
+                dbPortLE->text().toUInt()};
     }
 
 
     void SettingsWindow::checkConditions() {
-        bool allFiledsNotEmpty = std::all_of(Lines.begin(), Lines.end(), [&](QLineEdit *item) {
+        bool allFiledsNotEmpty = std::all_of(lineEditArray.begin(), lineEditArray.end(), [&](QLineEdit *item) {
             return !item->text().isEmpty();
         });
 
         if (allFiledsNotEmpty) {
-            applyButton->setEnabled(true);
-            saveButton->setEnabled(true);
-            testConnectionButton->setEnabled(true);
+            applyPB->setEnabled(true);
+            saveConfigurationPB->setEnabled(true);
+            testConnectionPB->setEnabled(true);
         } else {
-            applyButton->setEnabled(false);
-            saveButton->setEnabled(false);
-            testConnectionButton->setEnabled(false);
+            applyPB->setEnabled(false);
+            saveConfigurationPB->setEnabled(false);
+            testConnectionPB->setEnabled(false);
         }
     }
 

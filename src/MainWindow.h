@@ -28,22 +28,23 @@
 #include "MyPqxxModel.h"
 
 namespace windows {
-
-
-
-
     class MainWindow : public QMainWindow {
     Q_OBJECT
-
+//todo check files(after export)
     public:
         explicit MainWindow(QWidget *parent = nullptr);
 
 
         ~MainWindow() override;
+
         void readConfiguration();
-        void resizeEvent(QResizeEvent* event);
+
+        void resizeEvent(QResizeEvent *event);
+
     signals:
+
         void connectionChanged(bool old);
+
     private slots:
 
         void activateButtonsd();
@@ -63,38 +64,36 @@ namespace windows {
 
         void updateModel(size_t index);
 
-        void updateLEDS(QModelIndex&idx);
+        void updateLEDS(QModelIndex &idx);
 
         void resetLeds();
 
     private:
 
-        void writeLog(QString qss,LogLevel lg=RESULT)
-        {
-            ::writeLog(logTextField,qss,lg);
+        void writeLog(QString qss, LogLevel lg = RESULT) {
+            ::writeLog(logTextField, qss, lg);
         }
 
-        FileLineEditWithOption *inputFile;
-        FileLineEditWithOption *outputFile;
+        FileLineEditWithOption *inputFileLEWO;
+        FileLineEditWithOption *outputFileLEWO;
 
-        QComboBox *hashComboBox;
-        QComboBox *segmentSizeComboBox;
+        QComboBox *hashFunctionCoB;
+        QComboBox *segmentSizeCoB;
 
 
-        QPushButton *importButton;
-        QPushButton *exportButton;
-        QPushButton *deleteButton;
-        QPushButton *loadDb;
-        QPushButton *dropDb;
+        QPushButton *importPB;
+        QPushButton *exportPB;
+        QPushButton *deletePB;
+        QPushButton *loadPB;
+        QPushButton *dropPB;
 
-        DeselectableTreeView *dataTable;
+        DeselectableTreeView *treeView;
         QTextEdit *logTextField;
 
         QVBoxLayout *mainLayout;
-
         QHBoxLayout *optionsLayout;
         QHBoxLayout *buttonLayout;
-        QHBoxLayout *hbl;
+        QHBoxLayout *exportDeleteLay;
 
 
         QLineEdit *fileExportField;
@@ -103,44 +102,40 @@ namespace windows {
 
         QLabel *labelSegmentSize;
         QLabel *labelHashFunction;
+        //todo move some labels from source
 
-        QGroupBox* includeOptionsArea;
-        QGroupBox * exportOptionsArea;
-        QGroupBox * databaseConfiguration;
+        QGroupBox *includeOptionsArea;
+        QGroupBox *exportOptionsArea;
+        QGroupBox *databaseConfigurationArea;
 
-        QCheckBox *replaceCB;
-        QCheckBox* createMain;
-        QCheckBox* deleteFiles;
-
-
-
-        QLCDNumber * numberBlocks;
-        QLCDNumber * totalSize;
-        QLCDNumber * numbErSegments;
-        QLCDNumber * totalRepeatedBlocks;
-        QLCDNumber * totalRepeatedpercentage;
-
-        QLCDNumber * importTime;
-
-        QLCDNumber * exportTime;
-        QLCDNumber * errorCount;//todo run checks on the resulting files
-        QCheckBox* createNewDbCB;
-        QLineEdit * dataseName;
-
-        bool dbConnection;
-        db_services::myConnString c_str;
+        QCheckBox *replaceFileCB;
+        QCheckBox *createMainCB;
+        QCheckBox *deleteFilesCB;
 
 
-        SettingsWindow * settingsWindow;
+        QLCDNumber *numberBlocksLCD;
+        QLCDNumber *totalSizeLCD;
+        QLCDNumber *fileSegmentLCD;
+        QLCDNumber *totalRepeatedBlocksLCD;
+        QLCDNumber *totalRepetitionPercentageLCD;
+        QLCDNumber *importTimeLCD;
+        QLCDNumber *exportTimeLCD;
+        QLCDNumber *errorCountLCD;//todo run checks on the resulting files
+
+        QCheckBox *dbUsageCB;
+        QLineEdit *dataseLE;
 
 
-        MainTableModel* mydmod;
+        SettingsWindow *settingsWindow;
+
+        MainTableModel *myViewModel;
         MySortFilterProxyModel *proxyModel;
-
 
         void setupUI();
 
         file_services::FileParsingService fileService;
+        bool dbConnection;
+        db_services::myConnString c_str;
     };
 }
 
