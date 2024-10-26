@@ -12,7 +12,7 @@
 
 #include "FileLineEdit.h"
 #include "qledindicator.h"
-
+#include "common.h"
 
 namespace windows {
     using db_services::myConnString;

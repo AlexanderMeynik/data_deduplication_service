@@ -44,7 +44,7 @@ void performStuff()
 
     auto total_file_size= fs.executeInTransaction(&db_services::getTotalFileSize);
     auto schemas= fs.executeInTransaction(&db_services::getTotalSchemaSizes);
-    totalSize << dbName << "\t" << total_file_size.value_or(-1) << '\n';
+    totalSize << dbName << "\t" << total_file_size.value_or(-1).value_or(-1) << '\n';
     sizes<<dbName<<"\n";
     db_services::printRes(schemas.value(), sizes);
     sizes<<'\n';

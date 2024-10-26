@@ -14,83 +14,20 @@
 #include <QGroupBox>
 #include <QLCDNumber>
 #include <QValidator>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
+#include <QXmlStreamAttribute>
+#include <QSortFilterProxyModel>
 
 #include "common.h"
 #include "FileService.h"
 #include "FileLineEdit.h"
 #include "SettingsWindow.h"
+#include "MyPqxxModel.h"
 
 namespace windows {
 
 
-    class MyPqxxModel: public QAbstractTableModel
-    {
-    public:
-        MyPqxxModel(file_services::FileParsingService &fs):fsRef(fs)
-        {
-            res=pqxx::result();
-            }
-        template<typename ResType1, typename ... Args>
-        void  executeInTransaction(ResType1
-                                                         (*call)(db_services::trasnactionType &, Args ...),
-                                                         Args &&... args) {
-            auto ss=fsRef.executeInTransaction(call, std::forward<Args>(args)...);
-            if(!ss.has_value())
-            {
-                res=pqxx::result();
-            }
-            res =ss.value();
-        }
-
-        template<typename ResType1, typename ... Args>
-        void
-        executeInTransaction(const std::function<ResType1(db_services::trasnactionType &, Args ...)> &call,
-                             Args &&... args) {
-            auto ss=fsRef.executeInTransaction(call, std::forward<Args>(args)...);
-            if(!ss.has_value())
-            {
-                res=pqxx::result();
-            }
-            res =ss.value();
-        }
-
-        int rowCount(const QModelIndex &parent) const
-        {
-           return res.size();
-        }
-        int columnCount(const QModelIndex &parent) const
-        {
-            return res.columns();
-        }
-        QVariant headerData(int section, Qt::Orientation orientation,
-                            int role = Qt::DisplayRole) const override
-        {
-
-            //qInfo(std::to_string(section).c_str());
-            if(role == Qt::DisplayRole)
-            {
-                if(orientation==Qt::Orientation::Vertical)
-                {
-                    return QVariant(section);
-                }
-               return QVariant(QString::fromStdString(res.column_name(section)));
-            }
-            return QVariant();
-        }
-        QVariant data(const QModelIndex &index, int role) const
-        {
-
-            if (role == Qt::DisplayRole &&index.row()<res.size()&&index.column()<res.columns()) {
-                /*QString unswer = QString("row = ") + QString::number(index.row()) + "  col = " + QString::number(index.column());*/
-                return QVariant(QString::fromStdString(
-
-                        res[index.row()][index.column()].as<std::string>()));
-            }
-            return QVariant();
-        }
-        pqxx::result res;
-    file_services::FileParsingService& fsRef;
-    };
 
 
     class MainWindow : public QMainWindow {
@@ -101,7 +38,10 @@ namespace windows {
 
 
         ~MainWindow() override;
-
+        void readConfiguration();
+        void resizeEvent(QResizeEvent* event);
+    signals:
+        void connectionChanged(bool old);
     private slots:
 
         void activateButtonsd();
@@ -114,12 +54,20 @@ namespace windows {
 
         void onSettings();
 
-        void writeLog(QString qss,LogLevel lg=RESULT);
-
         void onloadDatabase();
 
-        void onModelSet();
+
+        void onConnectionChanged(bool old);
+
+        void updateModel(size_t index);
+
+
     private:
+
+        void writeLog(QString qss,LogLevel lg=RESULT)
+        {
+            ::writeLog(logTextField,qss,lg);
+        }
 
         FileLineEditWithOption *inputFile;
         FileLineEditWithOption *outputFile;
@@ -142,8 +90,10 @@ namespace windows {
         QHBoxLayout *optionsLayout;
         QHBoxLayout *buttonLayout;
         QHBoxLayout *hbl;
-
-        QComboBox *fileExportField;
+        //todo filter by contents of this file
+        // https://doc.qt.io/qt-6/qtwidgets-itemviews-customsortfiltermodel-example.html
+        //todo add auto complete using model
+        QLineEdit *fileExportField;
 
         QAction *settingsAction;
 
@@ -179,10 +129,12 @@ namespace windows {
 
         SettingsWindow * settingsWindow;
 
+
         MyPqxxModel* mydmod;
+        QSortFilterProxyModel *proxyModel;
         void setupUI();
 
-        file_services::FileParsingService fileService;//todo save configuration path to xml(or copy one from form)
+        file_services::FileParsingService fileService;
     };
 }
 

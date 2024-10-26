@@ -146,10 +146,7 @@ namespace db_services {
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
         executeInTransaction(ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
-            trasnactionType txn(*conn_);//todo if conn is null this one will segfault
-            ResultType res = call(txn, std::forward<Args>(args)...);
-            txn.commit();
-            return res;
+            return db_services::executeInTransaction(conn_,call,std::forward<Args>(args)...);
         }
 
         /**
@@ -162,10 +159,7 @@ namespace db_services {
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
         executeInTransaction(const std::function<ResultType(trasnactionType &, Args ...)> &call, Args &&... args) {
-            trasnactionType txn(*conn_);
-            ResultType res = call(txn, std::forward<Args>(args)...);
-            txn.commit();
-            return res;
+            return db_services::executeInTransaction(conn_,call,std::forward<Args>(args)...);
         }
 
     private:

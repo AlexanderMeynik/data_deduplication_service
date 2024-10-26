@@ -228,18 +228,6 @@ namespace db_services {
                     aggregationTableName.c_str(),
                     filePath.data());
 
-            //todo more tests
-            /*q = vformat("MERGE INTO public.segments s "
-                        "USING \"%s\" t "
-                        "ON t.hash=s.segment_hash "
-                        "WHEN MATCHED THEN "
-                        "    UPDATE SET segment_count= segment_count + t.count "
-                        "WHEN NOT MATCHED THEN "
-                        "    INSERT (segment_hash, segment_data, segment_count) "
-                        "    VALUES (t.hash,t.data,t.count);", aggregationTableName.c_str());
-            gClk.tik();
-            txn.exec(q);
-            gClk.tak();*/
              q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
                          "SELECT ns.data, ns.count,ns.hash "
                          "FROM \"%s\" ns "

@@ -13,15 +13,16 @@
 #include "HashUtils.h"
 
 using myConcepts::printable, myConcepts::returnCodes, myConcepts::vformat, hash_utils::getHashStr;
-using enum myConcepts::returnCodes;
+using
+enum myConcepts::returnCodes;
 /// db_services namespace
 namespace db_services {
 
-    #ifdef IT_test
+#ifdef IT_test
     static inline std::string resDirPath = "../../conf/";
-    #else
+#else
     static inline std::string resDirPath = "../../conf/";
-    #endif
+#endif
 
     ///  default configuration file path
     static inline std::string cfileName = resDirPath.append("config.txt");
@@ -35,8 +36,6 @@ namespace db_services {
     using conPtr = std::shared_ptr<connectionType>;
     using resType = pqxx::result;
     using nonTransType = pqxx::nontransaction;
-
-
 
 
     std::string toSpacedPath(std::string_view path);
@@ -67,7 +66,7 @@ namespace db_services {
 
     std::vector<indexType> getFileIdVector(trasnactionType &txn, std::string_view dirPath);
 
-    indexType getTotalFileSize(trasnactionType &txn);
+    tl::expected<indexType, int> getTotalFileSize(trasnactionType &txn);
 
     resType getTotalSchemaSizes(trasnactionType &txn);
 
@@ -120,6 +119,42 @@ namespace db_services {
     }
 
     bool checkConnString(const myConnString &connString);
+
+
+    /**
+     * Wraps function in transaction block
+     * @tparam ResultType
+     * @tparam Args
+     * @param conn_ not null connection
+     * @param call
+     * @param args
+     */
+    template<typename ResultType, typename ... Args>
+    tl::expected<ResultType, int>
+    executeInTransaction(conPtr &conn_, ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
+        trasnactionType txn(*conn_);//todo if conn is null this one will segfault
+        ResultType res = call(txn, std::forward<Args>(args)...);
+        txn.commit();
+        return res;
+    }
+
+    /**
+     * Functional variant of previous call
+     * @tparam ResultType
+     * @tparam Args
+     * @param conn_  not null connection
+     * @param call
+     * @param args
+     */
+    template<typename ResultType, typename ... Args>
+    tl::expected<ResultType, int>
+    executeInTransaction(conPtr &conn_, const std::function<ResultType(trasnactionType &, Args ...)> &call,
+                         Args &&... args) {
+        trasnactionType txn(*conn_);
+        ResultType res = call(txn, std::forward<Args>(args)...);
+        txn.commit();
+        return res;
+    }
 
 }
 

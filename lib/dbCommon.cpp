@@ -263,9 +263,15 @@ namespace db_services {
         return txn.exec(qq);
     }
 
-    indexType getTotalFileSize(trasnactionType &txn) {
-        //todo turn to expected
-        return txn.query_value<indexType>("select sum(size_in_bytes) from files;");
+    tl::expected<indexType, int> getTotalFileSize(trasnactionType &txn) {
+        try
+        {
+            return tl::expected<indexType, int>(txn.query_value<indexType>("select sum(size_in_bytes) from files;"));
+        }
+        catch (...)
+        {
+            return ErrorOccured;
+        }
     }
 
     void printRowsAffected(resType &res) {

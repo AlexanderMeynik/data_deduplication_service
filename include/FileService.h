@@ -203,6 +203,11 @@ namespace file_services {
                              Args &&... args) {
             return manager_.executeInTransaction(call, std::forward<Args>(args)...);
         }
+
+        void inline disconnect()
+        {
+            manager_.disconnect();
+        }
     private:
         dbManager manager_;
     };

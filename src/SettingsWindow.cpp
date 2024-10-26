@@ -4,8 +4,8 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <QGridLayout>
-
 #include <QValidator>
+#include <QXmlStreamWriter>
 #include "dbCommon.h"
 
 
@@ -181,6 +181,27 @@ namespace windows {
         {
             reject();
             return;
+        }
+
+        if(!fileLineEdit->getContent().isEmpty())
+        {
+            QFile file(confName);
+            file.open(QIODevice::WriteOnly);
+            QXmlStreamWriter xmlWriter(&file);
+            xmlWriter.setAutoFormatting(true);
+
+            xmlWriter.writeStartDocument();
+            xmlWriter.writeStartElement("resources");
+
+            xmlWriter.writeStartElement(parentTag);
+            xmlWriter.writeAttribute("path",fileLineEdit->getContent());
+            xmlWriter.writeEndElement();
+
+
+            xmlWriter.writeEndElement();
+            xmlWriter.writeEndDocument();
+            file.close();
+
         }
         accept();
     }

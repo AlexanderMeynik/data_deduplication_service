@@ -5,8 +5,6 @@
 #include <QSqlQueryModel>
 
 
-
-
 std::initializer_list<QString> ll = {"2", "4", "8", "16", "32"};//todo remake
 
 namespace windows {
@@ -16,7 +14,7 @@ namespace windows {
             : QMainWindow(parent) {
         this->setFixedSize(1024, 620);
 
-        fileService= file_services::FileParsingService();
+        fileService = file_services::FileParsingService();
 
         //todo init file service
 
@@ -34,12 +32,15 @@ namespace windows {
         connect(outputFile, &FileLineEditWithOption::contentChanged, this, &MainWindow::activateButtonsd);
 
 
-        connect(loadDb, &QPushButton::pressed, this,&MainWindow::onloadDatabase);
+        connect(loadDb, &QPushButton::pressed, this, &MainWindow::onloadDatabase);
 
-        connect(dataseName,&QLineEdit::textChanged,[&](){
+        connect(this, &MainWindow::connectionChanged,this
+        ,&MainWindow::onConnectionChanged);
+
+
+        connect(dataseName, &QLineEdit::textChanged, [&]() {
             loadDb->setEnabled(!dataseName->text().isEmpty());
         });
-
 
 
         for (const char *hashName: hash_utils::hash_function_name) {
@@ -47,17 +48,13 @@ namespace windows {
         }
         segmentSizeComboBox->addItems(ll);
 
-
-        dbConnection=false;
+        dbConnection = false;
+        readConfiguration();
         activateButtonsd();
 
     }
 
     MainWindow::~MainWindow() {
-        if(mydmod)
-        {
-            delete mydmod;
-        }
     }
 
     void MainWindow::setupUI() {
@@ -102,7 +99,11 @@ namespace windows {
         deleteButton = new QPushButton("Delete");
 
         hbl = new QHBoxLayout();
-        fileExportField = new QComboBox();
+
+
+        fileExportField = new QLineEdit();
+
+
         hbl->addWidget(exportButton);
         hbl->addWidget(deleteButton);
 
@@ -118,7 +119,6 @@ namespace windows {
         /*QSqlQueryModel aa;*/
 
         dataTable = new QTableView();
-
 
 
         logTextField = new QTextEdit();
@@ -176,23 +176,23 @@ namespace windows {
         includeOptionsArea->setLayout(incudeOptionLay);
 
 
-        exportOptionsArea=new QGroupBox(tr("FileExportOptions"));
+        exportOptionsArea = new QGroupBox(tr("FileExportOptions"));
 
         deleteFiles = new QCheckBox();
         deleteFiles->setToolTip("If checked will delete file/directory after export.");
         createMain = new QCheckBox();
         createMain->setToolTip("If checked  new directory will be created if out path does not exist!");
 
-        errorCount=new QLCDNumber();
+        errorCount = new QLCDNumber();
         /*errorCount->setDigitCount(10);*/
-        exportTime=new QLCDNumber();
+        exportTime = new QLCDNumber();
 
 
         auto exportOptionLay = new QGridLayout();
-        exportOptionLay->addWidget(new QLabel("Delete file/directory"),0,0,1,1);
-        exportOptionLay->addWidget(deleteFiles,0,1,1,1);
-        exportOptionLay->addWidget(new QLabel("Create root directory"),0,2,1,1);
-        exportOptionLay->addWidget(createMain,0,3,1,1);
+        exportOptionLay->addWidget(new QLabel("Delete file/directory"), 0, 0, 1, 1);
+        exportOptionLay->addWidget(deleteFiles, 0, 1, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Create root directory"), 0, 2, 1, 1);
+        exportOptionLay->addWidget(createMain, 0, 3, 1, 1);
 
 
         exportOptionLay->addWidget(new QLabel("Export time (ms)"),
@@ -208,26 +208,25 @@ namespace windows {
 
         exportOptionsArea->setLayout(exportOptionLay);
 
-        databaseConfiguration=new QGroupBox(tr("Database configiration"));
+        databaseConfiguration = new QGroupBox(tr("Database configiration"));
         auto dbOptionLay = new QGridLayout();
 
-        createNewDbCB=new QCheckBox();
-        loadDb=new QPushButton("Connect");
+        createNewDbCB = new QCheckBox();
+        loadDb = new QPushButton("Connect");
         loadDb->setEnabled(false);
-        dataseName=new QLineEdit();
+        dataseName = new QLineEdit();
 
-        dataseName=new QLineEdit();
+        dataseName = new QLineEdit();
         QRegularExpression re("^[a-z_][A-Za-z0-9_]{1,62}");
         QRegularExpressionValidator *validator = new QRegularExpressionValidator(re, this);
         dataseName->setValidator(validator);
 
-        dbOptionLay->addWidget(new QLabel("Database name:"),0,0,1,1);
-        dbOptionLay->addWidget(dataseName,0,1,1,1);
+        dbOptionLay->addWidget(new QLabel("Database name:"), 0, 0, 1, 1);
+        dbOptionLay->addWidget(dataseName, 0, 1, 1, 1);
 
-        dbOptionLay->addWidget(new QLabel("Create new database"),1,0,1,1);
-        dbOptionLay->addWidget(createNewDbCB,1,1,1,1);
-        dbOptionLay->addWidget(loadDb,1,2,1,1);
-
+        dbOptionLay->addWidget(new QLabel("Create new database"), 1, 0, 1, 1);
+        dbOptionLay->addWidget(createNewDbCB, 1, 1, 1, 1);
+        dbOptionLay->addWidget(loadDb, 1, 2, 1, 1);
 
 
         databaseConfiguration->setLayout(dbOptionLay);
@@ -243,10 +242,11 @@ namespace windows {
 
         centralWidget()->setLayout(mmm);
 
-        settingsWindow=new  SettingsWindow(this);
+        settingsWindow = new SettingsWindow(this);
     }
 
     void MainWindow::onImport() {
+        this->updateModel(0);
         QString inputPath = inputFile->getContent();
         size_t segmentSize = segmentSizeComboBox->currentText().toUInt();
         if (QFileInfo(inputPath).isDir()) {
@@ -271,9 +271,11 @@ namespace windows {
     }
 
     void MainWindow::onDelete() {
+        mydmod->reset();
         QString path = inputFile->getContent();
         if (QFileInfo(path).isDir()) {
             writeLog("delete directory");
+
             //fileService.deleteDirectory(path.toStdString());
         } else {
             writeLog("delete file");
@@ -286,25 +288,24 @@ namespace windows {
 
         auto stat = settingsWindow->exec();
 
-        dbConnection= (stat == QDialog::Accepted);
-        if (stat == QDialog::Accepted) {
 
+
+        if (stat == QDialog::Accepted) {
             c_str = std::move(settingsWindow->getConfiguration());
             writeLog("update settings");
             writeLog(c_str.c_str());
 
-        } else
-        {
-            writeLog("Rejected connection",ERROR);
+        } else {
+            writeLog("Rejected connection", ERROR);
         }
-        activateButtonsd();
         settingsWindow->close();
-
+        bool old =dbConnection;
+        dbConnection = (stat == QDialog::Accepted);
+        emit connectionChanged(old);
     }
 
     void MainWindow::activateButtonsd() {
 
-        //todo if no connection all button will be disabled(+ add label to show that)
 
         auto in = inputFile->getContent();
         auto out = outputFile->getContent();
@@ -322,49 +323,105 @@ namespace windows {
         deleteButton->setEnabled(dbConnection);
     }
 
-    void MainWindow::writeLog(QString qss, LogLevel lg) {
-        logTextField->setTextColor(colourLookUp[lg]);
-        logTextField->append(QString(logLevelLookUp[lg]).arg(qss));
-    }
 
     void MainWindow::onloadDatabase() {
-
         this->c_str.setDbname(dataseName->text().toStdString());
+        bool old =dbConnection;
+        dbConnection = checkConnString(c_str);
+        emit connectionChanged(old);
 
-        dbConnection=checkConnString(c_str);
 
-        activateButtonsd();
-
-        onModelSet();
-
-        if(createNewDbCB->isChecked())
-        {
-            if(dbConnection)
-            {
+        if (createNewDbCB->isChecked()) {
+            if (dbConnection) {
                 writeLog("database aleady exists");
+                return;
             }
             //todo create database
-        }
-        else
-        {
+        } else {
             //todo dbload
         }
 
     }
 
-    void MainWindow::onModelSet() {
-        if(dbConnection) {
-            auto dbName=dataseName->text().toStdString();
-            fileService.dbLoad(dbName);
-            mydmod =new MyPqxxModel(fileService);
-            mydmod->executeInTransaction(&db_services::getFileSizes);
-            dataTable->setModel(mydmod);
-            dataTable->sizeHint();
 
-        } else
-        {
-            dataTable->setModel(nullptr);
-            delete mydmod;
+
+
+
+
+    void MainWindow::readConfiguration() {
+        QFile file(confName);
+        file.open(QIODevice::ReadOnly);
+        if (!file.isOpen()) {
+            writeLog("No file found", ERROR);
+            //todo set connection pop up(or open settings)
+            return;
         }
+        QXmlStreamReader xmlReader;
+        xmlReader.setDevice(&file);
+        xmlReader.readNext();
+        while (!xmlReader.atEnd()) {
+            if (xmlReader.isStartElement()) {
+                std::string path;
+                if (xmlReader.name() == parentTag) {
+                    for (auto &attr: xmlReader.attributes()) {
+                        if (attr.name().toString() == "path") {
+                            path = attr.value().toString().toStdString();
+                            this->c_str=db_services::loadConfiguration(path);
+                            dataseName->setText(QString::fromStdString(c_str.getDbname()));
+
+
+                            bool old =dbConnection;
+                            dbConnection = checkConnString(c_str);
+                            emit connectionChanged(old);
+                            break;
+                        }
+                    }
+                }
+            }
+            xmlReader.readNext();
+        }
+        file.close();
+    }
+
+    void MainWindow::onConnectionChanged(bool old) {
+        if(!dbConnection)
+        {
+            if(dataTable->model())
+            {
+                fileService.disconnect();
+                dataTable->setModel(nullptr);
+                delete mydmod;
+            }
+        }
+        else
+        {
+            auto dbName = dataseName->text().toStdString();
+
+            fileService.dbLoad(dbName);
+            mydmod = new MyPqxxModel(c_str,this);
+
+            proxyModel = new QSortFilterProxyModel(this);
+            proxyModel->setSourceModel(mydmod);
+
+            mydmod->executeInTransaction(&db_services::getFileSizes);
+            dataTable->setModel(proxyModel);
+            dataTable->sizeHint();
+            dataTable->setSortingEnabled(true);
+        }
+
+        activateButtonsd();
+
+    }
+
+    void MainWindow::resizeEvent(QResizeEvent *event) {
+        QWidget::resizeEvent(event);
+
+        dataTable->sizeHint();
+        writeLog("resized");
+    }
+
+    void MainWindow::updateModel(size_t index) {
+
+        mydmod->executeInTransaction(&db_services::getFileSizes);
     }
 }
