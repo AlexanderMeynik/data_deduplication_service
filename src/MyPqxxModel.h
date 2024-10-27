@@ -11,9 +11,8 @@
 
 #include <dbCommon.h>
 #include <QDate>
-#include <QTreeView>
 #include <QMouseEvent>
-
+#include <QTableView>
 /**
  * Type for postgresql OID storage
  */
@@ -74,14 +73,27 @@ using namespace db_services;
 /**
  * Model class for libpqxx result
  */
-class MyPqxxModel : public QAbstractTableModel {
-Q_OBJECT
+class MyPxxxModelBase
+{
 public:
-
-    MyPqxxModel(QObject *parent = nullptr);
-
     bool performConnection(myConnString &cstring);
+    bool checkConnection()
+    {
+        good= db_services::checkConnection(connection_);
+        return good;
+    }
 
+    QVariant getData(const QModelIndex &index, int role) const
+    {
+        return std::visit([&](auto v) {
+            if(res[index.row()][index.column()].is_null())
+            {
+                return QVariant();
+            }
+            auto a2 = res[index.row()][index.column()].as<typename decltype(v)::type>();
+            return toQtVariant(a2);
+        }, oidToTypeMap.at(columnTypes[index.column()]));
+    }
     /**
      * @ref db_services::executeInTransaction() "executeInTransaction()"
      * @tparam ResType1
@@ -93,16 +105,29 @@ public:
     void executeInTransaction(ResType1
                               (*call)(db_services::trasnactionType &, Args ...),
                               Args &&... args) {
-        beginResetModel();
-        auto ss = db_services::executeInTransaction(connection_, call, std::forward<Args>(args)...);
-        //todo this one is not save for return(trye except?)
-        if (!ss.has_value()) {
+        if(!checkConnection())
+        {
             res = pqxx::result();
+            return;
         }
-        res = ss.value();
+        try {
+            auto ss = db_services::executeInTransaction(connection_, call, std::forward<Args>(args)...);
+            if (!ss.has_value()) {
+                res = pqxx::result();
+            }
+            res = ss.value();
+        }
+        catch (const pqxx::sql_error &e) {
+            res = pqxx::result();
+            return;
+        }
+        catch (const std::exception &e) {
+            res = pqxx::result();
+            return;
+        }
+
         setColumnsTypes();
         isEmpty_ = false;
-        endResetModel();
     }
 
     /**
@@ -118,36 +143,35 @@ public:
     executeInTransaction(const std::function<ResType1(db_services::trasnactionType &, Args ...)> &call,
                          Args &&... args) {
 
-        beginResetModel();
-        auto ss = db_services::executeInTransaction(connection_, call, std::forward<Args>(args)...);
-        if (!ss.has_value()) {
+        if(!checkConnection())
+        {
             res = pqxx::result();
+            return;
         }
-        res = ss.value();
+        try {
+            auto ss = db_services::executeInTransaction(connection_, call, std::forward<Args>(args)...);
+            if (!ss.has_value()) {
+                res = pqxx::result();
+            }
+            res = ss.value();
+        }
+        catch (const pqxx::sql_error &e) {
+            res = pqxx::result();
+            return;
+        }
+        catch (const std::exception &e) {
+            res = pqxx::result();
+            return;
+        }
+
         setColumnsTypes();
         isEmpty_ = false;
-        endResetModel();
-    }
-
-    int rowCount(const QModelIndex &parent) const override {
-        return res.size();
-    }
-
-    int columnCount(const QModelIndex &parent) const override {
-        return res.columns();
     }
 
     void reset() {
-        beginResetModel();
         res = resType();
         isEmpty_ = true;
-        endResetModel();
     }
-
-    QVariant headerData(int section, Qt::Orientation orientation,
-                        int role = Qt::DisplayRole) const override;
-
-    QVariant data(const QModelIndex &index, int role) const override;
 
     bool connected() const {
         return good;
@@ -156,7 +180,6 @@ public:
     bool isEmpty() {
         return isEmpty_;
     }
-
 protected:
     void setColumnsTypes();
 
@@ -169,12 +192,41 @@ protected:
     bool isEmpty_;
 };
 
+
+class MyPqxxModel : public QAbstractTableModel, public MyPxxxModelBase{
+Q_OBJECT
+public:
+
+    MyPqxxModel(QObject *parent = nullptr);
+
+    int rowCount(const QModelIndex &parent) const override {
+        return res.size();
+    }
+
+    int columnCount(const QModelIndex &parent) const override {
+        return res.columns();
+    }
+
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
+
+    QVariant data(const QModelIndex &index, int role) const override;
+
+    void reset() {
+        beginResetModel();
+        MyPxxxModelBase::reset();
+        endResetModel();
+    }
+};
+
 class MainTableModel : public MyPqxxModel {
 public:
     MainTableModel(QObject *parent = nullptr) : MyPqxxModel(parent) {}
 
     void getData() {
+        beginResetModel();
         this->executeInTransaction(&db_services::getDedupCharacteristics);
+        endResetModel();
     }
 };
 
@@ -191,27 +243,49 @@ public:
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
         QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
+
+
         return (sourceModel()->data(index0).toString().contains(filterRegularExpression()));
     }
-
-private:
 };
 
 
-class DeselectableTreeView : public QTreeView {
+class NotNullFilterProxyModel : public QSortFilterProxyModel {
+Q_OBJECT
+
 public:
-    DeselectableTreeView(QWidget *parent) : QTreeView(parent) {}
+    NotNullFilterProxyModel(QObject *parent = nullptr)
+            : QSortFilterProxyModel(parent) {
+    }
+
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
+        for (size_t i = 0; i < sourceModel()->columnCount(); ++i) {
+            if(sourceModel()->data(sourceModel()->index(sourceRow, i, sourceParent)).isNull())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+
+
+class DeselectableTreeView : public QTableView {
+public:
+    DeselectableTreeView(QWidget *parent) : QTableView(parent) {}
 
     virtual ~DeselectableTreeView() {}
 
 private:
     virtual void mousePressEvent(QMouseEvent *event) {
 
-        //todo maybe use https://radekp.github.io/qtmoko/api/model-view-selection.html
         QModelIndex item = indexAt(event->pos());
 
         if (item.isValid()) {
-            QTreeView::mousePressEvent(event);
+            QTableView::mousePressEvent(event);
         } else {
             clearSelection();
             const QModelIndex index;

@@ -61,7 +61,8 @@ namespace db_services {
     getFilesForDirectory(trasnactionType &txn, std::string_view dirPath) {
         std::string query = "select * from files "
                             "where to_tsvector('simple',replace(file_name,'_', '/'))"
-                            "@@ \'%s\' and file_name LIKE \'%s %%\'";
+                            "@@ \'%s\' and file_name LIKE \'%s %%\' "
+                            "and size_in_bytes!=0";//todo test
         auto formattedQuery = vformat(query.c_str(), toTsquerablePath(dirPath).c_str(),
                                       toSpacedPath(dirPath).c_str());
 

@@ -39,7 +39,7 @@ namespace windows {
 
         void readConfiguration();
 
-        void resizeEvent(QResizeEvent *event);
+        void resizeEvent(QResizeEvent *event) override;
 
     signals:
 
@@ -88,16 +88,18 @@ namespace windows {
         QPushButton *dropPB;
 
         DeselectableTreeView *treeView;
+
         QTextEdit *logTextField;
 
         QVBoxLayout *mainLayout;
-        QHBoxLayout *optionsLayout;
-        QHBoxLayout *buttonLayout;
-        QHBoxLayout *exportDeleteLay;
 
 
-        QLineEdit *fileExportField;
+        QGridLayout * mmLayout;
 
+
+
+
+        QLineEdit *fileExportLE;
         QAction *settingsAction;
 
         QLabel *labelSegmentSize;
@@ -107,6 +109,13 @@ namespace windows {
         QGroupBox *includeOptionsArea;
         QGroupBox *exportOptionsArea;
         QGroupBox *databaseConfigurationArea;
+
+
+        QGroupBox *importFileArea;
+        QGroupBox *exportFileArea;
+
+        QGridLayout * importFileAreaLay;
+        QGridLayout * exportFileAreaLay;
 
         QCheckBox *replaceFileCB;
         QCheckBox *createMainCB;
@@ -130,6 +139,7 @@ namespace windows {
 
         MainTableModel *myViewModel;
         MySortFilterProxyModel *proxyModel;
+        NotNullFilterProxyModel * nNullProxyModel;
 
         void setupUI();
 

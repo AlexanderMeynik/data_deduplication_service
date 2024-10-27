@@ -1,7 +1,7 @@
 #include "MyPqxxModel.h"
 
 
-MyPqxxModel::MyPqxxModel(QObject *parent) : QAbstractTableModel(parent) {
+MyPqxxModel::MyPqxxModel(QObject *parent) : QAbstractTableModel(parent), MyPxxxModelBase() {
     res = pqxx::result();
     isEmpty_ = true;
 }
@@ -18,19 +18,16 @@ QVariant MyPqxxModel::headerData(int section, Qt::Orientation orientation, int r
 
 QVariant MyPqxxModel::data(const QModelIndex &index, int role) const {
     if (role == Qt::DisplayRole) {
-        return std::visit([&](auto v) {
-            if(res[index.row()][index.column()].is_null())
-            {
-                return QVariant();
-            }
-            auto a2 = res[index.row()][index.column()].as<typename decltype(v)::type>();
-            return toQtVariant(a2);
-        }, oidToTypeMap.at(columnTypes[index.column()]));
+        return getData(index,role);
     }
     return QVariant();
 }
 
-void MyPqxxModel::setColumnsTypes() {
+
+
+
+
+void MyPxxxModelBase::setColumnsTypes() {
     columnTypes.resize(res.columns());
     columnNames.resize(res.columns());
     for (int i = 0; i < res.columns(); ++i) {
@@ -39,9 +36,8 @@ void MyPqxxModel::setColumnsTypes() {
     }
 }
 
-bool MyPqxxModel::performConnection(myConnString &cstring) {
+bool MyPxxxModelBase::performConnection(myConnString &cstring) {
     this->connection_ = connectIfPossible(cstring.c_str()).value_or(nullptr);
-    good = db_services::checkConnection(this->connection_);
+    good = checkConnection();
     return good;
 }
-

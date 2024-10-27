@@ -21,15 +21,17 @@ namespace windows {
 
         myViewModel = new MainTableModel(this);
         proxyModel = new MySortFilterProxyModel(this);
+        nNullProxyModel=new NotNullFilterProxyModel(this);
         proxyModel->setSourceModel(myViewModel);
-        treeView->setModel(proxyModel);
+        nNullProxyModel->setSourceModel(proxyModel);
+        treeView->setModel(nNullProxyModel);
 
-        QCompleter *completer = new QCompleter(this);//todo check
+        QCompleter *completer = new QCompleter(this);
         completer->setModel(proxyModel);
         completer->setCompletionColumn(0);
         completer->setCompletionRole(Qt::DisplayRole);
 
-        fileExportField->setCompleter(completer);
+        fileExportLE->setCompleter(completer);
 
         connect(importPB, &QPushButton::pressed, this, &MainWindow::onImport);
         connect(exportPB, &QPushButton::pressed, this, &MainWindow::onExport);
@@ -45,6 +47,13 @@ namespace windows {
 
         connect(loadPB, &QPushButton::pressed, this, &MainWindow::onloadDatabase);
 
+        connect(dropPB,&QPushButton::pressed,[&]
+        {
+            fileService.dbDrop(c_str.getDbname());
+            dbConnection= false;
+            emit onConnectionChanged(true);
+        });
+
         connect(this, &MainWindow::connectionChanged, this, &MainWindow::onConnectionChanged);
 
 
@@ -52,12 +61,9 @@ namespace windows {
             loadPB->setEnabled(!dataseLE->text().isEmpty());
         });
 
-        connect(fileExportField, &QLineEdit::textChanged, [&]
+        connect(fileExportLE, &QLineEdit::textChanged, [&]
                 (const QString &a) {
 
-            if (dynamic_cast<decltype(this->myViewModel)>(proxyModel->sourceModel())->isEmpty()) {
-                return;
-            }
             if (a.isEmpty()) {
                 proxyModel->setFilterRegularExpression(QString());
                 return;
@@ -78,7 +84,6 @@ namespace windows {
                 QString rowData = "Selected row: " + QString::number(row) + " | Data: ";
 
                 for (int col = 0; col < columnCount; ++col) {
-                    // Get the data for each column in the selected row
                     QVariant data = index.sibling(row, col).data();
                     rowData += data.toString() + " ";
                 }
@@ -112,73 +117,79 @@ namespace windows {
         setWindowTitle("File Processing Application");
 
         setCentralWidget(new QWidget());
+
         auto cent = centralWidget();
 
+        mmLayout=new QGridLayout();
 
-        auto mmm = new QHBoxLayout();
         mainLayout = new QVBoxLayout();
 
-        inputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath());
-        outputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath(), true);
-
-
-        optionsLayout = new QHBoxLayout();
-        labelHashFunction = new QLabel("Hash Function:");
-        labelSegmentSize = new QLabel("Segment Size:");
-
-
-        hashFunctionCoB = new QComboBox(cent);
-        segmentSizeCoB = new QComboBox(cent);
-
-        optionsLayout->addWidget(labelHashFunction);
-        optionsLayout->addWidget(hashFunctionCoB);
-        optionsLayout->addWidget(labelSegmentSize);
-        optionsLayout->addWidget(segmentSizeCoB);
-
-        buttonLayout = new QHBoxLayout();
-        importPB = new QPushButton("Import");
-
-
-        buttonLayout->addWidget(importPB);
 
 
         settingsAction = new QAction("Settings");
         menuBar()->addAction(settingsAction);
 
 
-        exportPB = new QPushButton("Export");
-        deletePB = new QPushButton("Delete");
-
-        exportDeleteLay = new QHBoxLayout();
-
-
-        fileExportField = new QLineEdit();
-
-
-        exportDeleteLay->addWidget(exportPB);
-        exportDeleteLay->addWidget(deletePB);
-
         //todo add database status(total blocks files size) files
         //todo for import and export add fileds for segment count etc.
         //todo add connection qled
 
 
+        inputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath());
+        labelHashFunction = new QLabel("Hash Function:");
+        labelSegmentSize = new QLabel("Segment Size:");
+        hashFunctionCoB = new QComboBox(cent);
+        segmentSizeCoB = new QComboBox(cent);
+        importPB = new QPushButton("Import");
+
+        importFileArea=new QGroupBox(this);
+        importFileAreaLay=new QGridLayout();
+        importFileArea->setLayout(importFileAreaLay);
+
+        importFileAreaLay->addWidget(inputFileLEWO,0,0,1,4);
+        importFileAreaLay->addWidget(labelHashFunction,1,0,1,1);
+        importFileAreaLay->addWidget(hashFunctionCoB,1,1,1,1);
+        importFileAreaLay->addWidget(labelSegmentSize,1,2,1,1);
+        importFileAreaLay->addWidget(segmentSizeCoB,1,3,1,1);
+        importFileAreaLay->addWidget(importPB,2,0,1,4);
+
+
+        fileExportLE = new QLineEdit();
+        exportPB = new QPushButton("Export");
+        deletePB = new QPushButton("Delete");
+        outputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath(), true);
+
+        exportFileArea=new QGroupBox(this);
+        exportFileAreaLay=new QGridLayout();
+        exportFileArea->setLayout(exportFileAreaLay);
+
+        exportFileAreaLay->addWidget(outputFileLEWO,0,0,1,2);
+        exportFileAreaLay->addWidget(fileExportLE,1,0,1,2);
+        exportFileAreaLay->addWidget(exportPB,2,0,1,1);
+        exportFileAreaLay->addWidget(deletePB,2,1,1,1);
+
 
         treeView = new DeselectableTreeView(this);
 
-        /*dataTable->resizeColumnToContents(0);*/
+        mainLayout->addWidget(importFileArea);
+        mainLayout->addWidget(treeView);
+        mainLayout->addWidget(exportFileArea);
+
+
+
+
 
         logTextField = new QTextEdit();
         logTextField->setReadOnly(true);
 
-        mainLayout->addWidget(inputFileLEWO);
-        mainLayout->addLayout(optionsLayout);
-        mainLayout->addLayout(buttonLayout);
-        mainLayout->addWidget(treeView);
-        mainLayout->addWidget(fileExportField);
-        mainLayout->addWidget(outputFileLEWO);
-        mainLayout->addLayout(exportDeleteLay);
-        mmm->addLayout(mainLayout);
+
+
+
+
+
+
+        mmLayout->addLayout(mainLayout,0,0,1,1);
+
 
         auto VV = new QVBoxLayout();
 
@@ -231,7 +242,6 @@ namespace windows {
         createMainCB->setToolTip("If checked  new directory will be created if out path does not exist!");
 
         errorCountLCD = new QLCDNumber();
-        /*errorCount->setDigitCount(10);*/
         exportTimeLCD = new QLCDNumber();
 
 
@@ -261,6 +271,9 @@ namespace windows {
         dbUsageCB = new QCheckBox();
         loadPB = new QPushButton("Connect");
         loadPB->setEnabled(false);
+        dropPB=new QPushButton("Drop database");
+        dropPB->setEnabled(false);
+
         dataseLE = new QLineEdit();
 
         dataseLE = new QLineEdit();
@@ -274,6 +287,7 @@ namespace windows {
         dbOptionLay->addWidget(new QLabel("Create new database"), 1, 0, 1, 1);
         dbOptionLay->addWidget(dbUsageCB, 1, 1, 1, 1);
         dbOptionLay->addWidget(loadPB, 1, 2, 1, 1);
+        dbOptionLay->addWidget(dropPB,1,3,1,1);
 
 
         databaseConfigurationArea->setLayout(dbOptionLay);
@@ -285,9 +299,9 @@ namespace windows {
         VV->addWidget(exportOptionsArea);
 
 
-        mmm->addLayout(VV);
+        mmLayout->addLayout(VV,0,1,1,1);
 
-        centralWidget()->setLayout(mmm);
+        centralWidget()->setLayout(mmLayout);
 
         settingsWindow = new SettingsWindow(this);
     }
@@ -378,7 +392,7 @@ namespace windows {
                 writeLog("database aleady exists");
                 return;
             }
-            //todo create database
+            fileService.dbLoad<file_services::create>(std::string_view{c_str.getDbname()});
         } else {
             //todo dbload
         }
@@ -426,7 +440,6 @@ namespace windows {
             if (treeView->model()) {
                 fileService.disconnect();
                 myViewModel->reset();
-                /*dataTable->setModel(nullptr);*/
             }
         } else {
             auto dbName = dataseLE->text().toStdString();

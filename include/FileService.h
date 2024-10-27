@@ -109,7 +109,7 @@ namespace file_services {
          * @param configurationFile
          */
         template<dbUsageStrategy db_usage_str = use>
-        int dbLoad(std::string &dbName, std::string_view configurationFile = db_services::cfileName);
+        int dbLoad(std::string_view dbName, std::string_view configurationFile = db_services::cfileName);
 
         int dbDrop(std::string_view dbName) {
             auto res = manager_.dropDatabase(dbName);
@@ -345,7 +345,7 @@ namespace file_services {
 
     
     template<dbUsageStrategy str>
-    int FileParsingService::dbLoad(std::string &dbName, std::string_view configurationFile) {
+    int FileParsingService::dbLoad(std::string_view dbName, std::string_view configurationFile) {
         auto CString = db_services::loadConfiguration(configurationFile);
         CString.setDbname(dbName);
 
@@ -356,7 +356,7 @@ namespace file_services {
             auto reusult = manager_.createDatabase(dbName);
 
             if (reusult == returnCodes::ErrorOccured) {
-                VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", dbName.c_str());
+                VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", dbName.data());
                 return returnCodes::ErrorOccured;
             }
 
@@ -365,7 +365,7 @@ namespace file_services {
             if (reusult == returnCodes::ErrorOccured) {
                 VLOG(1)
                                 << vformat("Error occurred during database's \"%s\" schema's creation\n",
-                                           dbName.c_str());
+                                           dbName.data());
                 return returnCodes::ErrorOccured;
             }
         } else {
@@ -374,7 +374,7 @@ namespace file_services {
             if (res == returnCodes::ErrorOccured) {
                 VLOG(1)
                                 << vformat("Error occurred during database's \"%s\" schema's creation\n",
-                                           dbName.c_str());
+                                           dbName.data());
                 return returnCodes::ErrorOccured;
             }
         }
