@@ -18,6 +18,7 @@ namespace windows {
         connect(lineEdit, &QLineEdit::textChanged, [&](const QString &str) {
             emit FileLineEdit::contentChanged(str);
         });
+        type=File;
 
     }
 
@@ -87,8 +88,10 @@ namespace windows {
         selectModeCheckBox->setToolTip("Directory view mode!");
         mainLayout->addWidget(selectModeCheckBox);
 
-        connect(selectModeCheckBox, &QCheckBox::stateChanged, [&] { lineEdit->setText(""); });
-        //if we chnage mode of selection previous result must be deleted
+        connect(selectModeCheckBox, &QCheckBox::stateChanged, [&] {
+            lineEdit->setText("");
+            type=(selectModeCheckBox)?Directory:File;
+        });
     }
 
 

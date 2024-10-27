@@ -44,6 +44,7 @@ namespace windows {
     signals:
 
         void connectionChanged(bool old);
+        void modelUpdate();
 
     private slots:
 
@@ -62,7 +63,9 @@ namespace windows {
 
         void onConnectionChanged(bool old);
 
-        void updateModel(size_t index);
+        void updateModel();
+
+
 
         void updateLEDS(QModelIndex &idx);
 
@@ -74,12 +77,16 @@ namespace windows {
             ::writeLog(logTextField, qss, lg);
         }
 
+        QAction *settingsAction;
+
         FileLineEditWithOption *inputFileLEWO;
         FileLineEditWithOption *outputFileLEWO;
 
+        QLineEdit *fileExportLE;
+        QLineEdit *dataseLE;
+
         QComboBox *hashFunctionCoB;
         QComboBox *segmentSizeCoB;
-
 
         QPushButton *importPB;
         QPushButton *exportPB;
@@ -87,40 +94,33 @@ namespace windows {
         QPushButton *loadPB;
         QPushButton *dropPB;
 
-        DeselectableTreeView *treeView;
+        DeselectableTreeView *dataTableView;
 
         QTextEdit *logTextField;
 
-        QVBoxLayout *mainLayout;
 
+        QGroupBox *includeOptionsArea;
+        QGroupBox *exportOptionsArea;
+        QGroupBox *databaseConfigurationArea;
+        QGroupBox *importFileArea;
+        QGroupBox *exportFileArea;
 
         QGridLayout * mmLayout;
 
-
-
-
-        QLineEdit *fileExportLE;
-        QAction *settingsAction;
+        QGridLayout* incudeOptionLay;
+        QGridLayout* exportOptionLay;
+        QGridLayout* dbOptionLay;
+        QGridLayout * importFileAreaLay;
+        QGridLayout * exportFileAreaLay;
 
         QLabel *labelSegmentSize;
         QLabel *labelHashFunction;
         //todo move some labels from source
 
-        QGroupBox *includeOptionsArea;
-        QGroupBox *exportOptionsArea;
-        QGroupBox *databaseConfigurationArea;
-
-
-        QGroupBox *importFileArea;
-        QGroupBox *exportFileArea;
-
-        QGridLayout * importFileAreaLay;
-        QGridLayout * exportFileAreaLay;
-
         QCheckBox *replaceFileCB;
         QCheckBox *createMainCB;
         QCheckBox *deleteFilesCB;
-
+        QCheckBox *dbUsageCB;
 
         QLCDNumber *numberBlocksLCD;
         QLCDNumber *totalSizeLCD;
@@ -131,9 +131,7 @@ namespace windows {
         QLCDNumber *exportTimeLCD;
         QLCDNumber *errorCountLCD;//todo run checks on the resulting files
 
-        QCheckBox *dbUsageCB;
-        QLineEdit *dataseLE;
-
+        QLedIndicator *qled;
 
         SettingsWindow *settingsWindow;
 
@@ -141,11 +139,12 @@ namespace windows {
         MySortFilterProxyModel *proxyModel;
         NotNullFilterProxyModel * nNullProxyModel;
 
-        void setupUI();
 
         file_services::FileParsingService fileService;
         bool dbConnection;
         db_services::myConnString c_str;
+
+        void setupUI();
     };
 }
 

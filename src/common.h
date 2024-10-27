@@ -1,9 +1,10 @@
 #ifndef DATA_DEDUPLICATION_SERVICE_COMMON_H
 #define DATA_DEDUPLICATION_SERVICE_COMMON_H
 
-#include "qnamespace.h"
 
+#include <QRegularExpression>
 #include <QTextEdit>
+
 #include "myConnString.h"
 
 static const char *const confName = "configuration.xml";
@@ -35,6 +36,10 @@ static constexpr std::array<Qt::GlobalColor, 4> colourLookUp
 void inline writeLog(QTextEdit *logTextField, QString qss, LogLevel lg = RESULT) {
     logTextField->setTextColor(colourLookUp[lg]);
     logTextField->append(QString(logLevelLookUp[lg]).arg(qss));
+}
+
+bool inline isDirName(const QString &path) {
+    return !QRegularExpression(R"(\.\w+$)").match(path).hasMatch();
 }
 
 double inline smartCeil(double vaL, uint num) {

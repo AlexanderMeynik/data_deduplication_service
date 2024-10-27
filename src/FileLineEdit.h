@@ -13,6 +13,11 @@
 #include "dbCommon.h"
 
 namespace windows {
+    enum EntryType
+    {
+        File,
+        Directory
+    };
     class FileLineEdit : public QWidget {
     Q_OBJECT
 
@@ -32,6 +37,11 @@ namespace windows {
 
         bool isSaveFile() const;
 
+        EntryType getType()
+        {
+            return type;
+        }
+
     signals:
 
         void contentChanged(const QString &str);
@@ -45,8 +55,10 @@ namespace windows {
         QHBoxLayout *mainLayout;
         QLineEdit *lineEdit;
         QPushButton *pushButton;
+
         bool saveFile;
 
+        EntryType type;
         void setUpUi();
     };
 
