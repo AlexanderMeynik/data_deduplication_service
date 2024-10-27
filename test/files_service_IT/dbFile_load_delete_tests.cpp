@@ -41,7 +41,7 @@ TEST_F(DbFile_Dir_tests, test_file_eq) {
 TEST_F(DbFile_Dir_tests, create_delete_file_test) {
     std::string_view filename = "sample_file_name";
 
-    auto file_id = manager_.createFile(filename, paramType::EmptyParameterValue);
+    auto file_id = manager_.createFile(filename);
     auto result = wrapTransFunction(conn_, &db_services::checkFileExistence, std::string_view(filename));
 
     ASSERT_TRUE(result.has_value());
@@ -74,7 +74,7 @@ TEST_P(DbFile_Dir_tests, insert_segments) {
     auto f_path = GetParam();
     auto f_in =/*get_normal_abs*/(fix_dir / f_path);
 
-    manager_.createFile(f_in.c_str(), fs::file_size(f_in));
+    manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
 
     manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
@@ -95,7 +95,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_retrieve) {
     auto f_in = getNormalAbs(fix_dir / f_path);
     auto f_out = getNormalAbs(res_dir / f_path);
 
-    auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in));
+    auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
 
     manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
@@ -120,7 +120,7 @@ TEST_P(DbFile_Dir_tests, check_very_long_file_pathes) {
 
     f_path = d_path / f_path;
 
-    indexType file_id = manager_.createFile(f_path.c_str(), paramType::EmptyParameterValue);
+    indexType file_id = manager_.createFile(f_path.c_str());
 
     auto res = wrapTransFunction(conn_, &checkFileExistence, {f_path.c_str()});
 
@@ -148,7 +148,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
     auto f_in =/*get_normal_abs*/(fix_dir / f_path);
     auto f_out =/*get_normal_abs*/(res_dir / f_path);
 
-    auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in));
+    auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
 
     manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));

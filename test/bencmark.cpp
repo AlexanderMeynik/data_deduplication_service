@@ -14,7 +14,7 @@ std::vector<fs::path> from_dirs = {"images",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
 constexpr std::array<int,1> indx={0/*,1,2,3,4*/};
-constexpr std::array<int,3> multipliers={2,4,8/*,16,64,256*/};
+constexpr std::array<int,1> multipliers={2/*,4,8*//*,16,64,256*/};
 
 template<int hashNum,int multip>
 void performStuff()
@@ -53,14 +53,10 @@ void performStuff()
     sizes<<dbName<<"\n";
     db_services::printRes(schemas.value(), sizes);
     sizes<<'\n';
-    //todo those requstes wont get directories(use left join)
-    auto dedup_data= fs.executeInTransaction(&db_services::getDedupCharacteristics, (indexType) segment_size);
-    auto sizes_data= fs.executeInTransaction(&db_services::getFileSizes);
+    auto dedup_data= fs.executeInTransaction(&db_services::getDedupCharacteristics);
 
     sizes2<<dbName<<"\n";
     db_services::printRes(dedup_data.value(), sizes2);
-    sizes2<<'\n';
-    db_services::printRes(sizes_data.value(), sizes2);
     sizes2<<'\n';
 
     //todo later add

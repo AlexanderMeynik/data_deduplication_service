@@ -14,25 +14,27 @@
 
 
 using myConcepts::paramType/*, myConcepts::gClk*/;
-using enum myConcepts::paramType;
+using
+enum myConcepts::paramType;
 using namespace hash_utils;
 
 
 /// db_services namespace
 namespace db_services {
     using myConcepts::gClk;
+
     /**
      * Closes and deletes connection
      * @param conn
      */
-     void diconnect(conPtr &conn);
+    void diconnect(conPtr &conn);
 
     /**
      * Database manager that handles database management
      */
     class dbManager {
     public:
-        dbManager(): cString_(db_services::defaultConfiguration()), conn_(nullptr) {}
+        dbManager() : cString_(db_services::defaultConfiguration()), conn_(nullptr) {}
 
         explicit dbManager(myConnString &ss) : cString_(ss), conn_(nullptr) {}
 
@@ -86,7 +88,14 @@ namespace db_services {
          * @param fileSize
          * @return
          */
-        indexType createFile(std::string_view filePath, int fileSize = 0);
+        indexType createFile(std::string_view filePath, uintmax_t fileSize = 0, size_t segmentSize = 0);
+
+        /**
+         * Creates entry for directory
+         * @param dirPath
+         * @return
+         */
+        indexType createDirectory(std::string_view dirPath);
 
 
         /**
@@ -146,7 +155,7 @@ namespace db_services {
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
         executeInTransaction(ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
-            return db_services::executeInTransaction(conn_,call,std::forward<Args>(args)...);
+            return db_services::executeInTransaction(conn_, call, std::forward<Args>(args)...);
         }
 
         /**
@@ -159,12 +168,36 @@ namespace db_services {
         template<typename ResultType, typename ... Args>
         tl::expected<ResultType, int>
         executeInTransaction(const std::function<ResultType(trasnactionType &, Args ...)> &call, Args &&... args) {
-            return db_services::executeInTransaction(conn_,call,std::forward<Args>(args)...);
+            return db_services::executeInTransaction(conn_, call, std::forward<Args>(args)...);
         }
 
     private:
+        int updateFileTime(indexType fileId) {
+            trasnactionType txn(*conn_);
+
+            std::string query;
+            resType res;
+            try {
+
+                query = vformat("UPDATE public.files "
+                                "SET processed_at = CURRENT_TIMESTAMP "
+                                "WHERE file_id = %d;", fileId);
+                gClk.tik();
+                txn.exec(query);
+                gClk.tak();
+                VLOG(2) << vformat("Updated timer for file %d.", fileId);
+                txn.commit();
+            }
+            catch (const std::exception &e) {
+                VLOG(1) << "Error updating timer :" << e.what() << '\n';
+                return ErrorOccured;
+            }
+            return ReturnSucess;
+        }
+
         myConnString cString_;
         conPtr conn_;
+
     };
 
 
@@ -221,7 +254,6 @@ namespace db_services {
         }
         return ReturnSucess;
     }
-
 
 
 }

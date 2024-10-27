@@ -400,7 +400,7 @@ namespace file_services {
         auto size = fs::file_size(file);
 
         gClk.tik();
-        auto file_id = manager_.createFile(file, size);
+        auto file_id = manager_.createFile(file, size, segmentSize);
         gClk.tak();
 
         if (file_id == returnCodes::AlreadyExists) {
@@ -416,13 +416,13 @@ namespace file_services {
                                            file.c_str());
                 return returnCodes::ErrorOccured;
             }
-            file_id = manager_.createFile(file, size);
+            file_id = manager_.createFile(file, size, segmentSize);
         }
 
         if (file_id == returnCodes::ErrorOccured) {
             VLOG(1)
                             << vformat("Error occurred during file creation.\n File path \"%s\"!", file.c_str());
-            return file_id;
+            return returnCodes::ErrorOccured;
         }
         std::basic_ifstream<SymbolType> in(file);
 

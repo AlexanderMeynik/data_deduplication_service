@@ -19,6 +19,10 @@ QVariant MyPqxxModel::headerData(int section, Qt::Orientation orientation, int r
 QVariant MyPqxxModel::data(const QModelIndex &index, int role) const {
     if (role == Qt::DisplayRole) {
         return std::visit([&](auto v) {
+            if(res[index.row()][index.column()].is_null())
+            {
+                return QVariant();
+            }
             auto a2 = res[index.row()][index.column()].as<typename decltype(v)::type>();
             return toQtVariant(a2);
         }, oidToTypeMap.at(columnTypes[index.column()]));

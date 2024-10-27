@@ -228,16 +228,16 @@ namespace db_services {
                     aggregationTableName.c_str(),
                     filePath.data());
 
-             q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
-                         "SELECT ns.data, ns.count,ns.hash "
-                         "FROM \"%s\" ns "
-                         "ON CONFLICT (segment_hash) "
-                         "DO UPDATE "
-                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
-                         aggregationTableName.c_str());
-             gClk.tik();
-             txn.exec(q);
-             gClk.tak();
+            q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
+                        "SELECT ns.data, ns.count,ns.hash "
+                        "FROM \"%s\" ns "
+                        "ON CONFLICT (segment_hash) "
+                        "DO UPDATE "
+                        "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
+                        aggregationTableName.c_str());
+            gClk.tik();
+            txn.exec(q);
+            gClk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", filePath.data());
 
 
@@ -283,26 +283,28 @@ namespace db_services {
             VLOG(1) << "Error processing file data:" << e.what() << '\n';
             return returnCodes::ErrorOccured;
         }
+        updateFileTime(fileId);
         return returnCodes::ReturnSucess;
     }
 
 
-    indexType dbManager::createFile(std::string_view filePath, int fileSize) {
+    indexType dbManager::createFile(std::string_view filePath, uintmax_t fileSize, size_t segmentSize) {
         trasnactionType txn(*conn_);
         indexType futureFileId = returnCodes::ErrorOccured;
 
         std::string query;
         resType res;
         try {
-            query = "insert into public.files (file_name,size_in_bytes)"
-                    " values ($1,$2) returning file_id;";
-            res = txn.exec(query, {toSpacedPath(filePath), fileSize});
+            query = "insert into public.files (file_name,size_in_bytes,segment_size)"
+                    " values ($1,$2,$3) returning file_id;";
+            res = txn.exec(query, {toSpacedPath(filePath), fileSize, segmentSize});
 
             futureFileId = res.one_row()[0].as<indexType>();
             VLOG(2) << vformat("File record (%d,\"%s\",%d) was successfully created.",
                                futureFileId,
                                filePath.data(),
                                fileSize);
+            //todo refactor message
             auto hashStr = getHashStr(filePath);
             std::string tableName = vformat("temp_file_%s", hashStr.c_str());
             std::string q1 = vformat(
@@ -325,7 +327,7 @@ namespace db_services {
                     << "SQL State: " << e.sqlstate() << '\n';
         }
         catch (const std::exception &e) {
-            VLOG(1) << "Error while creting file:" << e.what() << '\n';
+            VLOG(1) << "Error while creating file:" << e.what() << '\n';
         }
         return futureFileId;
     }
@@ -515,7 +517,9 @@ namespace db_services {
                     "    file_id serial primary key NOT NULL,"
                     "    file_name text NOT NULL,"
                     "    size_in_bytes bigint NULL,"
-                    "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                    "    segment_size bigint NOT NULL,"
+                    "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                    "    processed_at TIMESTAMP NULL"
                     ");"
                     ""
                     "create table public.data "
@@ -559,6 +563,39 @@ namespace db_services {
             return returnCodes::ErrorOccured;
         }
         return ReturnSucess;
+    }
+
+    indexType dbManager::createDirectory(std::string_view dirPath) {
+        trasnactionType txn(*conn_);
+        indexType futureFileId = returnCodes::ErrorOccured;
+
+        std::string query;
+        resType res;
+        try {
+            query = "insert into public.files (file_name,size_in_bytes,segment_size)"
+                    " values ($1,0,0) returning file_id;";
+            res = txn.exec(query, pqxx::params{toSpacedPath(dirPath)});
+
+            futureFileId = res.one_row()[0].as<indexType>();
+            VLOG(2) << vformat("Directory record (%d,\"%s\",0) was successfully created.",
+                               futureFileId,
+                               dirPath.data());
+
+            txn.commit();
+        }
+        catch (const pqxx::sql_error &e) {
+            if (e.sqlstate() == sqlLimitBreachedState) {
+                VLOG(1) << vformat("Directory %s already exists\n", dirPath.data());
+                return returnCodes::AlreadyExists;
+            }
+            VLOG(1) << "SQL Error: " << e.what()
+                    << "Query: " << e.query()
+                    << "SQL State: " << e.sqlstate() << '\n';
+        }
+        catch (const std::exception &e) {
+            VLOG(1) << "Error while creting file:" << e.what() << '\n';
+        }
+        return futureFileId;
     }
 
 

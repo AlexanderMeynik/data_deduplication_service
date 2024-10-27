@@ -33,7 +33,8 @@ static const std::unordered_map<OID, returnType> oidToTypeMap = {
         {20,  std::type_identity<int64_t>{}},
         {701, std::type_identity<double>{}},
         {25,  std::type_identity<std::string>{}},
-        {17,  std::type_identity<pqxx::binarystring>{}}
+        {17,  std::type_identity<pqxx::binarystring>{}},
+        {1700, std::type_identity<double>{}}
 };
 
 
@@ -173,7 +174,7 @@ public:
     MainTableModel(QObject *parent = nullptr) : MyPqxxModel(parent) {}
 
     void getData() {
-        this->executeInTransaction(&db_services::getFileSizes);
+        this->executeInTransaction(&db_services::getDedupCharacteristics);
     }
 };
 

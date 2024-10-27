@@ -198,26 +198,25 @@ namespace db_services {
     }
 
     resType
-    getDedupCharacteristics(trasnactionType &txn, indexType segmentSize) {
-        std::string query = "with segments as( "
-                            "select f.file_name,d.segment_hash ,count(d.segment_hash),f.created_at from files f "
-                            "        inner join public.data d on f.file_id = d.file_id "
-                            "group by f.file_name,f.created_at,d.segment_hash "
-                            "order by f.file_name) "
-                            ", "
-                            "unique_segments_count as( "
-                            "select file_name,count(segment_hash) as unique_count,created_at  from segments "
-                            "group by file_name, created_at) "
-                            " "
-                            " "
-                            "select '/'||replace(f.file_name,' ','/') as path,size_in_bytes,aa.unique_count, "
-                            "       ceil(size_in_bytes::float8/$1 "
-                            "       ) as segment_count,(aa.unique_count /ceil(size_in_bytes::float8/$1 "
-                            "                          )::float8)*100 as unique_percenatage "
-                            ", aa.created_at "
-                            "from files f\n"
-                            "inner join  unique_segments_count aa on f.file_name=aa.file_name;";
-        return txn.exec(query, pqxx::params(segmentSize));
+    getDedupCharacteristics(trasnactionType &txn) {
+        std::string query = "with mainStats as("
+                            "select file_id,count(d.segment_hash) as segment_count, "
+                            "       count(distinct d.segment_hash) as unique_count, "
+                            "       sum(octet_length(d.segment_hash)+8) as data_size "
+                            "from public.segments "
+                            "inner join public.data d on segments.segment_hash = d.segment_hash "
+                            "group by file_id) "
+                            "select '/'||replace(file_name,' ','/') as file_path, "
+                            "       data_size,size_in_bytes, "
+                            "       data_size::double precision*100/size_in_bytes as stored_to_original, "
+                            "       segment_count, "
+                            "       unique_count, "
+                            "       unique_count::double precision*100/segment_count as unique_percentage,"
+                            "       EXTRACT(EPOCH FROM  (f.processed_at-f.created_at))*1000 as ms "
+                            "    from mainStats s "
+                            "    right join files f on  f.file_id=s.file_id "
+                            "order by file_name; ";
+        return txn.exec(query);
     }
 
     resType
@@ -241,10 +240,26 @@ namespace db_services {
         out << rss.column_name(i) << '\n';
         for (const auto &row: rss) {
             i = 0;
+
             for (; i < row.size() - 1; ++i) {
-                out << row[i].as<std::string>() << '\t';
+                if (!row[i].is_null())
+                {
+                    out << row[i].as<std::string>() << '\t';
+                }
+                else
+                {
+                    out<<"\"\"\t";
+                }
             }
-            out << row[i].as<std::string>() << '\n';
+
+            if (!row[i].is_null())
+            {
+                out << row[i].as<std::string>() << '\n';
+            }
+            else
+            {
+                out<<"\"\"\n";
+            }
         }
     }
 

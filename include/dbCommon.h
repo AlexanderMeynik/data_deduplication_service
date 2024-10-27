@@ -70,7 +70,7 @@ namespace db_services {
 
     resType getTotalSchemaSizes(trasnactionType &txn);
 
-    resType getDedupCharacteristics(trasnactionType &txn, indexType segmentSize);
+    resType getDedupCharacteristics(trasnactionType &txn);
 
     resType getFileSizes(trasnactionType &txn);
 
