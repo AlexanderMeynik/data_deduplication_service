@@ -88,9 +88,12 @@ namespace windows {
         selectModeCheckBox->setToolTip("Directory view mode!");
         mainLayout->addWidget(selectModeCheckBox);
 
-        connect(selectModeCheckBox, &QCheckBox::stateChanged, [&] {
-            lineEdit->setText("");
-            type=(selectModeCheckBox)?Directory:File;
+        connect(selectModeCheckBox, &QCheckBox::stateChanged, [&]() {
+            type=(selectModeCheckBox->isChecked())?Directory:File;
+            emit typeChanged(type);
+            if(!lineEdit->text().isEmpty()) {
+                lineEdit->clear();
+            }
         });
     }
 

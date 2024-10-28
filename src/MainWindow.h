@@ -20,6 +20,11 @@
 #include <QSortFilterProxyModel>
 #include <QCompleter>
 #include <QTreeView>
+#include <QProgressBar>
+#include <QStatusBar>
+#include <QTimer>
+#include <QApplication>
+#include <QDataWidgetMapper>
 
 #include "common.h"
 #include "FileService.h"
@@ -30,7 +35,6 @@
 namespace windows {
     class MainWindow : public QMainWindow {
     Q_OBJECT
-//todo check files(after export)
     public:
         explicit MainWindow(QWidget *parent = nullptr);
 
@@ -41,10 +45,28 @@ namespace windows {
 
         void resizeEvent(QResizeEvent *event) override;
 
+        void statusMessage(const QString&message,int timout=-1)
+        {
+            if(timout!=-1)
+            {
+                statusBar()->showMessage(message,timout);
+            }
+            else
+            {
+                statusBar()->showMessage(message);
+            }
+
+        }
+        void cleadStBar()
+        {
+            statusBar()->clearMessage();
+        }
+
     signals:
 
         void connectionChanged(bool old);
         void modelUpdate();
+        void closed();
 
     private slots:
 
@@ -60,12 +82,9 @@ namespace windows {
 
         void onloadDatabase();
 
-
         void onConnectionChanged(bool old);
 
         void updateModel();
-
-
 
         void updateLEDS(QModelIndex &idx);
 
@@ -131,6 +150,10 @@ namespace windows {
         QLCDNumber *exportTimeLCD;
         QLCDNumber *errorCountLCD;//todo run checks on the resulting files
 
+        QProgressBar* progressBar;
+
+        QLabel* lb;
+
         QLedIndicator *qled;
 
         SettingsWindow *settingsWindow;
@@ -140,11 +163,18 @@ namespace windows {
         NotNullFilterProxyModel * nNullProxyModel;
 
 
+        QRegularExpression re;
+        QRegularExpressionValidator *validator;
+        QTimer *timer;
+
+
         file_services::FileParsingService fileService;
         bool dbConnection;
         db_services::myConnString c_str;
 
         void setupUI();
+
+        QString toShortPath(const QString &qString);
     };
 }
 

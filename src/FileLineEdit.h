@@ -30,6 +30,10 @@ namespace windows {
         QString getContent() {
             return lineEdit->text();
         }
+        bool isEmpty()
+        {
+            return lineEdit->text().isEmpty();
+        }
 
         ~FileLineEdit() override = default;
 
@@ -43,9 +47,7 @@ namespace windows {
         }
 
     signals:
-
         void contentChanged(const QString &str);
-
     protected slots:
 
         virtual void onBrowse();
@@ -74,7 +76,8 @@ namespace windows {
 
         ~FileLineEditWithOption() override = default;
 
-
+    signals:
+        void typeChanged(const EntryType&etr);
     protected slots:
 
         void onBrowse() override;
