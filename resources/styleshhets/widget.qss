@@ -1,0 +1,86 @@
+* {
+  font-family: "courier new";
+  font-size: 12;
+  font-weight: "Normal";
+
+}
+
+QLCDNumber {
+  border: 2px solid gray;
+ }
+
+QLabel {font-size: 12px;}
+
+QGroupBox{
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #E0E0E0, stop: 1 #FFFFFF);
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1ex;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+}
+QGroupBox#databaseConfigurationArea{
+   border-radius:5px;
+}
+QCheckBox{}
+
+QProgressBar {
+        border: 1px solid grey;
+        border-radius: 5px;
+        background-color: #eee;
+    }
+    QProgressBar::chunk {
+        background-color: #00c853;
+        width: 20px;
+        margin: 2px;
+    }
+
+QLedIndicator{}
+
+QPushButton{
+  background-color: white;
+  border-style: outset;
+  border-width: 2px;
+  border-radius: 5px;
+  border: 2px solid gray;
+  font: bold 14px;
+}
+QPushButton:pressed {
+               background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                                       stop: 0 #E0E0E0, stop: 1 #FFFFFF);
+               border-style: inset;
+           }
+
+DeselectableTreeView{
+
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #E0E0E0, stop: 1 #FFFFFF);
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1ex;
+
+}
+
+QLineEdit{
+
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin: 0 8px;
+    background: white;
+    selection-background-color: darkgray;
+}
+
+QTextEdit
+{
+    border: 2px solid gray;
+    border-radius: 5px;
+    padding: 0 8px;
+    background: white;
+    selection-background-color: darkgray;
+}
+
+

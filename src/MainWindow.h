@@ -62,6 +62,7 @@ namespace windows {
             statusBar()->clearMessage();
         }
 
+
     signals:
 
         void connectionChanged(bool old);
@@ -110,7 +111,7 @@ namespace windows {
         QPushButton *importPB;
         QPushButton *exportPB;
         QPushButton *deletePB;
-        QPushButton *loadPB;
+        QPushButton *connectPB;
         QPushButton *dropPB;
 
         DeselectableTreeView *dataTableView;
@@ -134,21 +135,27 @@ namespace windows {
 
         QLabel *labelSegmentSize;
         QLabel *labelHashFunction;
-        //todo move some labels from source
+
 
         QCheckBox *replaceFileCB;
         QCheckBox *createMainCB;
         QCheckBox *deleteFilesCB;
         QCheckBox *dbUsageCB;
 
-        QLCDNumber *numberBlocksLCD;
+        QLCDNumber *fileDataSizeLCD;
+        QLCDNumber *segmentSizeLCD;
         QLCDNumber *totalSizeLCD;
         QLCDNumber *fileSegmentLCD;
         QLCDNumber *totalRepeatedBlocksLCD;
+        QLCDNumber *dataToOriginalPercentageLCD;
         QLCDNumber *totalRepetitionPercentageLCD;
         QLCDNumber *importTimeLCD;
+
         QLCDNumber *exportTimeLCD;
         QLCDNumber *errorCountLCD;//todo run checks on the resulting files
+        QLCDNumber * deleteTimeLCD;
+        QList<QLCDNumber*> list;
+
 
         QProgressBar* progressBar;
 
@@ -175,6 +182,8 @@ namespace windows {
         void setupUI();
 
         QString toShortPath(const QString &qString);
+
+        void updateStylesheet();
     };
 }
 
