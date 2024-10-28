@@ -337,7 +337,7 @@ namespace db_services {
         std::vector<std::pair<indexType, std::string>> result;
         try {
             trasnactionType txn(*conn_);
-            auto res = getFilesForDirectory(txn, dirPath);
+            auto res = getEntriesForDirectory(txn, dirPath);
 
             VLOG(2)
                             << vformat("Filenames were successfully retrieved for directory \"%s\".", dirPath.data());

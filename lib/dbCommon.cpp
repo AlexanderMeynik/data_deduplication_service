@@ -58,11 +58,10 @@ namespace db_services {
     }
 
     resType
-    getFilesForDirectory(trasnactionType &txn, std::string_view dirPath) {
+    getEntriesForDirectory(trasnactionType &txn, std::string_view dirPath) {
         std::string query = "select * from files "
                             "where to_tsvector('simple',replace(file_name,'_', '/'))"
-                            "@@ \'%s\' and file_name LIKE \'%s %%\' "
-                            "and size_in_bytes!=0";//todo test
+                            "@@ \'%s\' and file_name LIKE \'%s%%\' ;";//todo works
         auto formattedQuery = vformat(query.c_str(), toTsquerablePath(dirPath).c_str(),
                                       toSpacedPath(dirPath).c_str());
 
@@ -73,7 +72,7 @@ namespace db_services {
     getFileIdVector(trasnactionType &txn, std::string_view dirPath) {
         std::vector<indexType> res;
 
-        resType rr = getFilesForDirectory(txn, dirPath);
+        resType rr = getEntriesForDirectory(txn, dirPath);
 
         for (const auto &row: rr)
             res.push_back(row[0].as<indexType>());
@@ -82,7 +81,8 @@ namespace db_services {
 
     resType checkFileExistence(trasnactionType &txn, std::string_view fileName) {
         std::string query = "select files.* from files "
-                            "where file_name=\'%s\';";
+                            "where file_name=\'%s\'"
+                            "and size_in_bytes!=0;";
         auto formattedQuery = vformat(query.c_str(), toSpacedPath(fileName).c_str());
         return txn.exec(formattedQuery);
     }

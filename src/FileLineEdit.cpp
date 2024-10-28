@@ -6,12 +6,12 @@ namespace windows {
     FileLineEdit::FileLineEdit(QWidget *parent,
                                QString dirPath,
                                bool saveFile,
-                               bool LineAcess) :
+                               bool ReadOnly) :
             QWidget(parent),
             dirPath(dirPath),
             saveFile(saveFile) {
         setUpUi();
-        lineEdit->setReadOnly(LineAcess);
+        lineEdit->setReadOnly(ReadOnly);
 
 
         connect(pushButton, &QPushButton::pressed, this, &FileLineEdit::onBrowse);
@@ -77,11 +77,11 @@ namespace windows {
     FileLineEditWithOption::FileLineEditWithOption(QWidget *parent,
                                                    QString dirPath,
                                                    bool saveFile,
-                                                   bool LineAcess) :
+                                                   bool ReadOnly) :
             FileLineEdit(parent,
                          std::move(dirPath),
                          saveFile,
-                         LineAcess) {
+                         ReadOnly) {
 
         selectModeCheckBox = new QCheckBox(this);
         selectModeCheckBox->setChecked(false);

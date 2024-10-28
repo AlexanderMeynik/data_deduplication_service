@@ -53,7 +53,6 @@ int main(int argc, char *argv[]) {
     }
     gClk.tak();
     gClk.tik();
-    //todo add file check data
     //fs.delete_directory(from_dirs[1].string());//works
 
     /*  fs.process_file("../../conf/config.txt");//fails due to path containing chracters

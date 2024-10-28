@@ -33,6 +33,7 @@
 #include "MyPqxxModel.h"
 
 namespace windows {
+    using namespace common;
     class MainWindow : public QMainWindow {
     Q_OBJECT
     public:
@@ -91,16 +92,20 @@ namespace windows {
 
         void resetLeds();
 
+
     private:
 
         void writeLog(QString qss, LogLevel lg = RESULT) {
-            ::writeLog(logTextField, qss, lg);
+            common::writeLog(logTextField, qss, lg);
         }
 
         QAction *settingsAction;
 
         FileLineEditWithOption *inputFileLEWO;
         FileLineEditWithOption *outputFileLEWO;
+
+        FileLineEditWithOption *checkInputFileLEWO;
+        FileLineEditWithOption *checkOoutputFileLEWO;
 
         QLineEdit *fileExportLE;
         QLineEdit *dataseLE;
@@ -141,6 +146,7 @@ namespace windows {
         QCheckBox *createMainCB;
         QCheckBox *deleteFilesCB;
         QCheckBox *dbUsageCB;
+        QCheckBox *compareCB;
 
         QLCDNumber *fileDataSizeLCD;
         QLCDNumber *segmentSizeLCD;
@@ -184,8 +190,12 @@ namespace windows {
         QString toShortPath(const QString &qString);
 
         void updateStylesheet();
+
+
+        void compareExport(const QString &exportee, const QString &output, bool b);
     };
 }
+//todo database creation does not update status(it resets it and i have to connecto to db manually)
 
 
 #endif //DATA_DEDUPLICATION_SERVICE_MAINWINDOW_H

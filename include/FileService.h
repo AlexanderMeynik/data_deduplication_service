@@ -100,16 +100,27 @@ namespace file_services {
         = default;
 
         /**
-         * This function handles database open/crete action
+         * This function handles database open/create action
          * If db_usage_str==create this function will create new database
          * othervice it'll try to open existing database.
-         * @tparam db_usage_str
+         * @tparam dbUsageStrategy
          * @tparam hash
          * @param dbName
          * @param configurationFile
          */
-        template<dbUsageStrategy db_usage_str = use>
+        template<dbUsageStrategy dbUsageStrategy = use>
         int dbLoad(std::string_view dbName, std::string_view configurationFile = db_services::cfileName);
+
+        /**
+         *
+         * @tparam dbUsageStrategy
+         * @param c_str
+         * @return
+         * @ref "dbLoad(std::string_view dbName, std::string_view configurationFile = db_services::cfileName)
+         * "dbLoad()"
+         */
+        template<dbUsageStrategy dbUsageStrategy = use>
+        int dbLoad(db_services::myConnString & c_str);
 
         int dbDrop(std::string_view dbName) {
             auto res = manager_.dropDatabase(dbName);
@@ -258,6 +269,11 @@ namespace file_services {
             VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
             return returnCodes::ErrorOccured;
         }
+        if(fs::is_directory(toFilePath))
+        {
+            VLOG(1) << vformat("Entry  %s is not a file use processDirectory for directories\n", toFilePath.c_str());
+            return returnCodes::ErrorOccured;
+        }
 
         std::basic_ofstream<SymbolType> out(toFilePath.c_str());
 
@@ -283,7 +299,7 @@ namespace file_services {
                 return delRes;
             }
         }
-        return 0;
+        return returnCodes::ReturnSucess;
     }
 
 
@@ -293,10 +309,8 @@ namespace file_services {
         fs::path newDirPath;
         fs::path fromDirPath = getNormalAbs(fromDir);
 
-        auto files = manager_.getAllFiles(fromDirPath.string());
-        if (files.empty()) {
-            VLOG(1) << vformat("No files found for directory %s", fromDir.data());
-        }
+
+
         try {
             if (!fs::exists(toDir)) {
                 if constexpr (dir_s == CreateMain) {
@@ -322,6 +336,17 @@ namespace file_services {
             return returnCodes::ErrorOccured;
         }
 
+        if(!fs::is_directory(newDirPath))
+        {
+            VLOG(1) << vformat("Entry  %s is not a directory use processFile for files\n", newDirPath.c_str());
+            return returnCodes::ErrorOccured;
+        }
+        auto files = manager_.getAllFiles(fromDirPath.string());
+        if (files.empty()) {
+            VLOG(1) << vformat("No files found for directory %s", fromDir.data());
+        }
+
+
         for (const std::pair<db_services::indexType, std::string> &pair: files) {
             std::string filePath = pair.second;
 
@@ -340,7 +365,7 @@ namespace file_services {
         if constexpr (rr == dataRetrievalStrategy::Remove) {
             manager_.deleteDirectory(fromDirPath.string());
         }
-        return 0;
+        return returnCodes::ReturnSucess;
     }
 
     
@@ -348,15 +373,21 @@ namespace file_services {
     int FileParsingService::dbLoad(std::string_view dbName, std::string_view configurationFile) {
         auto CString = db_services::loadConfiguration(configurationFile);
         CString.setDbname(dbName);
+        return dbLoad<str>(CString);
+    }
 
-        manager_ = dbManager(CString);
+
+    template<dbUsageStrategy str>
+    int FileParsingService::dbLoad(db_services::myConnString & c_str)
+    {
+        manager_ = dbManager(c_str);
 
         if constexpr (str == create) {
 
-            auto reusult = manager_.createDatabase(dbName);
+            auto reusult = manager_.createDatabase(c_str.getDbname());
 
             if (reusult == returnCodes::ErrorOccured) {
-                VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", dbName.data());
+                VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", c_str.getDbname().data());
                 return returnCodes::ErrorOccured;
             }
 
@@ -365,7 +396,7 @@ namespace file_services {
             if (reusult == returnCodes::ErrorOccured) {
                 VLOG(1)
                                 << vformat("Error occurred during database's \"%s\" schema's creation\n",
-                                           dbName.data());
+                                           c_str.getDbname().data());
                 return returnCodes::ErrorOccured;
             }
         } else {
@@ -374,12 +405,12 @@ namespace file_services {
             if (res == returnCodes::ErrorOccured) {
                 VLOG(1)
                                 << vformat("Error occurred during database's \"%s\" schema's creation\n",
-                                           dbName.data());
+                                           c_str.getDbname().data());
                 return returnCodes::ErrorOccured;
             }
         }
         VLOG(2) << ((manager_.checkConnection()) ? "connection established\n" : "cannot connect\n");
-        return 0;
+        return ReturnSucess;
     }
 
 

@@ -235,11 +235,17 @@ namespace windows {
         incudeOptionLay->addWidget(totalRepetitionPercentageLCD, 3 , 4, 1, 1);
 
 
+
         deleteFilesCB = new QCheckBox();
         deleteFilesCB->setToolTip("If checked entry will be deleted after export.");
         createMainCB = new QCheckBox();
         createMainCB->setToolTip("If checked new directory will be created if path to out does not exist!");
         createMainCB->setChecked(true);
+
+        compareCB=new QCheckBox();
+        compareCB->setToolTip("If checked exported entry will be compared with import one");
+
+
         errorCountLCD = new QLCDNumber();
         exportTimeLCD = new QLCDNumber();
         deleteTimeLCD = new QLCDNumber();
@@ -255,15 +261,19 @@ namespace windows {
         exportOptionLay->addWidget(new QLabel("Create root directory"), 1, 0, 1, 1);
         exportOptionLay->addWidget(createMainCB, 1, 1, 1, 1);
 
+        exportOptionLay->addWidget(new QLabel("Compare output"), 2, 0, 1, 1);
+        exportOptionLay->addWidget(createMainCB, 2, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Delete time (ms)"), 2, 0, 1, 1);
-        exportOptionLay->addWidget(deleteTimeLCD, 2, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Export time (ms)"), 3, 0, 1, 1);
-        exportOptionLay->addWidget(exportTimeLCD, 3, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Error count"), 3, 2, 1, 1);
-        exportOptionLay->addWidget(errorCountLCD, 3, 3, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Delete time (ms)"), 3, 0, 1, 1);
+        exportOptionLay->addWidget(deleteTimeLCD, 3, 1, 1, 1);
+
+        exportOptionLay->addWidget(new QLabel("Export time (ms)"), 4, 0, 1, 1);
+        exportOptionLay->addWidget(exportTimeLCD, 4, 1, 1, 1);
+
+        exportOptionLay->addWidget(new QLabel("Error count"), 4, 2, 1, 1);
+        exportOptionLay->addWidget(errorCountLCD, 4, 3, 1, 1);
 
         dbUsageCB = new QCheckBox();
         connectPB = new QPushButton("Connect");
@@ -353,20 +363,32 @@ namespace windows {
     void MainWindow::onImport() {
         QString inputPath = inputFileLEWO->getContent();
 
-        auto ss = toShortPath(inputPath);
-        statusMessage(QString("Import entry %1").arg(ss));
+        statusMessage(QString("Import entry %1").arg(toShortPath(inputPath)));
         bool isDir = inputFileLEWO->getType() == Directory;
+        bool replace=replaceFileCB->isChecked();
+        unsigned segmentSize=segmentSizeCoB->currentText().toInt();
 
-        /*size_t segmentSize = segmentSizeCoB->currentText().toUInt();*/
-        if (isDir) {
-            writeLog("process directory");
-            //fileService.processDirectory(inputPath.toStdString(), segmentSize);
-        } else {
-            writeLog("process file");
+        unsigned int res=0;
+
+        if(replace)
+        {
+            if (isDir) {
+               res = fileService.processDirectory(inputPath.toStdString(),segmentSize);
+            } else {
+                res = fileService.processFile(inputPath.toStdString(),segmentSize);
+            }
+        }
+        else
+        {
+            if (isDir) {
+                res = fileService.processDirectory(inputPath.toStdString(),segmentSize);
+            } else {
+                res = fileService.processFile(inputPath.toStdString(),segmentSize);
+            }
         }
 
+
         emit modelUpdate();
-/*        statusMessage(QString("Import entry %1").arg(toShortPath(inputPath)));*/
     }
 
     void MainWindow::onExport() {
@@ -378,34 +400,62 @@ namespace windows {
 
         bool main = createMainCB->isChecked();
         bool remove = deleteFilesCB->isChecked();
-        bool isDir = inputFileLEWO->getType() == Directory;
+        bool isDir = outputFileLEWO->getType() == Directory;
+        int flag=2*main+remove;
+        int res=0;
+        auto loc=gClk.tikLoc();
+        if(isDir)
+        {
+            res=(fileService.*dirs[flag])(exportPath.toStdString(),outputPath.toStdString());
+        }
+        else
+        {
+            res=(fileService.*files[flag])(exportPath.toStdString(),outputPath.toStdString(),paramType::EmptyParameterValue);
+        }
+        gClk.tak();
 
-        writeLog("entry load");
-        //todo process
-        if (deleteFilesCB->isChecked()) {
-            emit modelUpdate();
+        exportTimeLCD->display(gClk[loc].time);
+        gClk.reset();
+
+        if(res!=0)
+        {
+            writeLog("Error occured during entry export",ERROR);
+            /*cleadStBar();*/
+            return;
         }
 
-        cleadStBar();
+        //todo process
+        if (remove) {
+            emit modelUpdate();
+        }
+        if(compareCB->checkState())
+        {
+            this->compareExport(exportPath,outputPath,isDir);
+        }
+        /*cleadStBar();*/
+
     }
 
     void MainWindow::onDelete() {
 
 
-        QString path = inputFileLEWO->getContent();
-        statusMessage(QString("Deleting entry %1").arg(path));
-        bool isDir = inputFileLEWO->getType() == Directory;
+        QString path = fileExportLE->text();
+        statusMessage(QString("Deleting entry %1").arg(toShortPath(path)));
+        bool isDir = isDirName(fileExportLE->text());
 
+        auto loc=gClk.tikLoc();
         if (isDir) {
-            writeLog("delete directory");
-
-            /*fileService.deleteDirectory(path.toStdString());*/
+            this->fileService.deleteDirectory(path.toStdString());
         } else {
-            writeLog("delete file");
-            /*  fileService.deleteFile(path.toStdString());*/
+            this->fileService.deleteFile(path.toStdString());
         }
+
+        gClk.tak();
+
+        deleteTimeLCD->display(gClk[loc].time);
+        gClk.reset();
         emit modelUpdate();
-        cleadStBar();
+        /*cleadStBar();*/
     }
 
     void MainWindow::onSettings() {
@@ -463,7 +513,7 @@ namespace windows {
 
         }
         emit connectionChanged(dbConnection);
-        cleadStBar();
+        /*cleadStBar();*/
     }
 
 
@@ -530,7 +580,9 @@ namespace windows {
 
             bool conn = myViewModel->performConnection(c_str);
 
-            if (!conn) {
+            auto res=fileService.dbLoad(c_str);
+
+            if (!conn||res!=0) {
                 goto reset;
             }
             myViewModel->getData();
@@ -541,7 +593,7 @@ namespace windows {
         }
 
 
-        cleadStBar();
+        /*cleadStBar();*/
 
     }
 
@@ -552,9 +604,9 @@ namespace windows {
     }
 
     void MainWindow::updateModel() {
-        statusMessage("Updating model");
+        /*statusMessage("Updating model");*/
         myViewModel->getData();
-        cleadStBar();
+        /*cleadStBar();*/
     }
 
     void MainWindow::updateLEDS(QModelIndex &idx) {
@@ -583,13 +635,31 @@ namespace windows {
 
     void MainWindow::resetLeds() {
 
-        for (auto * l:list) {
-            l->display(0);
-        }
+        segmentSizeLCD->display(0);
+        fileDataSizeLCD->display(0);
+        totalSizeLCD->display(0);
+        dataToOriginalPercentageLCD->display(0);
+        fileSegmentLCD->display(0);
+        totalRepeatedBlocksLCD->display(0);
+        totalRepetitionPercentageLCD->display(0);
+        importTimeLCD->display(0);
     }
 
     QString MainWindow::toShortPath(const QString &qString) {
         return QString::fromStdString(
                 std::filesystem::path(qString.toStdString()).lexically_relative(fs::current_path()).string());
+    }
+
+    void MainWindow::compareExport(const QString &exportee, const QString &output, bool b) {
+
+        if(b)
+        {
+            //todo comare dir
+        }
+        else
+        {
+            //todo compare files
+        }
+        errorCountLCD->display(100);
     }
 }

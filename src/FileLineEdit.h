@@ -25,7 +25,7 @@ namespace windows {
         explicit FileLineEdit(QWidget *parent = nullptr,
                               QString dirPath = QDir::currentPath(),
                               bool saveFile = false,
-                              bool LineAcess = true);
+                              bool ReadOnly = true);
 
         QString getContent() {
             return lineEdit->text();
@@ -72,7 +72,7 @@ namespace windows {
         explicit FileLineEditWithOption(QWidget *parent = nullptr,
                                         QString dirPath = QDir::currentPath(),
                                         bool saveFile = false,
-                                        bool LineAcess = true);
+                                        bool ReadOnly = true);
 
         ~FileLineEditWithOption() override = default;
 

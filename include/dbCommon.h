@@ -62,7 +62,7 @@ namespace db_services {
 
     bool doesFileExist(trasnactionType &txn, std::string_view fileName);
 
-    resType getFilesForDirectory(trasnactionType &txn, std::string_view dirPath);
+    resType getEntriesForDirectory(trasnactionType &txn, std::string_view dirPath);
 
     std::vector<indexType> getFileIdVector(trasnactionType &txn, std::string_view dirPath);
 
