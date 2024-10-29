@@ -68,3 +68,16 @@ jobs:
           path: /__w/data_deduplication_service/data_deduplication_service/build
           if-no-files-found: warn
           include-hidden-files: true
+      - name: Run benchmark
+        if: success() || failure()
+        run: |
+          cd ${GITHUB_WORKSPACE}/build/test
+          ./benchmark
+      - name: Save benchmake results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: /__w/data_deduplication_service/data_deduplication_service/build/test/benchmarkData
+          if-no-files-found: warn
+          include-hidden-files: true

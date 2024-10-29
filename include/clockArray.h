@@ -5,7 +5,7 @@
 #include <numeric>
 #include <iostream>
 #include <chrono>
-#include <unordered_map>
+#include <map>
 #include <stack>
 #include <source_location>
 #include <cassert>
@@ -20,7 +20,7 @@ std::array<T, N> constexpr makeArray(T val){
     return tempArray;
 }
 
-
+//for unordered maps
 template<size_t N>
 struct ::std::hash<std::array<std::string, N>>{
     std::size_t operator()(const std::array<std::string, N> &s) const noexcept{
@@ -29,6 +29,9 @@ struct ::std::hash<std::array<std::string, N>>{
                                                 (std::make_index_sequence<N>{}));
     }
 };
+
+
+
 
 template<typename T, size_t sz>
 requires std::is_convertible_v<T, std::string>
@@ -42,6 +45,15 @@ bool operator==(const std::array<T, sz> &arr1, const std::array<T, sz> &arr2) {
 }
 /// timing namespace
 namespace timing {
+
+    auto cmpArrays=[]<size_t N>(const std::array<std::string, N> &a, const std::array<std::string, N> &b) {
+        for(int i=0;i<N;i++)
+        {
+            if(a[i]!=b[i])
+                return b[i] > a[i];
+        }
+        return false;
+    };
 
     using timepointType = std::chrono::system_clock::time_point;
 
@@ -183,9 +195,9 @@ namespace timing {
         }
 
     private:
-        std::unordered_map<locationType, timeStore> timers;
+        std::map<locationType, timeStore,decltype(cmpArrays)> timers;
 
-        std::unordered_map<locationType, inType> startIngTimers;
+        std::map<locationType, inType,decltype(cmpArrays)> startIngTimers;
         std::stack<locationType> toTak;
         static inline std::mutex s_mutex;
         using guardType = std::lock_guard<std::mutex>;

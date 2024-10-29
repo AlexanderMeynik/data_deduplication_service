@@ -183,9 +183,7 @@ namespace db_services {
                 query = vformat("UPDATE public.files "
                                 "SET processed_at = CURRENT_TIMESTAMP "
                                 "WHERE file_id = %d;", fileId);
-                gClk.tik();
                 txn.exec(query);
-                gClk.tak();
                 VLOG(2) << vformat("Updated timer for file %d.", fileId);
                 txn.commit();
             }

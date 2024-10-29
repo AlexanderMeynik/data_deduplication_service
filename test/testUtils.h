@@ -85,7 +85,7 @@ template<typename T, typename A>
 requires std::is_same_v<T, A> ||
          std::is_same_v<T, typename std::remove_const<A>::type> ||
          std::is_same_v<A, typename std::remove_const<T>::type>
-void compareArr(size_t size, T *arr, A *arr2) {
+void compareArr(A *arr2, T *arr, size_t size) {
     for (int arr_elem = 0; arr_elem < size; ++arr_elem) {
         EXPECT_EQ(arr[arr_elem], arr2[arr_elem]);
         SCOPED_TRACE(arr_elem);
@@ -97,8 +97,8 @@ enum check_from {
     concolidate_from_saved
 };
 using namespace db_services;
-template<size_t size = 64, check_from cs>
-void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_file) {
+template< check_from cs>
+void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_file,size_t size = 64) {
     char buff[size];
     std::ifstream in(original_file.c_str());
     auto res = db_services::checkFileExistence(txn, original_file.c_str());
@@ -128,9 +128,9 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
     for (auto [name]: txn.stream<pqxx::binarystring>(query)) {
         auto size_1 = in.readsome(buff, size);
         if (index_num < block_count) {
-            compareArr(size, buff, name.str().c_str());
+            compareArr(name.str().c_str(), buff, size);
         } else {
-            compareArr(size_1, buff, name.str().c_str());
+            compareArr(name.str().c_str(), buff, size_1);
         }
         SCOPED_TRACE(index_num);
         index_num++;
@@ -138,8 +138,8 @@ void inline get_file_from_temp_table(trasnactionType &txn, fs::path &original_fi
 }
 
 
-template<size_t size = 64>
-void inline compare_files(fs::path &f1, fs::path &f2) {
+
+void inline compare_files(fs::path &f1, fs::path &f2,size_t size = 64) {
     ASSERT_TRUE(exists(f1));
     ASSERT_TRUE(exists(f2));
     auto fs = file_size(f1);
@@ -158,13 +158,13 @@ void inline compare_files(fs::path &f1, fs::path &f2) {
         i2.readsome(a2, size);
 
         SCOPED_TRACE(j);
-        compareArr(size, a1, a2);
+        compareArr(a2, a1, size);
     }
 
     auto sz = i1.readsome(a1, size);
     i2.readsome(a2, size);
     SCOPED_TRACE(j);
-    compareArr(sz, a1, a2);
+    compareArr(a2, a1, sz);
 
 
 }

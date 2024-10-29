@@ -49,9 +49,7 @@ namespace db_services {
                     ") as ss "
                     "where ss.hhhash=segment_hash;";
             qr = vformat(query.c_str(), idString.c_str());
-            gClk.tik();
             printRowsAffected(txn.exec(qr));
-            gClk.tak();
             VLOG(2) << vformat("Successfully reduced segment"
                                " counts for directory \"%s\"\n", directoryPath.data());
 
@@ -59,9 +57,7 @@ namespace db_services {
             query = "delete from public.data d where d.file_id in (%s);";
 
             qr = vformat(query.c_str(), idString.c_str());
-            gClk.tik();
             printRowsAffected(txn.exec(qr));
-            gClk.tak();
 
             VLOG(2) << vformat("Successfully deleted data "
                                "for directory \"%s\"\n", directoryPath.data());
@@ -69,9 +65,7 @@ namespace db_services {
 
             query = "delete from public.files where file_id in (%s);";
             qr = vformat(query.c_str(), idString.c_str());
-            gClk.tik();
             printRowsAffected(txn.exec(qr));
-            gClk.tak();
 
             VLOG(2) << vformat("Successfully deleted public.files "
                                " for directory \"%s\"\n", directoryPath.data());
@@ -210,17 +204,13 @@ namespace db_services {
             std::string aggregationTableName = vformat("new_segments_%s", hashStr.c_str());
             resType r;
             std::string q = vformat("SELECT * FROM pg_tables WHERE tablename = \'%s\'", tableName.c_str());
-            gClk.tik();
             txn.exec(q).one_row();
-            gClk.tak();
 
 
             q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count, t.hash "
                         "FROM \"%s\" t "
                         "GROUP BY t.data,t.hash;", aggregationTableName.c_str(), tableName.c_str());
-            gClk.tik();
             txn.exec(q);
-            gClk.tak();
 
 
             VLOG(2) << vformat(
@@ -235,17 +225,13 @@ namespace db_services {
                         "DO UPDATE "
                         "SET segment_count = public.segments.segment_count +  excluded.segment_count;",
                         aggregationTableName.c_str());
-            gClk.tik();
             txn.exec(q);
-            gClk.tak();
             VLOG(2) << vformat("New segments were inserted for file \"%s\".", filePath.data());
 
 
             q = vformat("drop table \"%s\";", aggregationTableName.c_str());
 
-            gClk.tik();
             txn.exec(q);
-            gClk.tak();
             VLOG(2)
                             << vformat("Temporary aggregation table %s was deleted.", aggregationTableName.c_str());
 
@@ -255,16 +241,12 @@ namespace db_services {
                         "FROM  \"%s\" tt ",
                         fileId,
                         tableName.c_str());
-            gClk.tik();
             txn.exec(q);
-            gClk.tak();
             VLOG(2) << vformat("Segment data of %s was inserted.", tableName.c_str());
 
 
             q = vformat("DROP TABLE IF EXISTS  \"%s\";", tableName.c_str());
-            gClk.tik();
             txn.exec(q);
-            gClk.tak();
             VLOG(2) << vformat("Temp data table %s was deleted.", tableName.c_str());
             txn.commit();
 

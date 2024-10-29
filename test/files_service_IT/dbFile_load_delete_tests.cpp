@@ -80,7 +80,7 @@ TEST_P(DbFile_Dir_tests, insert_segments) {
     manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
     in.close();
 
-    ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<64, check_from::temporary_table>, f_in),
+    ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<check_from::temporary_table>, f_in,(size_t)64),
               returnCodes::ReturnSucess);
     manager_.deleteFile(f_in.c_str());
 
@@ -104,7 +104,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_retrieve) {
     manager_.finishFileProcessing(f_in.c_str(), file_id);
 
 
-    ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<64, check_from::concolidate_from_saved>, f_in),
+    ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<check_from::concolidate_from_saved>, f_in,(size_t)64),
               returnCodes::ReturnSucess);
 
     manager_.deleteFile(f_in.c_str());
