@@ -205,11 +205,11 @@ void performStuff()
         if(multip==multipliers[0])
         {
             if(hashNum==0) {
-                const char * aa="Hash\\Segemnt count";
+                const char * aa="Hash\\Segment count";
                 timerOstreams[i]->write(aa, strlen(aa));
                 timerOstreams[i]->write(lineTab,1);
-                for (auto &i: multipliers) {
-                    timerOstreams[i]->operator<<(hash_function_size[hashNum] * i);
+                for (auto &i2: multipliers) {
+                    timerOstreams[i]->operator<<(hash_function_size[hashNum] * i2);
                     timerOstreams[i]->write(lineTab,1);
                 }
             }

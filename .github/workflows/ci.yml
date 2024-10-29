@@ -43,6 +43,14 @@ jobs:
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
           ninja
+      - name: Save build
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: /__w/data_deduplication_service/data_deduplication_service/build
+          if-no-files-found: warn
+          include-hidden-files: true
       - name: Run clockArrayTests
         run: |
           cd ${GITHUB_WORKSPACE}/build/test
@@ -52,22 +60,6 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/build/test
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
-      - name: Save log files
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs
-          path: /__w/data_deduplication_service/data_deduplication_service/logs
-          if-no-files-found: warn
-          include-hidden-files: true
-      - name: Save build
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: /__w/data_deduplication_service/data_deduplication_service/build
-          if-no-files-found: warn
-          include-hidden-files: true
       - name: Run benchmark
         if: success() || failure()
         run: |
@@ -79,5 +71,13 @@ jobs:
         with:
           name: build
           path: /__w/data_deduplication_service/data_deduplication_service/build/test/benchmarkData
+          if-no-files-found: warn
+          include-hidden-files: true
+      - name: Save log files
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: /__w/data_deduplication_service/data_deduplication_service/logs
           if-no-files-found: warn
           include-hidden-files: true
