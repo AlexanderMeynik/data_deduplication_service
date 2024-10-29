@@ -431,7 +431,7 @@ namespace file_services {
         auto size = fs::file_size(file);
 
         gClk.tik();
-        auto file_id = manager_.createFile(file, size, segmentSize);
+        auto file_id = manager_.createFile(file, size, segmentSize,hash);
         gClk.tak();
 
         if (file_id == returnCodes::AlreadyExists) {
@@ -447,7 +447,7 @@ namespace file_services {
                                            file.c_str());
                 return returnCodes::ErrorOccured;
             }
-            file_id = manager_.createFile(file, size, segmentSize);
+            file_id = manager_.createFile(file, size, segmentSize,hash);
         }
 
         if (file_id == returnCodes::ErrorOccured) {

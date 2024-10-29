@@ -14,7 +14,7 @@ std::vector<fs::path> from_dirs = {"images",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
 constexpr std::array<int,1> indx={0/*,1,2,3,4*/};
-constexpr std::array<int,3> multipliers={2,4,8/*,16,64,256*/};
+constexpr std::array<int,1> multipliers={2/*,4,8*//*,16,64,256*/};
 
 template<int hashNum,int multip>
 void performStuff()
@@ -27,7 +27,7 @@ void performStuff()
     constexpr auto segment_size=multip*hash_function_size[hashNum];
     FileParsingService fs;
 
-    std::string dbName = std::string("deduplication_bench_")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
+    std::string dbName = std::string("deduplication_bench_ss")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
     std::cout<<dbName<<'\n';
     fs.template dbLoad<dbUsageStrategy::create>(dbName);
     gClk.tak();
@@ -58,6 +58,8 @@ void performStuff()
     sizes2<<dbName<<"\n";
     db_services::printRes(dedup_data.value(), sizes2);
     sizes2<<'\n';
+    //todo add benchmark job
+    //todo unique segment count dont work porperly(it only counts segments unque to current file)
 
     //todo later add
    /* for (int i = 0; i < 2; ++i) {
@@ -67,7 +69,7 @@ void performStuff()
     }*/
 
 
-   /* gClk.tik();
+    /*gClk.tik();
     fs.dbDrop(dbName);
     gClk.tak();*/
 

@@ -288,16 +288,16 @@ namespace db_services {
     }
 
 
-    indexType dbManager::createFile(std::string_view filePath, uintmax_t fileSize, size_t segmentSize) {
+    indexType dbManager::createFile(std::string_view filePath, uintmax_t fileSize, size_t segmentSize, hash_function hash) {
         trasnactionType txn(*conn_);
         indexType futureFileId = returnCodes::ErrorOccured;
 
         std::string query;
         resType res;
         try {
-            query = "insert into public.files (file_name,size_in_bytes,segment_size)"
-                    " values ($1,$2,$3) returning file_id;";
-            res = txn.exec(query, {toSpacedPath(filePath), fileSize, segmentSize});
+            query = "insert into public.files (file_name,size_in_bytes,segment_size,hash_id)"
+                    " values ($1,$2,$3,$4) returning file_id;";
+            res = txn.exec(query, {toSpacedPath(filePath), fileSize, segmentSize,static_cast<unsigned>(hash)});
 
             futureFileId = res.one_row()[0].as<indexType>();
             VLOG(2) << vformat("File record (%d,\"%s\",%d) was successfully created.",
@@ -503,14 +503,35 @@ namespace db_services {
             checkSchemas(txn).no_rows();
 
             std::string query = vformat("create schema if not exists public;"
+                                        "create table public.hash_functions"
+                                        "("
+                                        "    hash_id SMALLINT NOT NULL primary key,"
+                                        "    hash_name text NOT NULL,"
+                                        "    digest_size SMALLINT NOT NULL"
+                                        ");"
                                         "create table public.segments"
                                         "("
                                         "    segment_hash bytea NOT NULL primary key,"
                                         "    segment_data bytea NOT NULL,"
                                         "    segment_count bigint NOT NULL"
                                         ");");
+
             txn.exec(query);
             VLOG(2) << vformat("Create segments table\n");
+
+            pqxx::stream_to copyStream = pqxx::stream_to::raw_table(txn, "hash_functions");
+
+            for(size_t i=0;i<hash_function_name.size();i++)
+            {
+                copyStream
+                        << std::make_tuple(
+                                i,
+                                hash_function_name[i],
+                                hash_function_size[i]);
+            }
+            copyStream.complete();
+
+            VLOG(2) << vformat("Hashes table populated\n");
 
             query = "create table public.files "
                     "("
@@ -519,7 +540,8 @@ namespace db_services {
                     "    size_in_bytes bigint NULL,"
                     "    segment_size bigint NOT NULL,"
                     "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-                    "    processed_at TIMESTAMP NULL"
+                    "    processed_at TIMESTAMP NULL,"
+                    "    hash_id SMALLINT"
                     ");"
                     ""
                     "create table public.data "

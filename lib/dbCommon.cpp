@@ -215,9 +215,12 @@ namespace db_services {
                             "       segment_count, "
                             "       unique_count, "
                             "       unique_count::double precision*100/segment_count as unique_percentage, "
-                            "       EXTRACT(EPOCH FROM  (f.processed_at-f.created_at))*1000 as ms "
+                            "       EXTRACT(EPOCH FROM  (f.processed_at-f.created_at))*1000 as ms,"
+                            "       h.hash_name as hash, "
+                            "       h.digest_size::bigint as hash_size "
                             "    from mainStats s "
                             "    right join files f on  f.file_id=s.file_id "
+                            "    left join hash_functions h on f.hash_id=h.hash_id "
                             "order by file_name; ";
         return txn.exec(query);
     }

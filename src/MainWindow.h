@@ -46,24 +46,6 @@ namespace windows {
 
         void resizeEvent(QResizeEvent *event) override;
 
-        void statusMessage(const QString&message,int timout=-1)
-        {
-            if(timout!=-1)
-            {
-                statusBar()->showMessage(message,timout);
-            }
-            else
-            {
-                statusBar()->showMessage(message);
-            }
-
-        }
-        void cleadStBar()
-        {
-            statusBar()->clearMessage();
-        }
-
-
     signals:
 
         void connectionChanged(bool old);
@@ -108,7 +90,7 @@ namespace windows {
         FileLineEditWithOption *checkOoutputFileLEWO;
 
         QLineEdit *fileExportLE;
-        QLineEdit *dataseLE;
+        QLineEdit *dataseNameLE;
 
         QComboBox *hashFunctionCoB;
         QComboBox *segmentSizeCoB;
@@ -158,14 +140,14 @@ namespace windows {
         QLCDNumber *importTimeLCD;
 
         QLCDNumber *exportTimeLCD;
-        QLCDNumber *errorCountLCD;//todo run checks on the resulting files
+        QLCDNumber *errorCountLCD;
         QLCDNumber * deleteTimeLCD;
+        QLCDNumber * totalBlocksLCD;
         QList<QLCDNumber*> list;
+        //todo hash function
+        //todo hash size
 
 
-        QProgressBar* progressBar;
-
-        QLabel* lb;
 
         QLedIndicator *qled;
 
@@ -195,7 +177,7 @@ namespace windows {
         void compareExport(const QString &exportee, const QString &output, bool b);
     };
 }
-//todo database creation does not update status(it resets it and i have to connecto to db manually)
+
 
 
 #endif //DATA_DEDUPLICATION_SERVICE_MAINWINDOW_H

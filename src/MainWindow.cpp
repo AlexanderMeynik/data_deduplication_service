@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QSqlQueryModel>
 #include <QMessageBox>
+#include <QElapsedTimer>
 
 
 std::initializer_list<QString> ll = {"2", "4", "8", "16", "32","64","128","256","512","1024","2048","4096"};//todo remake
@@ -55,7 +56,8 @@ namespace windows {
         connect(connectPB, &QPushButton::pressed, this, &MainWindow::onloadDatabase);
 
         connect(dropPB, &QPushButton::pressed, [&] {
-            fileService.dbDrop(c_str.getDbname());
+            writeLog(QString("Drop database %1").arg(dataseNameLE->text()));
+            fileService.dbDrop(dataseNameLE->text().toStdString());//todo is this oen the sme from c_string
             dbConnection = false;
             emit onConnectionChanged(true);
         });
@@ -63,14 +65,12 @@ namespace windows {
         connect(this, &MainWindow::connectionChanged, this, &MainWindow::onConnectionChanged);
 
 
-        connect(this, &MainWindow::connectionChanged, [&]() {
-            qled->setChecked(dbConnection);
-        });
 
         connect(this, &MainWindow::modelUpdate, this, &MainWindow::updateModel);
 
-        connect(dataseLE, &QLineEdit::textChanged, [&]() {
-            connectPB->setEnabled(!dataseLE->text().isEmpty());
+        connect(dataseNameLE, &QLineEdit::textChanged, [&]() {
+            connectPB->setEnabled(!dataseNameLE->text().isEmpty());
+
         });
 
         connect(fileExportLE, &QLineEdit::textChanged, [&]
@@ -87,7 +87,6 @@ namespace windows {
         connect(dataTableView->selectionModel(), &QItemSelectionModel::selectionChanged,
                 [&](const QItemSelection &selected,
                     const QItemSelection &deselected) {
-                    writeLog(QString::number(selected.size()));
 
                     if (!selected.indexes().isEmpty()) {
                         QModelIndex index = selected.indexes().first();
@@ -105,23 +104,6 @@ namespace windows {
         for (const char *hashName: hash_utils::hash_function_name) {
             hashFunctionCoB->addItem(hashName);
         }
-
-
-        connect(timer, &QTimer::timeout, this, [&]() {
-            int value = (progressBar->value() + 5) % 100;
-            progressBar->setValue(value);
-        });
-
-        connect(statusBar(), &QStatusBar::messageChanged, [&](const QString &text) {
-            if (text.isNull()) {
-                progressBar->hide();
-                lb->hide();
-            } else {
-                progressBar->setValue(0);
-                lb->show();
-                progressBar->show();
-            }
-        });
 
 
 
@@ -249,6 +231,7 @@ namespace windows {
         errorCountLCD = new QLCDNumber();
         exportTimeLCD = new QLCDNumber();
         deleteTimeLCD = new QLCDNumber();
+        totalBlocksLCD=new QLCDNumber();
 
         exportOptionsArea = new QGroupBox(this);
         exportOptionsArea->setObjectName("exportOptionsArea");
@@ -262,12 +245,13 @@ namespace windows {
         exportOptionLay->addWidget(createMainCB, 1, 1, 1, 1);
 
         exportOptionLay->addWidget(new QLabel("Compare output"), 2, 0, 1, 1);
-        exportOptionLay->addWidget(createMainCB, 2, 1, 1, 1);
-
-
+        exportOptionLay->addWidget(compareCB, 2, 1, 1, 1);
 
         exportOptionLay->addWidget(new QLabel("Delete time (ms)"), 3, 0, 1, 1);
         exportOptionLay->addWidget(deleteTimeLCD, 3, 1, 1, 1);
+
+        exportOptionLay->addWidget(new QLabel("Total checked blocks"), 3, 2, 1, 1);
+        exportOptionLay->addWidget(totalBlocksLCD, 3, 3, 1, 1);
 
         exportOptionLay->addWidget(new QLabel("Export time (ms)"), 4, 0, 1, 1);
         exportOptionLay->addWidget(exportTimeLCD, 4, 1, 1, 1);
@@ -281,12 +265,12 @@ namespace windows {
 
         connectPB->setEnabled(false);
         dropPB = new QPushButton("Drop database");
-        dropPB->setEnabled(false);
-        dataseLE = new QLineEdit();
-        dataseLE = new QLineEdit();
+
+        dataseNameLE = new QLineEdit();
+        dataseNameLE = new QLineEdit();
         re = QRegularExpression("^[a-z_][A-Za-z0-9_]{1,62}");
         validator = new QRegularExpressionValidator(re, this);
-        dataseLE->setValidator(validator);
+        dataseNameLE->setValidator(validator);
 
         databaseConfigurationArea = new QGroupBox(tr("Database configiration"));
         databaseConfigurationArea->setObjectName("databaseConfigurationArea");
@@ -294,13 +278,12 @@ namespace windows {
         databaseConfigurationArea->setLayout(dbOptionLay);
 
         dbOptionLay->addWidget(new QLabel("Database name:"), 0, 0, 1, 1);
-        dbOptionLay->addWidget(dataseLE, 0, 1, 1, 1);
+        dbOptionLay->addWidget(dataseNameLE, 0, 1, 1, 1);
         dbOptionLay->addWidget(new QLabel("Create new database"), 0, 2, 1, 1);
         dbOptionLay->addWidget(dbUsageCB, 0, 3, 1, 1);
         dbOptionLay->addWidget(connectPB, 1, 0, 1, 1);
         dbOptionLay->addWidget(dropPB, 1, 2, 1, 1);
         dbOptionLay->addWidget(qled, 1, 3, 1, 1);
-      /*  dbOptionLay->addItem(new QSpacerItem(20,20),1, 1, 1, 1);*/
 
 
         dataTableView = new DeselectableTreeView(this);
@@ -327,18 +310,9 @@ namespace windows {
         mmLayout->addWidget(logTextField, 5, 0, 1, 2);
 
 
-        progressBar = new QProgressBar(this);
-        progressBar->setRange(0, 100);
-        progressBar->setTextVisible(false);
-
-        lb = new QLabel("", this);
-        QPalette p = palette();
-        p.setColor(QPalette::Highlight, Qt::green);
-        progressBar->setPalette(p);
 
 
-        this->statusBar()->addWidget(lb, 50);
-        this->statusBar()->addWidget(progressBar, 50);
+
 
 
         timer = new QTimer(this);
@@ -346,12 +320,11 @@ namespace windows {
         timer->start(50);
 
 
-        lb->hide();
-        progressBar->hide();
+
 
         list={fileDataSizeLCD ,  segmentSizeLCD ,  totalSizeLCD ,  fileSegmentLCD ,  totalRepeatedBlocksLCD ,
               dataToOriginalPercentageLCD ,  totalRepetitionPercentageLCD ,  importTimeLCD ,  exportTimeLCD ,
-              errorCountLCD,deleteTimeLCD};
+              errorCountLCD,deleteTimeLCD,totalBlocksLCD};
 
         for (auto *elem: list) {
             elem->setSegmentStyle(QLCDNumber::Flat);
@@ -363,7 +336,7 @@ namespace windows {
     void MainWindow::onImport() {
         QString inputPath = inputFileLEWO->getContent();
 
-        statusMessage(QString("Import entry %1").arg(toShortPath(inputPath)));
+        writeLog(QString("Import entry %1").arg(toShortPath(inputPath)));
         bool isDir = inputFileLEWO->getType() == Directory;
         bool replace=replaceFileCB->isChecked();
         unsigned segmentSize=segmentSizeCoB->currentText().toInt();
@@ -386,7 +359,10 @@ namespace windows {
                 res = fileService.processFile(inputPath.toStdString(),segmentSize);
             }
         }
-
+        if(res!=0)
+        {
+            writeLog("Error occurred during entry import");
+        }
 
         emit modelUpdate();
     }
@@ -395,7 +371,7 @@ namespace windows {
         QString outputPath = outputFileLEWO->getContent();
         QString exportPath = fileExportLE->text();
 
-        statusMessage(QString("Exporting entry %1 to %2").arg(exportPath).arg(outputPath));
+        writeLog(QString("Exporting entry %1 to %2").arg(toShortPath(exportPath)).arg(toShortPath(outputPath)));
 
 
         bool main = createMainCB->isChecked();
@@ -403,7 +379,8 @@ namespace windows {
         bool isDir = outputFileLEWO->getType() == Directory;
         int flag=2*main+remove;
         int res=0;
-        auto loc=gClk.tikLoc();
+        QElapsedTimer timer1;
+        timer1.start();
         if(isDir)
         {
             res=(fileService.*dirs[flag])(exportPath.toStdString(),outputPath.toStdString());
@@ -412,19 +389,14 @@ namespace windows {
         {
             res=(fileService.*files[flag])(exportPath.toStdString(),outputPath.toStdString(),paramType::EmptyParameterValue);
         }
-        gClk.tak();
-
-        exportTimeLCD->display(gClk[loc].time);
-        gClk.reset();
+        exportTimeLCD->display(static_cast<int>(timer1.elapsed()));
 
         if(res!=0)
         {
             writeLog("Error occured during entry export",ERROR);
-            /*cleadStBar();*/
-            return;
+            /*return;*/
         }
 
-        //todo process
         if (remove) {
             emit modelUpdate();
         }
@@ -432,7 +404,6 @@ namespace windows {
         {
             this->compareExport(exportPath,outputPath,isDir);
         }
-        /*cleadStBar();*/
 
     }
 
@@ -440,22 +411,26 @@ namespace windows {
 
 
         QString path = fileExportLE->text();
-        statusMessage(QString("Deleting entry %1").arg(toShortPath(path)));
+        writeLog(QString("Deleting entry %1").arg(toShortPath(path)));
         bool isDir = isDirName(fileExportLE->text());
 
-        auto loc=gClk.tikLoc();
+        QElapsedTimer timer1;
+        timer1.start();
+        int res;
         if (isDir) {
-            this->fileService.deleteDirectory(path.toStdString());
+            res=this->fileService.deleteDirectory(path.toStdString());
         } else {
-            this->fileService.deleteFile(path.toStdString());
+            res=this->fileService.deleteFile(path.toStdString());
         }
 
-        gClk.tak();
+        if(res!=0)
+        {
+            writeLog("Error occurred during entry delete",ERROR);
+        }
 
-        deleteTimeLCD->display(gClk[loc].time);
+        deleteTimeLCD->display(static_cast<int>(timer1.elapsed()));
         gClk.reset();
         emit modelUpdate();
-        /*cleadStBar();*/
     }
 
     void MainWindow::onSettings() {
@@ -493,27 +468,30 @@ namespace windows {
 
 
     void MainWindow::onloadDatabase() {
-        statusMessage("Connecting to database");
-        this->c_str.setDbname(dataseLE->text().toStdString());
+        this->c_str.setDbname(dataseNameLE->text().toStdString());
         bool old = dbConnection;
-        dbConnection = checkConnString(c_str);
-        emit connectionChanged(old);
+
 
 
         if (dbUsageCB->isChecked()) {
+            dbConnection = checkConnString(c_str);
             if (dbConnection) {
-                writeLog("database aleady exists");
+                writeLog("Database already exists",WARNING);
                 return;
             }
+            writeLog(QString("Creating database %1!").arg(dataseNameLE->text()));
             fileService.dbLoad<file_services::create>(c_str.getDbname());
 
-
-        } else {
-            fileService.dbLoad(c_str.getDbname());
-
         }
-        emit connectionChanged(dbConnection);
-        /*cleadStBar();*/
+        else
+        {
+            writeLog(QString("Connecting to database %1!").arg(dataseNameLE->text()));
+            fileService.dbLoad(c_str.getDbname());
+        }
+
+        dbConnection = checkConnString(c_str);
+        emit connectionChanged(old);
+
     }
 
 
@@ -550,7 +528,7 @@ namespace windows {
                         if (attr.name().toString() == "path") {
                             path = attr.value().toString().toStdString();
                             this->c_str = db_services::loadConfiguration(path);
-                            dataseLE->setText(QString::fromStdString(c_str.getDbname()));
+                            dataseNameLE->setText(QString::fromStdString(c_str.getDbname()));
 
 
                             old = dbConnection;
@@ -568,15 +546,16 @@ namespace windows {
     }
 
     void MainWindow::onConnectionChanged(bool old) {
-        statusMessage("Connection change");
+        dropPB->setEnabled(dbConnection);
         if (!dbConnection) {
             reset:dataTableView->selectionModel()->clearSelection();
             if (dataTableView->model()) {
                 fileService.disconnect();
                 myViewModel->reset();
             }
+            writeLog("Unable to connect");
         } else {
-            auto dbName = dataseLE->text().toStdString();
+            auto dbName = dataseNameLE->text().toStdString();
 
             bool conn = myViewModel->performConnection(c_str);
 
@@ -585,28 +564,27 @@ namespace windows {
             if (!conn||res!=0) {
                 goto reset;
             }
-            myViewModel->getData();
-            dataTableView->sizeHint();
-            dataTableView->setSortingEnabled(true);
-            dataTableView->sortByColumn(-1, Qt::SortOrder::DescendingOrder);
-            dataTableView->resizeColumnsToContents();
+
+
+            updateModel();
+
+
+            writeLog("Connection was established");
         }
-
-
-        /*cleadStBar();*/
-
+        qled->setChecked(dbConnection);
     }
 
     void MainWindow::resizeEvent(QResizeEvent *event) {
         QWidget::resizeEvent(event);
         dataTableView->sizeHint();
-        writeLog("resized");
     }
 
     void MainWindow::updateModel() {
-        /*statusMessage("Updating model");*/
         myViewModel->getData();
-        /*cleadStBar();*/
+        dataTableView->sizeHint();
+        dataTableView->setSortingEnabled(true);
+        dataTableView->sortByColumn(-1, Qt::SortOrder::DescendingOrder);
+        dataTableView->resizeColumnToContents(0);
     }
 
     void MainWindow::updateLEDS(QModelIndex &idx) {
@@ -635,6 +613,7 @@ namespace windows {
 
     void MainWindow::resetLeds() {
 
+
         segmentSizeLCD->display(0);
         fileDataSizeLCD->display(0);
         totalSizeLCD->display(0);
@@ -652,6 +631,8 @@ namespace windows {
 
     void MainWindow::compareExport(const QString &exportee, const QString &output, bool b) {
 
+        errorCountLCD->setDigitCount(8);
+        totalBlocksLCD->setDigitCount(8);
         if(b)
         {
             //todo comare dir
@@ -661,5 +642,6 @@ namespace windows {
             //todo compare files
         }
         errorCountLCD->display(100);
+        totalBlocksLCD->display(100);
     }
 }
