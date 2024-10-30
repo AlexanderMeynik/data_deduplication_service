@@ -136,11 +136,6 @@ namespace windows {
         QString fileName = QFileDialog::getSaveFileName(this,
                                                         tr("Save Conf"),
                                                         prevFileDir);
-        /*if (fileName.isEmpty()) {
-            //todo print something
-            qInfo("nothing");
-            return;
-        }*/
 
         QFile file;
         file.setFileName(fileName);
