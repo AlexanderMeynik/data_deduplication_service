@@ -51,7 +51,7 @@ namespace common {
             files;
 
 
-    void writeLog(QTextEdit *logTextField, QString qss, LogLevel lg = RESULT);
+    void writeLog(QTextEdit *logTextField, const QString &qss, LogLevel lg = RESULT);
 
 
     bool isDirName(const QString &path);

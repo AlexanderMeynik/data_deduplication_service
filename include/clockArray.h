@@ -12,18 +12,19 @@
 #include <utility>
 #include <thread>
 #include <sstream>
+
 template<typename T, std::size_t N>
-std::array<T, N> constexpr makeArray(T val){
+std::array<T, N> constexpr makeArray(T val) {
     std::array<T, N> tempArray{};
-    for ( T &elem : tempArray )
+    for (T &elem: tempArray)
         elem = val;
     return tempArray;
 }
 
 //for unordered maps
 template<size_t N>
-struct ::std::hash<std::array<std::string, N>>{
-    std::size_t operator()(const std::array<std::string, N> &s) const noexcept{
+struct ::std::hash<std::array<std::string, N>> {
+    std::size_t operator()(const std::array<std::string, N> &s) const noexcept {
 
         return std::hash<std::string>{}([&s]<std::size_t... Is>(std::index_sequence<Is...>) { return (s[Is]+...); }
                                                 (std::make_index_sequence<N>{}));
@@ -31,12 +32,9 @@ struct ::std::hash<std::array<std::string, N>>{
 };
 
 
-
-
 template<typename T, size_t sz>
 requires std::is_convertible_v<T, std::string>
 std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr);
-
 
 
 template<typename T, size_t sz>
@@ -46,10 +44,9 @@ bool operator==(const std::array<T, sz> &arr1, const std::array<T, sz> &arr2) {
 /// timing namespace
 namespace timing {
 
-    auto cmpArrays=[]<size_t N>(const std::array<std::string, N> &a, const std::array<std::string, N> &b) {
-        for(int i=0;i<N;i++)
-        {
-            if(a[i]!=b[i])
+    auto cmpArrays = []<size_t N>(const std::array<std::string, N> &a, const std::array<std::string, N> &b) {
+        for (int i = 0; i < N; i++) {
+            if (a[i] != b[i])
                 return b[i] > a[i];
         }
         return false;
@@ -195,9 +192,9 @@ namespace timing {
         }
 
     private:
-        std::map<locationType, timeStore,decltype(cmpArrays)> timers;
+        std::map<locationType, timeStore, decltype(cmpArrays)> timers;
 
-        std::map<locationType, inType,decltype(cmpArrays)> startIngTimers;
+        std::map<locationType, inType, decltype(cmpArrays)> startIngTimers;
         std::stack<locationType> toTak;
         static inline std::mutex s_mutex;
         using guardType = std::lock_guard<std::mutex>;
@@ -218,8 +215,7 @@ std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr) {
 }
 
 
-namespace timing
-{
+namespace timing {
     template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
             std::source_location), OutType (*timeConverter)(inType, inType)>
     requires std::is_floating_point_v<OutType>void
@@ -266,14 +262,6 @@ namespace timing
         this->startIngTimers.clear();
     }
 }
-
-
-
-
-
-
-
-
 
 
 #endif // DATA_DEDUPLICATION_SERVICE_CLOCKARRAY_H

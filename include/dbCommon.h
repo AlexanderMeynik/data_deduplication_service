@@ -12,12 +12,13 @@
 #include "myConcepts.h"
 #include "HashUtils.h"
 
-using myConcepts::printable, myConcepts::returnCodes, myConcepts::vformat, hash_utils::getHashStr;
-using
-enum myConcepts::returnCodes;
+
 /// db_services namespace
 namespace db_services {
 
+    using myConcepts::printable, myConcepts::returnCodes, myConcepts::vformat, hash_utils::getHashStr;
+    using
+    enum myConcepts::returnCodes;
 #ifdef IT_test
     static inline std::string resDirPath = "../../conf/";
 #else
@@ -87,7 +88,7 @@ namespace db_services {
 
     resType checkTExistence(db_services::trasnactionType &txn, std::string_view fileName);
 
-    tl::expected<conPtr, returnCodes> connectIfPossible(std::string_view cString);
+    tl::expected <conPtr, returnCodes> connectIfPossible(std::string_view cString);
 
     myConnString loadConfiguration(std::string_view filename);
 

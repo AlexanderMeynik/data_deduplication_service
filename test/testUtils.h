@@ -75,7 +75,6 @@ inline void create_hierarhy_for_file(std::string_view file_name, std::ofstream &
     auto pp = getNormalAbs(file_name);
     if (!fs::exists(pp.parent_path())) {
         fs::create_directories(pp.parent_path());
-
     }
     out.open(file_name.data());
 }

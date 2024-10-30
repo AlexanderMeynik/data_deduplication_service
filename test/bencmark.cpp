@@ -6,94 +6,6 @@
 #include "testUtils.h"
 
 
-namespace fs = std::filesystem;
-template<typename T, typename A>
-requires std::is_same_v<T, A> ||
-         std::is_same_v<T, typename std::remove_const<A>::type> ||
-         std::is_same_v<A, typename std::remove_const<T>::type>
-int compareArraa(size_t size, T *arr, A *arr2) {
-    int error = 0;
-    for (int arr_elem = 0; arr_elem < size; ++arr_elem) {
-        error += arr[arr_elem] != arr2[arr_elem];
-    }
-    return error;
-}
-
-std::array<size_t,3> inline compareFiles(fs::path &f1, fs::path &f2, size_t size) {
-    size_t e1=0;//todo add size checks
-    size_t e2=0;
-    auto fs = file_size(f1);
-    size_t seg_count = fs / size;
-    size_t last=fs-seg_count*size;
-
-    std::ifstream i1(f1), i2(f2);
-    char a1[size];
-    char a2[size];
-    int j = 0;
-    for (; j < seg_count; ++j) {
-
-        i1.readsome(a1, size);
-        i2.readsome(a2, size);
-        auto res=compareArraa(size, a1, a2);
-        e1+=res;
-        e2+=(res!=0);
-    }
-
-    if(last>0)
-    {
-        auto sz = i1.readsome(a1, size);
-        i2.readsome(a2, size);
-        auto res = compareArraa(sz, a1, a2);
-        e1 += res;
-        e2 += (res != 0);
-        seg_count++;
-    }
-    return {e1,e2,seg_count};
-
-}
-
-
-std::array<size_t,3> inline compareDirectories(fs::path &f1, fs::path &f2, size_t size) {
-    size_t e1=0;
-    size_t e2=0;
-    size_t seg_count = 0;
-
-    std::unordered_set<std::string> f1_s;
-    std::unordered_set<std::string> f2_s;
-
-    for (auto&entry:fs::recursive_directory_iterator(f1)) {
-        if(!fs::is_directory(entry))
-        {
-            auto path=entry.path().lexically_relative(f1).string();
-            f1_s.insert(path);
-        }
-    }
-
-    for (auto&entry:fs::recursive_directory_iterator(f2)) {
-        if(!fs::is_directory(entry))
-        {
-            auto path=entry.path().lexically_relative(f2).string();
-            f2_s.insert(path);
-        }
-    }
-
-    bool aa=std::all_of(f2_s.begin(), f2_s.end(), [&](const auto &item) {
-        return f1_s.contains(item);
-    });
-
-    for (auto elem:f1_s) {
-        auto in=f1/elem;
-        auto out=f2/elem;
-        auto res= compareFiles(in,out,size);
-        e1+=res[0];
-        e2+=res[1];
-        seg_count+=res[2];
-    }
-
-    return {e1,e2,seg_count};
-
-}
-
 
 
 namespace fs = std::filesystem;
@@ -175,10 +87,8 @@ void performStuff()
     sizes2<<dbName<<"\n";
     db_services::printRes(dedup_data.value(), sizes2);
     sizes2<<'\n';
-    //todo add benchmark job
-    //todo unique segment count dont work porperly(it only counts segments unque to current file)
 
-    //todo later add
+
     for (int i = ii; i < 2; ++i) {
         gClk.tik();
         fs.deleteDirectory(from_dirs[i].string());
@@ -260,9 +170,9 @@ int main(int argc, char *argv[]) {
         from_dirs[i] = getNormalAbs(parent_path / from_dirs[i]);
     }
 
-   /* compareDirectories(from_dirs[1],to_dirs[1],64);*/
+    auto res=compareDirectories(from_dirs[1],to_dirs[1],64);
 
-
+    return 0;
     if(!fs::exists(dir))
     {
         fs::create_directories(dir);

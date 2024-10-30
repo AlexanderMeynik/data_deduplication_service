@@ -1,8 +1,7 @@
 * {
   font-family: "courier new";
-  font-size: 12;
   font-weight: "Normal";
-
+  font-size: 12px;
 }
 
 QLCDNumber {
@@ -20,7 +19,7 @@ QGroupBox{
 }
 QGroupBox::title {
     subcontrol-origin: margin;
-    subcontrol-position: top center; /* position at the top center */
+    subcontrol-position: top center;
     padding: 0 3px;
 }
 QGroupBox#databaseConfigurationArea{
@@ -55,7 +54,7 @@ QPushButton:pressed {
                border-style: inset;
            }
 
-DeselectableTreeView{
+DeselectableTableView{
 
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                       stop: 0 #E0E0E0, stop: 1 #FFFFFF);
@@ -72,6 +71,16 @@ QLineEdit{
     margin: 0 8px;
     background: white;
     selection-background-color: darkgray;
+}
+
+QLineEdit#FileLE_lineEdit{
+
+   font-size:10px;
+}
+
+QLineEdit#fileExportLE{
+
+   font-size:10px;
 }
 
 QTextEdit

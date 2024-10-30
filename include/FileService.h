@@ -5,93 +5,19 @@
 #include <array>
 #include <string>
 #include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <filesystem>
 
-#include <openssl/sha.h>
 
 #include "dbManager.h"
-
-
-using myConcepts::SymbolType;
-using db_services::dbManager;
-namespace fs = std::filesystem;
+#include "fileUtils.h"
 
 /// file services namespace
 namespace file_services {
-    using myConcepts::gClk;
-    /**
-     * @ingroup utility
-     * Database usage strategy
-     */
-    enum dbUsageStrategy {
-        /// if database exist connection will be established
-        use,
-        /// create new database if it doesn't exist
-        create
-    };
 
-    /**
-     * @ingroup utility
-     * File/directories insertion startegy
-     */
-    enum dataInsetionStrategy {
-        /// will ignore files that already exist
-        PreserveOld,
-        /// will replace file contents
-        ReplaceWithNew
-    };
-
-    /**
-     * @ingroup utility
-     * File/directory handling strategy during load process
-     */
-    enum dataRetrievalStrategy {
-        /// will leave data as is
-        Persist,
-        /// will delete requested data from database
-        Remove
-    };
-
-    /**
-     * @ingroup utility
-     * Defines what will be done if destination directory does not exist
-     */
-    enum rootDirectoryHandlingStrategy {
-        /// will return an error code
-        NoCreateMain,
-        /// will create this directory using create_directories
-        CreateMain
-    };
-
-    /**
-     * This function checks existence of a canonical file path for file_path
-     * @param filePath
-     * @return canonical filePath or error code
-     */
-    tl::expected<std::string, int> checkFileExistence(std::string_view filePath);
-
-    /**
-     * This function checks existence of a canonical directory path for dir_path
-     * @param dirPath
-     * @return canonical dirPath or error code
-     */
-    tl::expected<std::string, int> checkDirectoryExistence(std::string_view dirPath);
-
-    /**
-     * Calculates lexically normal absolute path
-     * @param path
-     * @return lexically normal absolute path
-     */
-    fs::path getNormalAbs(fs::path &path);
-
-    fs::path getNormalAbs(fs::path &&path);
+    using namespace db_services;
 
     /**
      * this class handles file/directory management and uses @ref db_services::dbManager "dbManager" to perform calls
      */
-    
     class FileParsingService {
     public:
         using index_type = db_services::indexType;
@@ -120,7 +46,7 @@ namespace file_services {
          * "dbLoad()"
          */
         template<dbUsageStrategy dbUsageStrategy = use>
-        int dbLoad(db_services::myConnString & c_str);
+        int dbLoad(db_services::myConnString &c_str);
 
         int dbDrop(std::string_view dbName) {
             auto res = manager_.dropDatabase(dbName);
@@ -151,7 +77,34 @@ namespace file_services {
                 hash_function hash = SHA_256>
         int processFile(std::string_view filePath, size_t segmentSize);
 
+        /**
+         * Insert entry for directory
+         * @param dirPath
+         */
         int insertDirEntry(std::string_view dirPath);
+
+        tl::expected<double,int> getCoefficient()
+        {
+            try {
+                std::function < resType(trasnactionType & ) > ff = [](trasnactionType &txn) {
+
+                    std::string q = "with sumCount as(\n"
+                                    "select sum(segment_count) as segments,count(*) "
+                                    "    as unique_segments from public.segments) "
+                                    "select segments,unique_segments,"
+                                    ""
+                                    "(unique_segments)::double precision/segments*100 as percentage  from sumCount;";
+                    return txn.exec(q);
+                };
+                auto res =this->executeInTransaction(ff);
+                return tl::expected<double,int>{res.value()[0][2].as<double>()};
+            }
+            catch (std::exception&ex)
+            {
+                VLOG(1)<<ex.what();
+                return tl::unexpected{ErrorOccured};
+            }
+        }
 
 
         /**
@@ -201,7 +154,7 @@ namespace file_services {
         */
         template<typename ResType1, typename ... Args>
         tl::expected<ResType1, int> executeInTransaction(ResType1
-                                                           (*call)(db_services::trasnactionType &, Args ...),
+                                                         (*call)(db_services::trasnactionType &, Args ...),
                                                          Args &&... args) {
             return manager_.executeInTransaction(call, std::forward<Args>(args)...);
         }
@@ -218,23 +171,19 @@ namespace file_services {
             return manager_.executeInTransaction(call, std::forward<Args>(args)...);
         }
 
-        void inline disconnect()
-        {
+        void inline disconnect() {
             manager_.disconnect();
         }
+
     private:
         dbManager manager_;
     };
 
-    
 
-
-
-    
     //todo create regular expression grabber for files
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr, bool from_load_dir>
     int FileParsingService::loadFile(std::string_view from_file, std::string_view toFile,
-                                                   index_type fileId) {
+                                     index_type fileId) {
         fs::path toFilePath;
         fs::path fromFilePath;
         fs::path parentDirPath;
@@ -269,8 +218,7 @@ namespace file_services {
             VLOG(1) << vformat("Filesystem error : %s , error code %d\n", e.what(), e.code());
             return returnCodes::ErrorOccured;
         }
-        if(fs::is_directory(toFilePath))
-        {
+        if (fs::is_directory(toFilePath)) {
             VLOG(1) << vformat("Entry  %s is not a file use processDirectory for directories\n", toFilePath.c_str());
             return returnCodes::ErrorOccured;
         }
@@ -303,12 +251,10 @@ namespace file_services {
     }
 
 
-    
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr>
     int FileParsingService::loadDirectory(std::string_view fromDir, std::string_view toDir) {
         fs::path newDirPath;
         fs::path fromDirPath = getNormalAbs(fromDir);
-
 
 
         try {
@@ -336,8 +282,7 @@ namespace file_services {
             return returnCodes::ErrorOccured;
         }
 
-        if(!fs::is_directory(newDirPath))
-        {
+        if (!fs::is_directory(newDirPath)) {
             VLOG(1) << vformat("Entry  %s is not a directory use processFile for files\n", newDirPath.c_str());
             return returnCodes::ErrorOccured;
         }
@@ -368,7 +313,7 @@ namespace file_services {
         return returnCodes::ReturnSucess;
     }
 
-    
+
     template<dbUsageStrategy str>
     int FileParsingService::dbLoad(std::string_view dbName, std::string_view configurationFile) {
         auto CString = db_services::loadConfiguration(configurationFile);
@@ -378,8 +323,7 @@ namespace file_services {
 
 
     template<dbUsageStrategy str>
-    int FileParsingService::dbLoad(db_services::myConnString & c_str)
-    {
+    int FileParsingService::dbLoad(db_services::myConnString &c_str) {
         manager_ = dbManager(c_str);
 
         if constexpr (str == create) {
@@ -414,7 +358,6 @@ namespace file_services {
     }
 
 
-    
     template<dataInsetionStrategy strategy, bool existence_checks, hash_function hash>
     int FileParsingService::processFile(std::string_view filePath, size_t segmentSize) {
         std::string file;
@@ -431,7 +374,7 @@ namespace file_services {
         auto size = fs::file_size(file);
 
         gClk.tik();
-        auto file_id = manager_.createFile(file, size, segmentSize,hash);
+        auto file_id = manager_.createFile(file, size, segmentSize, hash);
         gClk.tak();
 
         if (file_id == returnCodes::AlreadyExists) {
@@ -447,7 +390,7 @@ namespace file_services {
                                            file.c_str());
                 return returnCodes::ErrorOccured;
             }
-            file_id = manager_.createFile(file, size, segmentSize,hash);
+            file_id = manager_.createFile(file, size, segmentSize, hash);
         }
 
         if (file_id == returnCodes::ErrorOccured) {
@@ -481,7 +424,6 @@ namespace file_services {
     }
 
 
-    
     template<dataInsetionStrategy strategy, hash_function hash>
     int FileParsingService::processDirectory(std::string_view dirPath, size_t segment_size) {
         fs::path pp;
@@ -491,7 +433,7 @@ namespace file_services {
             return ErrorOccured;
         }
         pp = result.value();
-        
+
         //todo remake to make less error prone
         auto dd = fs::canonical(pp).string();
         insertDirEntry(dd);
@@ -507,8 +449,7 @@ namespace file_services {
                 } else if (results == ErrorOccured) {
                     return results;
                 }
-            }
-            else//todo remake to make less error prone
+            } else//todo remake to make less error prone
             {
                 auto dd = fs::canonical(entry.path()).string();
                 insertDirEntry(dd);
@@ -516,6 +457,6 @@ namespace file_services {
         }
         return 0;
     }
-
 }
+
 #endif //DATA_DEDUPLICATION_SERVICE_FILESERVICE_H

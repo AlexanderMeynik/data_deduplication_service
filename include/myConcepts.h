@@ -17,7 +17,7 @@ namespace myConcepts {
     * Global clock used for time measurement
     */
     using clockType = timing::chronoClockTemplate<std::chrono::milliseconds>;
-    extern  clockType gClk;
+    extern clockType gClk;
 
 
     template<typename T>

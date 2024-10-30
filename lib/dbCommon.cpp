@@ -61,7 +61,7 @@ namespace db_services {
     getEntriesForDirectory(trasnactionType &txn, std::string_view dirPath) {
         std::string query = "select * from files "
                             "where to_tsvector('simple',replace(file_name,'_', '/'))"
-                            "@@ \'%s\' and file_name LIKE \'%s%%\' ;";//todo works
+                            "@@ \'%s\' and file_name LIKE \'%s%%\' ;";
         auto formattedQuery = vformat(query.c_str(), toTsquerablePath(dirPath).c_str(),
                                       toSpacedPath(dirPath).c_str());
 
@@ -238,6 +238,7 @@ namespace db_services {
                             "from data;";
         return txn.exec(query);
     }
+
     void printRes(resType &rss, std::ostream &out) {
         int i = 0;
         for (; i < rss[0].size() - 1; ++i) {
@@ -248,23 +249,17 @@ namespace db_services {
             i = 0;
 
             for (; i < row.size() - 1; ++i) {
-                if (!row[i].is_null())
-                {
+                if (!row[i].is_null()) {
                     out << row[i].as<std::string>() << '\t';
-                }
-                else
-                {
-                    out<<"\"\"\t";
+                } else {
+                    out << "\"\"\t";
                 }
             }
 
-            if (!row[i].is_null())
-            {
+            if (!row[i].is_null()) {
                 out << row[i].as<std::string>() << '\n';
-            }
-            else
-            {
-                out<<"\"\"\n";
+            } else {
+                out << "\"\"\n";
             }
         }
     }
@@ -285,12 +280,10 @@ namespace db_services {
     }
 
     tl::expected<indexType, int> getTotalFileSize(trasnactionType &txn) {
-        try
-        {
+        try {
             return tl::expected<indexType, int>(txn.query_value<indexType>("select sum(size_in_bytes) from files;"));
         }
-        catch (...)
-        {
+        catch (...) {
             return ErrorOccured;
         }
     }

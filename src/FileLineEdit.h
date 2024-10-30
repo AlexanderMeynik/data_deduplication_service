@@ -9,15 +9,17 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QCheckBox>
+#include <QLabel>
 
 #include "dbCommon.h"
 
+/// windows namespace
 namespace windows {
-    enum EntryType
-    {
+    enum EntryType {
         File,
         Directory
     };
+
     class FileLineEdit : public QWidget {
     Q_OBJECT
 
@@ -30,8 +32,8 @@ namespace windows {
         QString getContent() {
             return lineEdit->text();
         }
-        bool isEmpty()
-        {
+
+        bool isEmpty() {
             return lineEdit->text().isEmpty();
         }
 
@@ -41,13 +43,14 @@ namespace windows {
 
         bool isSaveFile() const;
 
-        EntryType getType()
-        {
+        EntryType getType() {
             return type;
         }
 
     signals:
+
         void contentChanged(const QString &str);
+
     protected slots:
 
         virtual void onBrowse();
@@ -61,6 +64,7 @@ namespace windows {
         bool saveFile;
 
         EntryType type;
+
         void setUpUi();
     };
 
@@ -77,7 +81,9 @@ namespace windows {
         ~FileLineEditWithOption() override = default;
 
     signals:
-        void typeChanged(const EntryType&etr);
+
+        void typeChanged(const EntryType &etr);
+
     protected slots:
 
         void onBrowse() override;

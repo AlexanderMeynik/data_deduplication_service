@@ -32,8 +32,11 @@
 #include "SettingsWindow.h"
 #include "MyPqxxModel.h"
 
+/// windows namespace
 namespace windows {
     using namespace common;
+    using namespace models;
+
     class MainWindow : public QMainWindow {
     Q_OBJECT
     public:
@@ -49,7 +52,9 @@ namespace windows {
     signals:
 
         void connectionChanged(bool old);
+
         void modelUpdate();
+
         void closed();
 
     private slots:
@@ -72,12 +77,17 @@ namespace windows {
 
         void updateLEDS(QModelIndex &idx);
 
-        void resetLeds();
+        void resetLeds(int i);
+        void calculateCoefficient()
+        {
+            double res= fileService.getCoefficient().value_or(0);
+            uniquePercentage->display(smartCeil(res,2));
+        }
 
 
     private:
 
-        void writeLog(QString qss, LogLevel lg = RESULT) {
+        void writeLog(const QString &qss, LogLevel lg = RESULT) {
             common::writeLog(logTextField, qss, lg);
         }
 
@@ -86,8 +96,6 @@ namespace windows {
         FileLineEditWithOption *inputFileLEWO;
         FileLineEditWithOption *outputFileLEWO;
 
-        FileLineEditWithOption *checkInputFileLEWO;
-        FileLineEditWithOption *checkOoutputFileLEWO;
 
         QLineEdit *fileExportLE;
         QLineEdit *dataseNameLE;
@@ -101,7 +109,7 @@ namespace windows {
         QPushButton *connectPB;
         QPushButton *dropPB;
 
-        DeselectableTreeView *dataTableView;
+        DeselectableTableView *dataTableView;
 
         QTextEdit *logTextField;
 
@@ -112,13 +120,13 @@ namespace windows {
         QGroupBox *importFileArea;
         QGroupBox *exportFileArea;
 
-        QGridLayout * mmLayout;
+        QGridLayout *mmLayout;
 
-        QGridLayout* incudeOptionLay;
-        QGridLayout* exportOptionLay;
-        QGridLayout* dbOptionLay;
-        QGridLayout * importFileAreaLay;
-        QGridLayout * exportFileAreaLay;
+        QGridLayout *incudeOptionLay;
+        QGridLayout *exportOptionLay;
+        QGridLayout *dbOptionLay;
+        QGridLayout *importFileAreaLay;
+        QGridLayout *exportFileAreaLay;
 
         QLabel *labelSegmentSize;
         QLabel *labelHashFunction;
@@ -141,11 +149,11 @@ namespace windows {
 
         QLCDNumber *exportTimeLCD;
         QLCDNumber *errorCountLCD;
-        QLCDNumber * deleteTimeLCD;
-        QLCDNumber * totalBlocksLCD;
-        QList<QLCDNumber*> list;
-        //todo hash function
-        //todo hash size
+        QLCDNumber *deleteTimeLCD;
+        QLCDNumber *totalBlocksLCD;
+        QLCDNumber * checkTimeLCD;
+        QLCDNumber * uniquePercentage;
+        QList<QLCDNumber *> list;
 
 
 
@@ -153,9 +161,9 @@ namespace windows {
 
         SettingsWindow *settingsWindow;
 
-        MainTableModel *myViewModel;
+        DeduplicationCharacteristicsModel *myViewModel;
         MySortFilterProxyModel *proxyModel;
-        NotNullFilterProxyModel * nNullProxyModel;
+        NotNullFilterProxyModel *nNullProxyModel;
 
 
         QRegularExpression re;
@@ -174,10 +182,9 @@ namespace windows {
         void updateStylesheet();
 
 
-        void compareExport(const QString &exportee, const QString &output, bool b);
+        void compareExport(const QString &exportee, const QString &output, bool isDirectory);
     };
 }
-
 
 
 #endif //DATA_DEDUPLICATION_SERVICE_MAINWINDOW_H

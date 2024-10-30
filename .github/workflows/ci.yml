@@ -70,7 +70,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: /__w/data_deduplication_service/data_deduplication_service/build/test/benchmarkData
+          path: /__w/data_deduplication_service/data_deduplication_service/build/test
           if-no-files-found: warn
           include-hidden-files: true
       - name: Save log files

@@ -14,10 +14,12 @@
 #include "qledindicator.h"
 #include "common.h"
 
+/// windows namespace
 namespace windows {
     using db_services::myConnString;
     using common::confName;
     using common::parentTag;
+
     class SettingsWindow : public QDialog {
     Q_OBJECT
     public:

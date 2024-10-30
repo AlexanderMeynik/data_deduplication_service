@@ -7,7 +7,8 @@
 #include <QElapsedTimer>
 
 
-std::initializer_list<QString> ll = {"2", "4", "8", "16", "32","64","128","256","512","1024","2048","4096"};//todo remake
+std::initializer_list<QString> ll = {"2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048",
+                                     "4096"};
 
 namespace windows {
 
@@ -23,7 +24,7 @@ namespace windows {
         updateStylesheet();
 
 
-        myViewModel = new MainTableModel(this);
+        myViewModel = new DeduplicationCharacteristicsModel(this);
         proxyModel = new MySortFilterProxyModel(this);
         nNullProxyModel = new NotNullFilterProxyModel(this);
         proxyModel->setSourceModel(myViewModel);
@@ -65,7 +66,6 @@ namespace windows {
         connect(this, &MainWindow::connectionChanged, this, &MainWindow::onConnectionChanged);
 
 
-
         connect(this, &MainWindow::modelUpdate, this, &MainWindow::updateModel);
 
         connect(dataseNameLE, &QLineEdit::textChanged, [&]() {
@@ -95,32 +95,31 @@ namespace windows {
 
                         updateLEDS(index);
                     } else {
-                        resetLeds();
+                        resetLeds(0);
 
                     }
                 });
 
+        connect(this,&MainWindow::modelUpdate,this,&MainWindow::calculateCoefficient);
 
         for (const char *hashName: hash_utils::hash_function_name) {
             hashFunctionCoB->addItem(hashName);
         }
 
-
-
         segmentSizeCoB->addItems(ll);
+        segmentSizeCoB->setCurrentIndex(5);
 
         dbConnection = false;
 
         readConfiguration();
 
 
-
     }
 
     void MainWindow::updateStylesheet() {
-        QFile styleFile("../../resources/styleshhets/widget.qss" );
-        styleFile.open( QFile::ReadOnly );
-        auto style=QString::fromLatin1( styleFile.readAll());
+        QFile styleFile("../../resources/styleshhets/widget.qss");
+        styleFile.open(QFile::ReadOnly);
+        auto style = QString::fromLatin1(styleFile.readAll());
         setStyleSheet(style);
         styleFile.close();
     }
@@ -139,12 +138,12 @@ namespace windows {
         settingsAction = new QAction("Settings");
         menuBar()->addAction(settingsAction);
 
-        inputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath());
-        labelHashFunction = new QLabel("Hash Function:");
-        labelSegmentSize = new QLabel("Segment Size:");
-        hashFunctionCoB = new QComboBox(cent);
-        segmentSizeCoB = new QComboBox(cent);
-        importPB = new QPushButton("Import");
+        inputFileLEWO = new FileLineEditWithOption(this, QDir::currentPath());
+        labelHashFunction = new QLabel("Hash Function:", this);
+        labelSegmentSize = new QLabel("Segment Size:", this);
+        hashFunctionCoB = new QComboBox(this);
+        segmentSizeCoB = new QComboBox(this);
+        importPB = new QPushButton("Import", this);
 
         importFileArea = new QGroupBox(this);
         importFileArea->setObjectName("importFileArea");
@@ -161,9 +160,10 @@ namespace windows {
 
 
         fileExportLE = new QLineEdit();
+        fileExportLE->setObjectName("fileExportLE");
         exportPB = new QPushButton("Export");
         deletePB = new QPushButton("Delete");
-        outputFileLEWO = new FileLineEditWithOption(cent, QDir::currentPath(), true);
+        outputFileLEWO = new FileLineEditWithOption(this, QDir::currentPath(), true);
 
         exportFileArea = new QGroupBox(this);
         exportFileArea->setObjectName("exportFileArea");
@@ -179,15 +179,25 @@ namespace windows {
         exportFileAreaLay->addWidget(deletePB, 2, 3, 1, 3);
 
 
-        segmentSizeLCD=new QLCDNumber();
-        fileDataSizeLCD = new QLCDNumber();
-        totalSizeLCD = new QLCDNumber();
-        fileSegmentLCD = new QLCDNumber();
-        totalRepeatedBlocksLCD = new QLCDNumber();
-        dataToOriginalPercentageLCD = new QLCDNumber();
-        totalRepetitionPercentageLCD = new QLCDNumber();
+        segmentSizeLCD = new QLCDNumber(this);
+        fileDataSizeLCD = new QLCDNumber(this);
+        totalSizeLCD = new QLCDNumber(this);
+        fileSegmentLCD = new QLCDNumber(this);
+        totalRepeatedBlocksLCD = new QLCDNumber(this);
+        dataToOriginalPercentageLCD = new QLCDNumber(this);
+        totalRepetitionPercentageLCD = new QLCDNumber(this);
+        uniquePercentage=new QLCDNumber(this);
 
-        importTimeLCD = new QLCDNumber();
+
+        fileDataSizeLCD->setDigitCount(8);
+        totalSizeLCD->setDigitCount(8);
+        fileSegmentLCD->setDigitCount(8);
+        totalRepeatedBlocksLCD->setDigitCount(8);
+        dataToOriginalPercentageLCD->setDigitCount(5);
+        totalRepetitionPercentageLCD->setDigitCount(5);
+        uniquePercentage->setDigitCount(5);
+
+        importTimeLCD = new QLCDNumber(this);
         replaceFileCB = new QCheckBox();
         replaceFileCB->setToolTip("If checked will replace file contents");
 
@@ -196,26 +206,29 @@ namespace windows {
         incudeOptionLay = new QGridLayout();
         includeOptionsArea->setLayout(incudeOptionLay);
 
-        incudeOptionLay->addWidget(new QLabel("Replace files on import"), 0, 0, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Replace files on import", this), 0, 0, 1, 1);
         incudeOptionLay->addWidget(replaceFileCB, 0, 1, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("Load time (ms)"), 1, 0, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Unique segments percentage", this), 0, 2, 1, 1);
+        incudeOptionLay->addWidget(uniquePercentage, 0, 3, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("%", this),0,4,1,1);
+
+        incudeOptionLay->addWidget(new QLabel("Load time (ms)", this), 1, 0, 1, 1);
         incudeOptionLay->addWidget(importTimeLCD, 1, 1, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("Segment size"), 1, 2, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Segment size", this), 1, 2, 1, 1);
         incudeOptionLay->addWidget(segmentSizeLCD, 1, 3, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("File data size"), 2, 0, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("File data size", this), 2, 0, 1, 1);
         incudeOptionLay->addWidget(fileDataSizeLCD, 2, 1, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("Total file size"), 2, 2, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Total file size", this), 2, 2, 1, 1);
         incudeOptionLay->addWidget(totalSizeLCD, 2, 3, 1, 1);
         incudeOptionLay->addWidget(dataToOriginalPercentageLCD, 2, 4, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("Files segment count"), 3, 0, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Files segment count", this), 3, 0, 1, 1);
         incudeOptionLay->addWidget(fileSegmentLCD, 3, 1, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("Unique segment count"), 3, 2, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Unique segment count", this), 3, 2, 1, 1);
         incudeOptionLay->addWidget(totalRepeatedBlocksLCD, 3, 3, 1, 1);
-        incudeOptionLay->addWidget(totalRepetitionPercentageLCD, 3 , 4, 1, 1);
-
+        incudeOptionLay->addWidget(totalRepetitionPercentageLCD, 3, 4, 1, 1);
 
 
         deleteFilesCB = new QCheckBox();
@@ -224,40 +237,52 @@ namespace windows {
         createMainCB->setToolTip("If checked new directory will be created if path to out does not exist!");
         createMainCB->setChecked(true);
 
-        compareCB=new QCheckBox();
+        compareCB = new QCheckBox();
         compareCB->setToolTip("If checked exported entry will be compared with import one");
 
 
-        errorCountLCD = new QLCDNumber();
-        exportTimeLCD = new QLCDNumber();
-        deleteTimeLCD = new QLCDNumber();
-        totalBlocksLCD=new QLCDNumber();
+        errorCountLCD = new QLCDNumber(this);
+        exportTimeLCD = new QLCDNumber(this);
+        deleteTimeLCD = new QLCDNumber(this);
+        totalBlocksLCD = new QLCDNumber(this);
+        checkTimeLCD = new QLCDNumber(this);
+
+        errorCountLCD->setDigitCount(8);
+        deleteTimeLCD->setDigitCount(5);
+        totalBlocksLCD->setDigitCount(8);
 
         exportOptionsArea = new QGroupBox(this);
         exportOptionsArea->setObjectName("exportOptionsArea");
         exportOptionLay = new QGridLayout();
         exportOptionsArea->setLayout(exportOptionLay);
 
-        exportOptionLay->addWidget(new QLabel("Delete entry"), 0, 0, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Delete entry", this), 0, 0, 1, 1);
         exportOptionLay->addWidget(deleteFilesCB, 0, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Create root directory"), 1, 0, 1, 1);
+
+
+        exportOptionLay->addWidget(new QLabel("Create root directory", this), 1, 0, 1, 1);
         exportOptionLay->addWidget(createMainCB, 1, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Compare output"), 2, 0, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Compare output", this), 2, 0, 1, 1);
         exportOptionLay->addWidget(compareCB, 2, 1, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Compare time (ms)", this), 2, 2, 1, 1);
+        exportOptionLay->addWidget(checkTimeLCD, 2, 3, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Delete time (ms)"), 3, 0, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Delete time (ms)", this), 3, 0, 1, 1);
         exportOptionLay->addWidget(deleteTimeLCD, 3, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Total checked blocks"), 3, 2, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Total checked blocks", this), 3, 2, 1, 1);
         exportOptionLay->addWidget(totalBlocksLCD, 3, 3, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Export time (ms)"), 4, 0, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Export time (ms)", this), 4, 0, 1, 1);
         exportOptionLay->addWidget(exportTimeLCD, 4, 1, 1, 1);
 
-        exportOptionLay->addWidget(new QLabel("Error count"), 4, 2, 1, 1);
+        exportOptionLay->addWidget(new QLabel("Error count", this), 4, 2, 1, 1);
         exportOptionLay->addWidget(errorCountLCD, 4, 3, 1, 1);
+
+
+
 
         dbUsageCB = new QCheckBox();
         connectPB = new QPushButton("Connect");
@@ -277,16 +302,16 @@ namespace windows {
         dbOptionLay = new QGridLayout();
         databaseConfigurationArea->setLayout(dbOptionLay);
 
-        dbOptionLay->addWidget(new QLabel("Database name:"), 0, 0, 1, 1);
+        dbOptionLay->addWidget(new QLabel("Database name:", this), 0, 0, 1, 1);
         dbOptionLay->addWidget(dataseNameLE, 0, 1, 1, 1);
-        dbOptionLay->addWidget(new QLabel("Create new database"), 0, 2, 1, 1);
+        dbOptionLay->addWidget(new QLabel("Create new database", this), 0, 2, 1, 1);
         dbOptionLay->addWidget(dbUsageCB, 0, 3, 1, 1);
         dbOptionLay->addWidget(connectPB, 1, 0, 1, 1);
         dbOptionLay->addWidget(dropPB, 1, 2, 1, 1);
         dbOptionLay->addWidget(qled, 1, 3, 1, 1);
 
 
-        dataTableView = new DeselectableTreeView(this);
+        dataTableView = new DeselectableTableView(this);
         logTextField = new QTextEdit();
         logTextField->setReadOnly(true);
 
@@ -300,19 +325,14 @@ namespace windows {
         exportFileAreaLay->setSpacing(10);
 
 
-        mmLayout->addWidget(databaseConfigurationArea, 0, 0, 1, 2);
+        mmLayout->addWidget(databaseConfigurationArea, 0, 0, 1, 3);
         mmLayout->addWidget(importFileArea, 1, 0, 1, 1);
-        mmLayout->addWidget(dataTableView, 2, 0, 1, 2);
-        mmLayout->addWidget(exportFileArea, 3, 0, 2, 1);
+        mmLayout->addWidget(dataTableView, 2, 0, 1, 3);
+        mmLayout->addWidget(exportFileArea, 3, 0, 1, 2);
 
-        mmLayout->addWidget(includeOptionsArea, 1, 1, 1, 1);
-        mmLayout->addWidget(exportOptionsArea, 3, 1, 1, 1);
-        mmLayout->addWidget(logTextField, 5, 0, 1, 2);
-
-
-
-
-
+        mmLayout->addWidget(includeOptionsArea, 1, 1, 1, 2);
+        mmLayout->addWidget(exportOptionsArea, 3, 2, 1, 1);
+        mmLayout->addWidget(logTextField, 5, 0, 1, 3);
 
 
         timer = new QTimer(this);
@@ -320,11 +340,9 @@ namespace windows {
         timer->start(50);
 
 
-
-
-        list={fileDataSizeLCD ,  segmentSizeLCD ,  totalSizeLCD ,  fileSegmentLCD ,  totalRepeatedBlocksLCD ,
-              dataToOriginalPercentageLCD ,  totalRepetitionPercentageLCD ,  importTimeLCD ,  exportTimeLCD ,
-              errorCountLCD,deleteTimeLCD,totalBlocksLCD};
+        list = {fileDataSizeLCD, segmentSizeLCD, totalSizeLCD, fileSegmentLCD, totalRepeatedBlocksLCD,
+                dataToOriginalPercentageLCD, totalRepetitionPercentageLCD, importTimeLCD, exportTimeLCD,
+                errorCountLCD, deleteTimeLCD, totalBlocksLCD,checkTimeLCD,uniquePercentage};
 
         for (auto *elem: list) {
             elem->setSegmentStyle(QLCDNumber::Flat);
@@ -338,29 +356,25 @@ namespace windows {
 
         writeLog(QString("Import entry %1").arg(toShortPath(inputPath)));
         bool isDir = inputFileLEWO->getType() == Directory;
-        bool replace=replaceFileCB->isChecked();
-        unsigned segmentSize=segmentSizeCoB->currentText().toInt();
+        bool replace = replaceFileCB->isChecked();
+        unsigned segmentSize = segmentSizeCoB->currentText().toInt();
 
-        unsigned int res=0;
+        unsigned int res = 0;
 
-        if(replace)
-        {
+        if (replace) {
             if (isDir) {
-               res = fileService.processDirectory(inputPath.toStdString(),segmentSize);
+                res = fileService.processDirectory(inputPath.toStdString(), segmentSize);
             } else {
-                res = fileService.processFile(inputPath.toStdString(),segmentSize);
+                res = fileService.processFile(inputPath.toStdString(), segmentSize);
+            }
+        } else {
+            if (isDir) {
+                res = fileService.processDirectory(inputPath.toStdString(), segmentSize);
+            } else {
+                res = fileService.processFile(inputPath.toStdString(), segmentSize);
             }
         }
-        else
-        {
-            if (isDir) {
-                res = fileService.processDirectory(inputPath.toStdString(),segmentSize);
-            } else {
-                res = fileService.processFile(inputPath.toStdString(),segmentSize);
-            }
-        }
-        if(res!=0)
-        {
+        if (res != 0) {
             writeLog("Error occurred during entry import");
         }
 
@@ -377,32 +391,35 @@ namespace windows {
         bool main = createMainCB->isChecked();
         bool remove = deleteFilesCB->isChecked();
         bool isDir = outputFileLEWO->getType() == Directory;
-        int flag=2*main+remove;
-        int res=0;
+        int flag = 2 * main + remove;
+        int res = 0;
         QElapsedTimer timer1;
         timer1.start();
-        if(isDir)
-        {
-            res=(fileService.*dirs[flag])(exportPath.toStdString(),outputPath.toStdString());
-        }
-        else
-        {
-            res=(fileService.*files[flag])(exportPath.toStdString(),outputPath.toStdString(),paramType::EmptyParameterValue);
+        if (isDir) {
+            res = (fileService.*dirs[flag])(exportPath.toStdString(), outputPath.toStdString());
+        } else {
+            res = (fileService.*files[flag])(exportPath.toStdString(), outputPath.toStdString(),
+                                             paramType::EmptyParameterValue);
         }
         exportTimeLCD->display(static_cast<int>(timer1.elapsed()));
 
-        if(res!=0)
-        {
-            writeLog("Error occured during entry export",ERROR);
+        if (res != 0) {
+            writeLog("Error occured during entry export", ERROR);
             /*return;*/
         }
 
         if (remove) {
             emit modelUpdate();
         }
-        if(compareCB->checkState())
+        if (compareCB->checkState()) {
+            QElapsedTimer timer1;
+            timer1.start();
+            this->compareExport(exportPath, outputPath, isDir);
+            checkTimeLCD->display(static_cast<int>(timer1.elapsed()));
+        }
+        else
         {
-            this->compareExport(exportPath,outputPath,isDir);
+            checkTimeLCD->display(0);
         }
 
     }
@@ -418,14 +435,13 @@ namespace windows {
         timer1.start();
         int res;
         if (isDir) {
-            res=this->fileService.deleteDirectory(path.toStdString());
+            res = this->fileService.deleteDirectory(path.toStdString());
         } else {
-            res=this->fileService.deleteFile(path.toStdString());
+            res = this->fileService.deleteFile(path.toStdString());
         }
 
-        if(res!=0)
-        {
-            writeLog("Error occurred during entry delete",ERROR);
+        if (res != 0) {
+            writeLog("Error occurred during entry delete", ERROR);
         }
 
         deleteTimeLCD->display(static_cast<int>(timer1.elapsed()));
@@ -438,6 +454,7 @@ namespace windows {
 
         if (stat == QDialog::Accepted) {
             c_str = std::move(settingsWindow->getConfiguration());
+            this->dataseNameLE->setText(QString::fromStdString(c_str.getDbname()));
             writeLog("update settings");
             writeLog(c_str.c_str());
         } else {
@@ -472,19 +489,16 @@ namespace windows {
         bool old = dbConnection;
 
 
-
         if (dbUsageCB->isChecked()) {
             dbConnection = checkConnString(c_str);
             if (dbConnection) {
-                writeLog("Database already exists",WARNING);
+                writeLog("Database already exists", WARNING);
                 return;
             }
             writeLog(QString("Creating database %1!").arg(dataseNameLE->text()));
             fileService.dbLoad<file_services::create>(c_str.getDbname());
 
-        }
-        else
-        {
+        } else {
             writeLog(QString("Connecting to database %1!").arg(dataseNameLE->text()));
             fileService.dbLoad(c_str.getDbname());
         }
@@ -547,11 +561,13 @@ namespace windows {
 
     void MainWindow::onConnectionChanged(bool old) {
         dropPB->setEnabled(dbConnection);
+        dataTableView->selectionModel()->clearSelection();
         if (!dbConnection) {
-            reset:dataTableView->selectionModel()->clearSelection();
+            reset:
+            dataTableView->selectionModel()->clearSelection();
             if (dataTableView->model()) {
                 fileService.disconnect();
-                myViewModel->reset();
+                myViewModel->Reset();
             }
             writeLog("Unable to connect");
         } else {
@@ -559,14 +575,14 @@ namespace windows {
 
             bool conn = myViewModel->performConnection(c_str);
 
-            auto res=fileService.dbLoad(c_str);
+            auto res = fileService.dbLoad(c_str);
 
-            if (!conn||res!=0) {
+            if (!conn || res != 0) {
                 goto reset;
             }
 
-
-            updateModel();
+            emit modelUpdate();
+            /*updateModel();*/
 
 
             writeLog("Connection was established");
@@ -585,21 +601,16 @@ namespace windows {
         dataTableView->setSortingEnabled(true);
         dataTableView->sortByColumn(-1, Qt::SortOrder::DescendingOrder);
         dataTableView->resizeColumnToContents(0);
+
+
     }
 
     void MainWindow::updateLEDS(QModelIndex &idx) {
         updateStylesheet();
-        //todo when connection/model resets leds will also reset
         int row = idx.row();
 
 
-        fileDataSizeLCD->setDigitCount(8);
-        totalSizeLCD->setDigitCount(8);
-        totalRepetitionPercentageLCD->setDigitCount(5);
-        dataToOriginalPercentageLCD->setDigitCount(5);
-        this->fileSegmentLCD->setDigitCount(8);
-        this->totalRepeatedBlocksLCD->setDigitCount(8);
-        deleteTimeLCD->setDigitCount(5);
+
 
         segmentSizeLCD->display(idx.sibling(row, 1).data().toInt());
         fileDataSizeLCD->display(idx.sibling(row, 2).data().toInt());
@@ -611,37 +622,52 @@ namespace windows {
         importTimeLCD->display(smartCeil(idx.sibling(row, 8).data().toDouble(), 2));
     }
 
-    void MainWindow::resetLeds() {
+    void MainWindow::resetLeds(int i) {
 
 
-        segmentSizeLCD->display(0);
-        fileDataSizeLCD->display(0);
-        totalSizeLCD->display(0);
-        dataToOriginalPercentageLCD->display(0);
-        fileSegmentLCD->display(0);
-        totalRepeatedBlocksLCD->display(0);
-        totalRepetitionPercentageLCD->display(0);
-        importTimeLCD->display(0);
+        if(i==0) {
+            segmentSizeLCD->display(0);
+            fileDataSizeLCD->display(0);
+            totalSizeLCD->display(0);
+            dataToOriginalPercentageLCD->display(0);
+            fileSegmentLCD->display(0);
+            totalRepeatedBlocksLCD->display(0);
+            totalRepetitionPercentageLCD->display(0);
+            importTimeLCD->display(0);
+        }
+        else {
+            deleteTimeLCD->display(0);
+            totalBlocksLCD->display(0);
+            errorCountLCD->display(0);
+            exportTimeLCD->display(0);
+            checkTimeLCD->display(0);
+        }
     }
 
     QString MainWindow::toShortPath(const QString &qString) {
         return QString::fromStdString(
-                std::filesystem::path(qString.toStdString()).lexically_relative(fs::current_path()).string());
+                std::filesystem::path(qString.toStdString()).lexically_relative(
+                        std::filesystem::current_path()).string());
     }
 
-    void MainWindow::compareExport(const QString &exportee, const QString &output, bool b) {
+    void MainWindow::compareExport(const QString &exportee, const QString &output, bool isDirectory) {
+        writeLog(QString("Compare %1 %2 %3")
+        .arg(isDirectory?"files":"directories")
+        .arg(exportee).arg(output));
+        size_t segmentSize=segmentSizeCoB->currentText().toUInt();
+        std::array<size_t,3> res;
+        if (isDirectory) {
+            res=file_services::compareDirectories(exportee.toStdString(),output.toStdString(),segmentSize);
 
-        errorCountLCD->setDigitCount(8);
-        totalBlocksLCD->setDigitCount(8);
-        if(b)
-        {
-            //todo comare dir
+        } else {
+            res=file_services::compareFiles(exportee.toStdString(),output.toStdString(),segmentSize);
         }
-        else
+        errorCountLCD->display((int)(res[0]));
+        totalBlocksLCD->display((int)(res[2]));
+        if(res[0]!=0)
         {
-            //todo compare files
+            writeLog(QString("%1 errors was found")
+            .arg(res[0]),ERROR);
         }
-        errorCountLCD->display(100);
-        totalBlocksLCD->display(100);
     }
 }

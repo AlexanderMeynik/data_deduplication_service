@@ -60,7 +60,6 @@ namespace hash_utils {
             };
 
 
-
     /**
      * Converts string to hexadecimal string
      * @param in
@@ -83,14 +82,14 @@ namespace hash_utils {
     std::string getHashStr(std::string_view stringView) {
         unsigned char md[hash_function_size[hash]];
         funcs[hash](reinterpret_cast<const unsigned char *>(stringView.data()),
-                stringView.size(),
-                md
-                );
+                    stringView.size(),
+                    md
+        );
 
         std::stringstream ss;
-        for(size_t i=0; i < hash_function_size[hash]; ++i) {
+        for (size_t i = 0; i < hash_function_size[hash]; ++i) {
             ss << std::hex << std::setw(2)
-               << std::setfill('0') << (int)md[i];
+               << std::setfill('0') << (int) md[i];
         }
         return ss.str();
     }

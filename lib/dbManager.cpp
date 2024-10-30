@@ -270,7 +270,8 @@ namespace db_services {
     }
 
 
-    indexType dbManager::createFile(std::string_view filePath, uintmax_t fileSize, size_t segmentSize, hash_function hash) {
+    indexType
+    dbManager::createFile(std::string_view filePath, uintmax_t fileSize, size_t segmentSize, hash_function hash) {
         trasnactionType txn(*conn_);
         indexType futureFileId = returnCodes::ErrorOccured;
 
@@ -279,7 +280,7 @@ namespace db_services {
         try {
             query = "insert into public.files (file_name,size_in_bytes,segment_size,hash_id)"
                     " values ($1,$2,$3,$4) returning file_id;";
-            res = txn.exec(query, {toSpacedPath(filePath), fileSize, segmentSize,static_cast<unsigned>(hash)});
+            res = txn.exec(query, {toSpacedPath(filePath), fileSize, segmentSize, static_cast<unsigned>(hash)});
 
             futureFileId = res.one_row()[0].as<indexType>();
             VLOG(2) << vformat("File record (%d,\"%s\",%d) was successfully created.",
@@ -325,7 +326,9 @@ namespace db_services {
                             << vformat("Filenames were successfully retrieved for directory \"%s\".", dirPath.data());
             for (const auto &re: res) {
                 auto tres = re[1].as<std::string>();
-                result.emplace_back(re[0].as<indexType>(), fromSpacedPath(tres));
+                if(!re[6].is_null()) {
+                    result.emplace_back(re[0].as<indexType>(), fromSpacedPath(tres));
+                }
             }
             txn.commit();
         } catch (const pqxx::sql_error &e) {
@@ -503,8 +506,7 @@ namespace db_services {
 
             pqxx::stream_to copyStream = pqxx::stream_to::raw_table(txn, "hash_functions");
 
-            for(size_t i=0;i<hash_function_name.size();i++)
-            {
+            for (size_t i = 0; i < hash_function_name.size(); i++) {
                 copyStream
                         << std::make_tuple(
                                 i,

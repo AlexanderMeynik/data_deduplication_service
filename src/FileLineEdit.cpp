@@ -18,7 +18,7 @@ namespace windows {
         connect(lineEdit, &QLineEdit::textChanged, [&](const QString &str) {
             emit FileLineEdit::contentChanged(str);
         });
-        type=File;
+        type = File;
 
     }
 
@@ -29,7 +29,7 @@ namespace windows {
 
         pushButton = new QPushButton(this);
         pushButton->setText("Browse");
-
+        lineEdit->setObjectName("FileLE_lineEdit");
         mainLayout->addWidget(lineEdit);
         mainLayout->addWidget(pushButton);
 
@@ -89,9 +89,9 @@ namespace windows {
         mainLayout->addWidget(selectModeCheckBox);
 
         connect(selectModeCheckBox, &QCheckBox::stateChanged, [&]() {
-            type=(selectModeCheckBox->isChecked())?Directory:File;
+            type = (selectModeCheckBox->isChecked()) ? Directory : File;
             emit typeChanged(type);
-            if(!lineEdit->text().isEmpty()) {
+            if (!lineEdit->text().isEmpty()) {
                 lineEdit->clear();
             }
         });

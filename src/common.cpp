@@ -3,7 +3,7 @@
 namespace common {
 
 
-    extern std::unordered_map<int,dirLoad>
+    extern std::unordered_map<int, dirLoad>
             dirs =
             {
                     {0, &FileParsingService::loadDirectory<file_services::NoCreateMain, file_services::Persist>},
@@ -21,7 +21,7 @@ namespace common {
                     {3, &FileParsingService::loadFile<file_services::CreateMain, file_services::Remove>},
             };
 
-    void writeLog(QTextEdit *logTextField, QString qss, LogLevel lg) {
+    void writeLog(QTextEdit *logTextField, const QString &qss, LogLevel lg) {
         logTextField->setTextColor(colourLookUp[lg]);
         logTextField->append(QString(logLevelLookUp[lg]).arg(qss));
     }

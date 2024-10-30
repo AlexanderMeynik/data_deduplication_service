@@ -33,7 +33,7 @@ target_link_libraries(commonLibrary glog::glog OpenSSL::SSL -lcrypto)
 add_library(dbUtilsLib lib/dbManager.cpp lib/dbCommon.cpp)
 target_link_libraries(dbUtilsLib pqxx pq commonLibrary)
 
-add_library(FileUtilsLib lib/FileService.cpp)
+add_library(FileUtilsLib lib/FileService.cpp lib/fileUtils.cpp)
 target_link_libraries(FileUtilsLib commonLibrary dbUtilsLib)
 
 

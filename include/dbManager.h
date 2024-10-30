@@ -89,7 +89,7 @@ namespace db_services {
          * @return
          */
         indexType createFile(std::string_view filePath, uintmax_t fileSize = 0, size_t segmentSize = 0,
-                             hash_function hash=SHA_256);
+                             hash_function hash = SHA_256);
 
         /**
          * Creates entry for directory
