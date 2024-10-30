@@ -87,7 +87,7 @@ namespace windows {
 
     private:
 
-        void writeLog(const QString &qss, LogLevel lg = RESULT) {
+        void writeLog(const QString &qss, LogLevel lg = INFO) {
             common::writeLog(logTextField, qss, lg);
         }
 

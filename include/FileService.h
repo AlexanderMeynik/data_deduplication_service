@@ -436,7 +436,15 @@ namespace file_services {
 
         //todo remake to make less error prone
         auto dd = fs::canonical(pp).string();
-        insertDirEntry(dd);
+
+
+        int res=ReturnSucess;
+
+        auto res1=insertDirEntry(dd);
+        if(res1!=ReturnSucess)
+        {
+            res=res1;
+        }
 
         for (const auto &entry: fs::recursive_directory_iterator(pp)) {
             if (!fs::is_directory(entry)) {
@@ -444,7 +452,9 @@ namespace file_services {
                 gClk.tik();
                 auto results = this->template processFile<strategy, false, hash>(file, segment_size);
                 gClk.tak();
+
                 if (results == AlreadyExists) {
+                    res=AlreadyExists;
                     continue;
                 } else if (results == ErrorOccured) {
                     return results;
@@ -452,10 +462,13 @@ namespace file_services {
             } else//todo remake to make less error prone
             {
                 auto dd = fs::canonical(entry.path()).string();
-                insertDirEntry(dd);
+                auto results=insertDirEntry(dd);
+                if (results == AlreadyExists) {
+                    res=AlreadyExists;
+                }
             }
         }
-        return 0;
+        return res;
     }
 }
 

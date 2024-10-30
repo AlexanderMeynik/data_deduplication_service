@@ -75,7 +75,7 @@ QLineEdit{
 
 QLineEdit#FileLE_lineEdit{
 
-   font-size:10px;
+   font-size:9px;
 }
 
 QLineEdit#fileExportLE{
