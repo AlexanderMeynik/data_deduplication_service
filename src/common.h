@@ -35,14 +35,14 @@ namespace common {
                     Qt::darkGreen
             };
 
-    using file_services::FileParsingService;
+    using file_services::FileService;
 
-    typedef int (FileParsingService::* dirLoad)(std::basic_string_view<char> fromDir,
-                                                std::basic_string_view<char> toDir);
+    typedef int (FileService::* dirLoad)(std::basic_string_view<char> fromDir,
+                                         std::basic_string_view<char> toDir);
 
-    typedef int (FileParsingService::*fileLoad)(std::basic_string_view<char> fromDir,
-                                                std::basic_string_view<char> toDir,
-                                                db_services::indexType fileId);
+    typedef int (FileService::*fileLoad)(std::basic_string_view<char> fromDir,
+                                         std::basic_string_view<char> toDir,
+                                         db_services::indexType fileId);
 
     extern std::unordered_map<int, dirLoad>
             dirs;

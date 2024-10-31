@@ -18,7 +18,7 @@ namespace windows {
         this->setFixedSize(1280, 720);
         /*this->fu*/
 
-        fileService = file_services::FileParsingService();
+        fileService = file_services::FileService();
 
 
         setupUI();
@@ -358,20 +358,24 @@ namespace windows {
         bool isDir = inputFileLEWO->getType() == Directory;
         bool replace = replaceFileCB->isChecked();
         unsigned segmentSize = segmentSizeCoB->currentText().toInt();
+        hash_utils::hash_function  tt= (hashFunctionCoB->currentIndex()<hashFunctionCoB->count())?
+                static_cast<hash_function>(hashFunctionCoB->currentIndex()):SHA_256;
+
+
 
          int res = 0;
 
         if (replace) {
             if (isDir) {
-                res = fileService.processDirectory(inputPath.toStdString(), segmentSize);
+                res = fileService.processDirectory<file_services::ReplaceWithNew>(inputPath.toStdString(), segmentSize,tt);
             } else {
-                res = fileService.processFile(inputPath.toStdString(), segmentSize);
+                res = fileService.processFile<file_services::ReplaceWithNew>(inputPath.toStdString(), segmentSize,tt);
             }
         } else {
             if (isDir) {
-                res = fileService.processDirectory(inputPath.toStdString(), segmentSize);
+                res = fileService.processDirectory(inputPath.toStdString(), segmentSize,tt);
             } else {
-                res = fileService.processFile(inputPath.toStdString(), segmentSize);
+                res = fileService.processFile(inputPath.toStdString(), segmentSize,tt);
             }
         }
         if (res < 0) {

@@ -193,6 +193,59 @@ namespace db_services {
         return returnCodes::ReturnSucess;
     }
 
+    int dbManager::insertFileFromStream(std::string_view fileName, std::istream &in, size_t segmentSize,
+                                        std::size_t fileSize,const hash_function& hash) {
+        try {
+            trasnactionType txn(*conn_);
+
+            auto hashStr = getHashStr(fileName);
+            std::string tableName = vformat("\"temp_file_%s\"", hashStr.c_str());
+            pqxx::stream_to copyStream = pqxx::stream_to::raw_table(txn, tableName);
+            int blockIndex = 1;
+
+            unsigned char buffer[segmentSize];
+
+            size_t blockCount = fileSize / segmentSize;
+            size_t lastBlockSize = fileSize - blockCount * segmentSize;
+            std::istream::sync_with_stdio(false);
+
+            unsigned char mmd[hash_function_size[hash]];
+
+            for (int i = 0; i < blockCount; ++i) {
+                in.read(reinterpret_cast<char *>(buffer), segmentSize);
+                funcs[hash](buffer, segmentSize, mmd);
+                copyStream
+                        << std::make_tuple(
+                                blockIndex++,
+                                pqxx::binarystring(buffer, segmentSize),
+                                pqxx::binarystring(mmd, hash_function_size[hash]));
+
+            }
+            if (lastBlockSize != 0) {
+                std::string bff(lastBlockSize, '\0');
+                in.read(bff.data(), segmentSize);
+                funcs[hash](reinterpret_cast<const unsigned char *>(bff.data()), bff.size(),
+                            mmd);
+                copyStream
+                        << std::make_tuple(
+                                blockIndex,
+                                pqxx::binary_cast(bff),
+                                pqxx::binarystring(mmd, hash_function_size[hash]));
+            }
+            copyStream.complete();
+            txn.commit();
+        } catch (const pqxx::sql_error &e) {
+            VLOG(1) << "SQL Error: " << e.what()
+                    << "Query: " << e.query()
+                    << "SQL State: " << e.sqlstate() << '\n';
+            return returnCodes::ErrorOccured;
+        } catch (const std::exception &e) {
+            VLOG(1) << "Error inserting block data:" << e.what() << '\n';
+            return returnCodes::ErrorOccured;
+        }
+        return ReturnSucess;
+    }
+
 
     int dbManager::finishFileProcessing(std::string_view filePath, indexType fileId) {
         try {

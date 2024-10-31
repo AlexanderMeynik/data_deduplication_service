@@ -77,7 +77,7 @@ TEST_P(DbFile_Dir_tests, insert_segments) {
     manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
 
-    manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
+    manager_.insertFileFromStream(f_in.c_str(), in, segmentSize, fs::file_size(f_in));
     in.close();
 
     ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<check_from::temporary_table>, f_in,(size_t)64),
@@ -98,7 +98,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_retrieve) {
     auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
 
-    manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
+    manager_.insertFileFromStream(f_in.c_str(), in, segmentSize, fs::file_size(f_in));
     in.close();
 
     manager_.finishFileProcessing(f_in.c_str(), file_id);
@@ -151,7 +151,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
     auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
 
-    manager_.insertFileFromStream(segmentSize, f_in.c_str(), in, fs::file_size(f_in));
+    manager_.insertFileFromStream(f_in.c_str(), in, segmentSize, fs::file_size(f_in));
     in.close();
 
     manager_.finishFileProcessing(f_in.c_str(), file_id);

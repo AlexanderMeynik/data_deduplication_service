@@ -18,11 +18,11 @@ namespace file_services {
     /**
      * this class handles file/directory management and uses @ref db_services::dbManager "dbManager" to perform calls
      */
-    class FileParsingService {
+    class FileService {
     public:
         using index_type = db_services::indexType;
 
-        FileParsingService()
+        FileService()
         = default;
 
         /**
@@ -41,7 +41,6 @@ namespace file_services {
          *
          * @tparam dbUsageStrategy
          * @param c_str
-         * @return
          * @ref "dbLoad(std::string_view dbName, std::string_view configurationFile = db_services::cfileName)
          * "dbLoad()"
          */
@@ -56,12 +55,12 @@ namespace file_services {
         /**
          * Processes all files in the given directory runs @ref process_file() "processFile()" for each file
          * @tparam data_insertion_str
-         * @tparam hash
          * @param dirPath
          * @param segment_size
+         * @param hash
          */
-        template<dataInsetionStrategy data_insertion_str = PreserveOld, hash_function hash = SHA_256>
-        int processDirectory(std::string_view dirPath, size_t segment_size);
+        template<dataInsetionStrategy data_insertion_str = PreserveOld>
+        int processDirectory(std::string_view dirPath, size_t segment_size,const hash_function& hash= SHA_256);
 
         /** @details Creates entry for file in database.
          * @details Load file segments into temp table.
@@ -69,13 +68,12 @@ namespace file_services {
          * @details Add file data.
          * @tparam data_insertion_str
          * @tparam existence_checks
-         * @tparam hash
          * @param filePath
          * @param segmentSize
+         * @param hash
          */
-        template<dataInsetionStrategy data_insertion_str = PreserveOld, bool existence_checks = true,
-                hash_function hash = SHA_256>
-        int processFile(std::string_view filePath, size_t segmentSize);
+        template<dataInsetionStrategy data_insertion_str = PreserveOld, bool existence_checks = true>
+        int processFile(std::string_view filePath, size_t segmentSize,const hash_function& hash= SHA_256);
 
         /**
          * Insert entry for directory
@@ -83,28 +81,11 @@ namespace file_services {
          */
         int insertDirEntry(std::string_view dirPath);
 
-        tl::expected<double,int> getCoefficient()
-        {
-            try {
-                std::function < resType(trasnactionType & ) > ff = [](trasnactionType &txn) {
-
-                    std::string q = "with sumCount as(\n"
-                                    "select sum(segment_count) as segments,count(*) "
-                                    "    as unique_segments from public.segments) "
-                                    "select segments,unique_segments,"
-                                    ""
-                                    "(unique_segments)::double precision/segments*100 as percentage  from sumCount;";
-                    return txn.exec(q);
-                };
-                auto res =this->executeInTransaction(ff);
-                return tl::expected<double,int>{res.value()[0][2].as<double>()};
-            }
-            catch (std::exception&ex)
-            {
-                VLOG(1)<<ex.what();
-                return tl::unexpected{ErrorOccured};
-            }
-        }
+        /**
+         * Gets unique segments percentage
+         *
+         */
+        tl::expected<double,int> getCoefficient();
 
 
         /**
@@ -182,8 +163,8 @@ namespace file_services {
 
     //todo create regular expression grabber for files
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr, bool from_load_dir>
-    int FileParsingService::loadFile(std::string_view from_file, std::string_view toFile,
-                                     index_type fileId) {
+    int FileService::loadFile(std::string_view from_file, std::string_view toFile,
+                              index_type fileId) {
         fs::path toFilePath;
         fs::path fromFilePath;
         fs::path parentDirPath;
@@ -252,7 +233,7 @@ namespace file_services {
 
 
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr>
-    int FileParsingService::loadDirectory(std::string_view fromDir, std::string_view toDir) {
+    int FileService::loadDirectory(std::string_view fromDir, std::string_view toDir) {
         fs::path newDirPath;
         fs::path fromDirPath = getNormalAbs(fromDir);
 
@@ -315,7 +296,7 @@ namespace file_services {
 
 
     template<dbUsageStrategy str>
-    int FileParsingService::dbLoad(std::string_view dbName, std::string_view configurationFile) {
+    int FileService::dbLoad(std::string_view dbName, std::string_view configurationFile) {
         auto CString = db_services::loadConfiguration(configurationFile);
         CString.setDbname(dbName);
         return dbLoad<str>(CString);
@@ -323,7 +304,7 @@ namespace file_services {
 
 
     template<dbUsageStrategy str>
-    int FileParsingService::dbLoad(db_services::myConnString &c_str) {
+    int FileService::dbLoad(db_services::myConnString &c_str) {
         manager_ = dbManager(c_str);
 
         if constexpr (str == create) {
@@ -358,8 +339,8 @@ namespace file_services {
     }
 
 
-    template<dataInsetionStrategy strategy, bool existence_checks, hash_function hash>
-    int FileParsingService::processFile(std::string_view filePath, size_t segmentSize) {
+    template<dataInsetionStrategy strategy, bool existence_checks>
+    int FileService::processFile(std::string_view filePath, size_t segmentSize,const hash_function& hash) {
         std::string file;
         if constexpr (existence_checks) {
             auto result = checkFileExistence(filePath);
@@ -401,7 +382,7 @@ namespace file_services {
         std::basic_ifstream<SymbolType> in(file);
 
         gClk.tik();
-        auto res1 = manager_.template insertFileFromStream<hash>(segmentSize, file, in, size);
+        auto res1 = manager_.insertFileFromStream(file, in, segmentSize, size,hash);
         gClk.tak();
 
         if (res1 == returnCodes::ErrorOccured) {
@@ -424,8 +405,8 @@ namespace file_services {
     }
 
 
-    template<dataInsetionStrategy strategy, hash_function hash>
-    int FileParsingService::processDirectory(std::string_view dirPath, size_t segment_size) {
+    template<dataInsetionStrategy strategy>
+    int FileService::processDirectory(std::string_view dirPath, size_t segment_size,const hash_function& hash) {
         fs::path pp;
 
         auto result = checkDirectoryExistence(dirPath);
@@ -450,7 +431,7 @@ namespace file_services {
             if (!fs::is_directory(entry)) {
                 auto file = fs::canonical(entry.path()).string();
                 gClk.tik();
-                auto results = this->template processFile<strategy, false, hash>(file, segment_size);
+                auto results = this->template processFile<strategy, false>(file, segment_size,hash);
                 gClk.tak();
 
                 if (results == AlreadyExists) {

@@ -6,19 +6,19 @@ namespace common {
     extern std::unordered_map<int, dirLoad>
             dirs =
             {
-                    {0, &FileParsingService::loadDirectory<file_services::NoCreateMain, file_services::Persist>},
-                    {1, &FileParsingService::loadDirectory<file_services::NoCreateMain, file_services::Remove>},
-                    {2, &FileParsingService::loadDirectory<file_services::CreateMain, file_services::Persist>},
-                    {3, &FileParsingService::loadDirectory<file_services::CreateMain, file_services::Remove>},
+                    {0, &FileService::loadDirectory<file_services::NoCreateMain, file_services::Persist>},
+                    {1, &FileService::loadDirectory<file_services::NoCreateMain, file_services::Remove>},
+                    {2, &FileService::loadDirectory<file_services::CreateMain, file_services::Persist>},
+                    {3, &FileService::loadDirectory<file_services::CreateMain, file_services::Remove>},
             };
 
     std::unordered_map<int, fileLoad>
             files =
             {
-                    {0, &FileParsingService::loadFile<file_services::NoCreateMain, file_services::Persist>},
-                    {1, &FileParsingService::loadFile<file_services::NoCreateMain, file_services::Remove>},
-                    {2, &FileParsingService::loadFile<file_services::CreateMain, file_services::Persist>},
-                    {3, &FileParsingService::loadFile<file_services::CreateMain, file_services::Remove>},
+                    {0, &FileService::loadFile<file_services::NoCreateMain, file_services::Persist>},
+                    {1, &FileService::loadFile<file_services::NoCreateMain, file_services::Remove>},
+                    {2, &FileService::loadFile<file_services::CreateMain, file_services::Persist>},
+                    {3, &FileService::loadFile<file_services::CreateMain, file_services::Remove>},
             };
 
     void writeLog(QTextEdit *logTextField, const QString &qss, LogLevel lg) {

@@ -26,7 +26,7 @@ public:
     }
 
 protected:
-    inline static FileParsingService file_service_;
+    inline static FileService file_service_;
     inline static std::string dbName;
     inline static myConnString c_str;
     inline static conPtr conn_;

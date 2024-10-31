@@ -56,7 +56,7 @@ void performStuff()
     std::ofstream sizes2(ss[3],std::ios::app);
     gClk.tik();
     constexpr auto segment_size=multip*hash_function_size[hashNum];
-    FileParsingService fs;
+    FileService fs;
 
     std::string dbName = std::string("deduplication_bench_ss")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
     std::cout<<dbName<<'\n';
@@ -65,7 +65,8 @@ void performStuff()
 
     for (int i = ii; i < 2; ++i) {
         gClk.tik();//test for simialr cases
-        fs.template processDirectory<PreserveOld, static_cast<hash_function>(hashNum)>(from_dirs[i].string(),segment_size);
+        fs.template processDirectory<PreserveOld>(from_dirs[i].string(), segment_size,
+                                                  static_cast<const hash_function>(hashNum));
         gClk.tak();
     }
 

@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     google::InitGoogleLogging(argv[0]);
     google::SetVLOGLevel("*", 3);
-    FileParsingService fs;
+    FileService fs;
     std::string dbName = "deduplication12";
     gClk.tik();
 

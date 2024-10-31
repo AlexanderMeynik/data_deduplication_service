@@ -171,7 +171,7 @@ namespace windows {
         QTimer *timer;
 
 
-        file_services::FileParsingService fileService;
+        file_services::FileService fileService;
         bool dbConnection;
         db_services::myConnString c_str;
 
