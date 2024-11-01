@@ -9,7 +9,7 @@ on:
       - test/**
       - CMakeLists.txt
 env:
-    copyPath: /home/app/src
+    copyPath: /home/app
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -38,29 +38,30 @@ jobs:
       - name: Build and set logging directory
         run: |
           mkdir -p ${copyPath}
-          mkdir -p ${copyPath}/../conf
-          mkdir ${GITHUB_WORKSPACE}/logs
+          mkdir -p ${copyPath}/conf
+          mkdir -p ${copyPath}/logs
           
           cd src
           wget https://github.com/AlexanderMeynik/data_deduplication_service/releases/download/fixture/testDirectories.zip
           unzip -q testDirectories.zip
           rm testDirectories.zip
           cd ..
-          
+
+          cp -r ${GITHUB_WORKSPACE}/src/ ${copyPath}/src/
+          cp -r ${GITHUB_WORKSPACE}/src/conf/ ${copyPath}/conf
+          cd ${copyPath}
           mkdir build && cd build
-          cp -r ../src/conf/ ../conf
-          cp -r ../src/conf/ ${copyPath}/../conf
+          
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
           ninja
-          cp -a ${GITHUB_WORKSPACE}/src/. ${copyPath}/
       - name: Save build
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: /__w/data_deduplication_service/data_deduplication_service/build
+          path: /home/app/build
           if-no-files-found: warn
           include-hidden-files: true
       - name: Run clockArrayTests
@@ -71,18 +72,18 @@ jobs:
         if: success() || failure()
         run: |
           cd ${copyPath}/build/test
-          GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
+          GLOG_log_dir=${copyPath}/logs ./FileServiceTests
       - name: Run benchmark
         if: success() || failure()
         run: |
           cd ${copyPath}/build/test
-          GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./benchmark
+          GLOG_log_dir=${copyPath}/logs ./benchmark
       - name: Save benchmake results
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: bench
-          path: /home/app/src/build/test
+          path: /home/app/build/test
           if-no-files-found: warn
           include-hidden-files: true
       - name: Save log files
@@ -90,6 +91,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: logs
-          path: /__w/data_deduplication_service/data_deduplication_service/logs
+          path: /home/app/logs
           if-no-files-found: warn
           include-hidden-files: true
