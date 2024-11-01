@@ -8,10 +8,9 @@ on:
       - include/**
       - test/**
       - CMakeLists.txt
-
-jobs:
-  env:
+env:
     copyPath: /home/app/src
+jobs:
   build-and-test:
     runs-on: ubuntu-latest
     services:
