@@ -171,9 +171,9 @@ int main(int argc, char *argv[]) {
         from_dirs[i] = getNormalAbs(parent_path / from_dirs[i]);
     }
 
-    auto res=compareDirectories(from_dirs[1],to_dirs[1],64);
+    /*auto res=compareDirectories(from_dirs[1],to_dirs[1],64);
 
-    return 0;
+    return 0;*/
     if(!fs::exists(dir))
     {
         fs::create_directories(dir);
