@@ -18,7 +18,7 @@ add_subdirectory(test)
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Xml Core Charts Sql)
+
 
 
 
@@ -50,10 +50,14 @@ if(BUILD_DOC)
 endif (BUILD_DOC)
 
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-file(GLOB GUI_SOURCES src/*.cpp)
-add_executable(qt_main ${GUI_SOURCES})
+option(BUILD_GUI "Build GUI" OFF)
+if(BUILD_GUI)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Xml Core Charts Sql)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+    file(GLOB GUI_SOURCES src/*.cpp)
+    add_executable(qt_main ${GUI_SOURCES})
 
-target_link_libraries(qt_main  Qt6::Widgets Qt6::Core Qt6::Xml Qt6::Gui Qt6::Sql Qt6::Charts FileUtilsLib)
+    target_link_libraries(qt_main  Qt6::Widgets Qt6::Core Qt6::Xml Qt6::Gui Qt6::Sql Qt6::Charts FileUtilsLib)
+endif (BUILD_GUI)
