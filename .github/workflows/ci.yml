@@ -34,9 +34,10 @@ jobs:
           submodules: true
           path: ./src
       - name: Build and set logging directory
-        run: |
+        run: |  
+          mkdir logs
           
-          wget https://github.com/AlexanderMeynik/data_deduplication_service/releases/download/fixture/testDirectories.zip
+          wget -q https://github.com/AlexanderMeynik/data_deduplication_service/releases/download/fixture/testDirectories.zip
           unzip -q testDirectories.zip
           rm testDirectories.zip
 
