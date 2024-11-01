@@ -10,6 +10,8 @@ on:
       - CMakeLists.txt
 
 jobs:
+  env:
+    copyPath: /home/app/src
   build-and-test:
     runs-on: ubuntu-latest
     services:
@@ -34,15 +36,26 @@ jobs:
         with:
           submodules: true
           path: ./src
-      - name: Build and set logginf directory
+      - name: Build and set logging directory
         run: |
+          mkdir -p ${copyPath}
+          mkdir -p ${copyPath}/../conf
           mkdir ${GITHUB_WORKSPACE}/logs
+          
+          cd src
+          wget https://github.com/AlexanderMeynik/data_deduplication_service/releases/download/fixture/testDirectories.zip
+          unzip testDirectories.zip
+          rm testDirectories.zip
+          cd ..
+          
           mkdir build && cd build
-          cp -r ../src/conf/ ../conf 
+          cp -r ../src/conf/ ../conf
+          cp -r ../src/conf/ ${copyPath}/../conf
           cmake -G Ninja -DCMAKE_C_COMPILER:PATH="/usr/bin/clang" \
           -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" \
           ../src/
           ninja
+          cp -a ${GITHUB_WORKSPACE}/src/. ${copyPath}/
       - name: Save build
         if: success() || failure()
         uses: actions/upload-artifact@v4
@@ -53,26 +66,26 @@ jobs:
           include-hidden-files: true
       - name: Run clockArrayTests
         run: |
-          cd ${GITHUB_WORKSPACE}/build/test
+          cd ${copyPath}/build/test
           ./clock_array_tests
       - name: Run fileServiceTests
         if: success() || failure()
         run: |
-          cd ${GITHUB_WORKSPACE}/build/test
+          cd ${copyPath}/build/test
           GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./FileServiceTests
-#      - name: Run benchmark
-#        if: success() || failure()
-#        run: |
-#          cd ${GITHUB_WORKSPACE}/build/test
-#          GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./benchmark
-#      - name: Save benchmake results
-#        if: success() || failure()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: build
-#          path: /__w/data_deduplication_service/data_deduplication_service/build/test
-#          if-no-files-found: warn
-#          include-hidden-files: true
+      - name: Run benchmark
+        if: success() || failure()
+        run: |
+          cd ${copyPath}/build/test
+          GLOG_log_dir=${GITHUB_WORKSPACE}/logs ./benchmark
+      - name: Save benchmake results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench
+          path: /home/app/src/build/test
+          if-no-files-found: warn
+          include-hidden-files: true
       - name: Save log files
         if: success() || failure()
         uses: actions/upload-artifact@v4

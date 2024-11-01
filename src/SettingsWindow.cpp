@@ -64,7 +64,7 @@ namespace windows {
         auto prevFileDir = QString::fromStdString(std::filesystem::absolute(
                 std::filesystem::path(db_services::cfileName).parent_path().lexically_normal()
         ).string());
-        fileLineEdit = new FileLineEditWithOption(this, prevFileDir);
+        fileLineEdit = new FileLineEdit(this, prevFileDir);
 
         auto d1 = new QHBoxLayout();
         auto d2 = new QHBoxLayout();
@@ -171,11 +171,6 @@ namespace windows {
 
 
     void SettingsWindow::onApply() {
-        onTestConnection();
-        if (!qLedIndicator->isChecked()) {
-            reject();
-            return;
-        }
 
         if (!fileLineEdit->getContent().isEmpty()) {
             QFile file(confName);

@@ -466,7 +466,7 @@ namespace windows {
             writeLog("Rejected connection", ERROR);
         }
         bool old = dbConnection;
-        dbConnection = (stat == QDialog::Accepted);
+        dbConnection = (checkConnString(c_str));
         emit connectionChanged(old);
     }
 

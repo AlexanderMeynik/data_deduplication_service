@@ -103,7 +103,7 @@ namespace file_services {
     tl::expected<std::string, int> checkFileExistence(std::string_view filePath) {
         std::string file;
         try {
-            file = getNormalAbs(filePath).string()/*std::filesystem::canonical(filePath).string()*/;
+            file = std::filesystem::canonical(filePath).string();
 
             if (!std::filesystem::exists(filePath)) {
                 VLOG(1) << vformat("\"%s\" no such file or directory\n", filePath.data());
@@ -125,7 +125,7 @@ namespace file_services {
     tl::expected<std::string, int> checkDirectoryExistence(std::string_view dirPath) {
         std::string directory;
         try {
-            directory =getNormalAbs(dirPath).string(); /*std::filesystem::canonical(dirPath).string();*/
+            directory = std::filesystem::canonical(dirPath).string();
 
 
             if (!std::filesystem::exists(dirPath)) {

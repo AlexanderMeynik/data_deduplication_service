@@ -27,7 +27,7 @@ RUN echo "deb https://apt.llvm.org/noble llvm-toolchain-noble-19 main" \
 RUN apt-get update && \
     apt-get install -y ninja-build git \
     libssl-dev libpq-dev cmake doxygen \
-    qt6-base-dev libqt6charts6-dev && \
+    qt6-base-dev libqt6charts6-dev zip && \
     cd /home && \
     mkdir deps && \
     chmod -R 777 deps && \
