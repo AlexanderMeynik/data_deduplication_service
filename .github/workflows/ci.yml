@@ -36,7 +36,7 @@ jobs:
       - name: Build and set logging directory
         run: |  
           mkdir logs
-          cp -r src/conf/ ../conf
+          cp -r src/conf/ conf/
           
           wget -q https://github.com/AlexanderMeynik/data_deduplication_service/releases/download/fixture/testDirectories.zip
           unzip -q testDirectories.zip
