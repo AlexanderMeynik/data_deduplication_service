@@ -43,7 +43,7 @@ jobs:
           
           cd src
           wget https://github.com/AlexanderMeynik/data_deduplication_service/releases/download/fixture/testDirectories.zip
-          unzip testDirectories.zip
+          unzip -q testDirectories.zip
           rm testDirectories.zip
           cd ..
           
