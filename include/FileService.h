@@ -83,10 +83,12 @@ namespace file_services {
 
         /**
          * Gets unique segments percentage
-         *
          */
         tl::expected<double,int> getCoefficient();
-
+        /**
+         * Gets database sizes statistics
+         */
+        tl::expected<std::array<size_t ,5>,int> getDataD();
 
         /**
          * Retrieves directory from database to to_dir

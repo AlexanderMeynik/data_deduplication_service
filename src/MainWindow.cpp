@@ -661,7 +661,7 @@ namespace windows {
                          .arg(isDirectory ? "directories" : "files")
                          .arg(exportee).arg(output));
         size_t segmentSize = segmentSizeCoB->currentText().toUInt();
-        std::array<size_t, 3> res;
+        std::array<size_t, 4> res;//todo total blocks files
         if (isDirectory) {
             res = file_services::compareDirectories(exportee.toStdString(), output.toStdString(), segmentSize);
 

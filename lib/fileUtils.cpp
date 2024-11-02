@@ -3,11 +3,11 @@
 #include <cmath>
 
 namespace file_services {
-    std::array<size_t, 3> compareDirectories(const fs::path &file1, const fs::path &file2, size_t segmentSize) {
+    std::array<size_t, 4> compareDirectories(const fs::path &file1, const fs::path &file2, size_t segmentSize) {
         size_t byteErrors = 0;
         size_t segmentErrors = 0;
         size_t segmentCount = 0;
-
+        size_t bytesCount = 0;
         std::unordered_set<std::string> f1_s;
         std::unordered_set<std::string> f2_s;
 
@@ -44,12 +44,13 @@ namespace file_services {
             byteErrors += res[0];
             segmentErrors += res[1];
             segmentCount += res[2];
+            bytesCount += res[3];
         }
 
-        return {byteErrors, segmentErrors, segmentCount};
+        return {byteErrors, segmentErrors, segmentCount,bytesCount};
     }
 
-    std::array<size_t, 3> compareFiles(const fs::path &file1, const fs::path &file2, size_t segmentSize) {
+    std::array<size_t, 4> compareFiles(const fs::path &file1, const fs::path &file2, size_t segmentSize) {
         bool areDifferentSizes = false;
         size_t byteErrors = 0;
         size_t segmentErrors = 0;
@@ -89,7 +90,7 @@ namespace file_services {
             segmentErrors += std::ceil(((double) (fs2 - fs)) / segmentSize);
             segmentCount = std::ceil(((double) (fs2) / segmentSize));
         }
-        return {byteErrors, segmentErrors, segmentCount};
+        return {byteErrors, segmentErrors, segmentCount,fs};
     }
 
     std::filesystem::path getNormalAbs(std::filesystem::path &&path) {

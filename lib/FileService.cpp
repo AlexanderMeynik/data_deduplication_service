@@ -62,4 +62,37 @@ namespace file_services {
         }
     }
 
+    tl::expected<std::array<size_t, 5>, int> FileService::getDataD() {
+        try {
+            std::function < resType(trasnactionType & ) > ff = [](trasnactionType &txn) {
+
+                std::string q = "select sum(f.size_in_bytes)as totalSize,dataSize,segmentSize, "
+                                "       (select pg_total_relation_size('segments')) as rel1, "
+                                "       (select pg_total_relation_size('data')) as rel2 from files f "
+                                "inner join (select sum(octet_length(d.segment_hash)+8) as dataSize from data d) as ss on true "
+                                "inner join (select  sum(octet_length(s.segment_hash)+octet_length(s.segment_data)+8) as segmentSize "
+                                "from segments s) as ss2 on true "
+                                "group by dataSize,segmentSize; ";
+                return txn.exec(q);
+            };
+            auto res =this->executeInTransaction(ff);
+            if(!res.has_value())
+            {
+                return tl::unexpected{ErrorOccured};
+            }
+            std::array<size_t, 5> rr{};
+
+            for (int i = 0; i < res->columns(); ++i) {
+                rr[i]=res.value()[0][i].as<size_t>();
+            }
+
+            return tl::expected<std::array<size_t, 5>,int>{rr};
+        }
+        catch (std::exception&ex)
+        {
+            VLOG(1)<<ex.what();
+            return tl::unexpected{ErrorOccured};
+        }
+    }
+
 }

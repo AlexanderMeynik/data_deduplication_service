@@ -93,24 +93,26 @@ namespace file_services {
      * @param file1
      * @param file2
      * @param segmentSize size of blocks to check
-     * @return {e1,e2,e3}
+     * @return {e1,e2,e3,e4}
      * @details e1 - number of bytes that differ
      * @details e2 - number of segments that differ
      * @details e3 - total number of segments
+     * @details e4 - total number of bytes
      */
-    std::array<size_t, 3> compareFiles(const fs::path &file1, const fs::path &file2, size_t segmentSize);
+    std::array<size_t, 4> compareFiles(const fs::path &file1, const fs::path &file2, size_t segmentSize);
 
     /**
      * Compares directory contents
      * @param file1
      * @param file2
      * @param segmentSize size of blocks to check
-     * @return {e1,e2,e3}
+     * @return {e1,e2,e3,e4}
      * @details e1 - number of bytes that differ
      * @details e2 - number of segments that differ
      * @details e3 - total number of segments
+     * @details e4 - total number of bytes
      */
-    std::array<size_t, 3> compareDirectories(const fs::path &file1, const fs::path &file2, size_t segmentSize);
+    std::array<size_t, 4> compareDirectories(const fs::path &file1, const fs::path &file2, size_t segmentSize);
 
     /**
     * Calculates lexically normal absolute path
