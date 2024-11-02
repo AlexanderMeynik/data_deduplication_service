@@ -11,6 +11,12 @@ namespace file_services {
         if (res == returnCodes::ErrorOccured) {
             VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", file_abs_path.c_str());
         }
+        gClk.tik();
+        res=manager_.clearSegments();
+        gClk.tak();
+        if (res == returnCodes::ErrorOccured) {
+            VLOG(1) << vformat("Error occurred during clearing file segments");
+        }
         return res;
     }
 
@@ -22,6 +28,12 @@ namespace file_services {
         gClk.tak();
         if (res == returnCodes::ErrorOccured) {
             VLOG(1) << vformat("Error occurred during directory \"%s\" removal.\n", dir_abs_path.c_str());
+        }
+        gClk.tik();
+        res=manager_.clearSegments();
+        gClk.tak();
+        if (res == returnCodes::ErrorOccured) {
+            VLOG(1) << vformat("Error occurred during clearing file segments");
         }
         return res;
     }

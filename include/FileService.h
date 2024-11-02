@@ -163,7 +163,6 @@ namespace file_services {
     };
 
 
-    //todo create regular expression grabber for files
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr, bool from_load_dir>
     int FileService::loadFile(std::string_view from_file, std::string_view toFile,
                               index_type fileId) {
@@ -417,7 +416,6 @@ namespace file_services {
         }
         pp = result.value();
 
-        //todo remake to make less error prone
         auto dd = fs::canonical(pp).string();
 
 
@@ -442,7 +440,7 @@ namespace file_services {
                 } else if (results == ErrorOccured) {
                     return results;
                 }
-            } else//todo remake to make less error prone
+            } else
             {
                 auto dd = fs::canonical(entry.path()).string();
                 auto results=insertDirEntry(dd);
