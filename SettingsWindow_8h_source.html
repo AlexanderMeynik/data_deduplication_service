@@ -107,59 +107,59 @@ $(document).ready(function(){initNavTree('SettingsWindow_8h_source.html',''); in
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keyword">using</span> common::confName;</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keyword">using</span> common::parentTag;</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
-<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="classwindows_1_1SettingsWindow.html">   23</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classwindows_1_1SettingsWindow.html">SettingsWindow</a> : <span class="keyword">public</span> QDialog {</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    Q_OBJECT</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;        <span class="keyword">explicit</span> <a class="code" href="classwindows_1_1SettingsWindow.html#a25a8f5bdc27383a8fb293886bd074ce9">SettingsWindow</a>(QWidget *parent = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; </div>
-<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="classwindows_1_1SettingsWindow.html#a11f7dd8f5b9e427a53d2ca120b9e6324">   28</a></span>&#160;        <a class="code" href="classwindows_1_1SettingsWindow.html#a11f7dd8f5b9e427a53d2ca120b9e6324">~SettingsWindow</a>() <span class="keyword">override</span> = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        <a class="code" href="structdb__services_1_1myConnString.html">myConnString</a> <a class="code" href="classwindows_1_1SettingsWindow.html#a5ed204c696d1d83e3c4a11f8eaa5fd17">getConfiguration</a>();</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keyword">private</span> slots:</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        <span class="keywordtype">void</span> onLoadConfig();</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        <span class="keywordtype">void</span> onSaveConfig();</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;        <span class="keywordtype">void</span> onTestConnection();</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        <span class="keywordtype">void</span> onApply();</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        <span class="keywordtype">void</span> checkConditions();</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        QLineEdit *dbHostLE;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        QLineEdit *dbPortLE;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        QLineEdit *dbUserLE;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        QLineEdit *dbPasswordLE;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        QLineEdit *dbNameLE;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        QVector&lt;QLineEdit *&gt; lineEditArray;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        QPushButton *applyPB;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        QPushButton *testConnectionPB;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        QPushButton *loadConfigurationPB;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        QPushButton *saveConfigurationPB;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
+<div class="line"><a name="l00024"></a><span class="lineno"><a class="line" href="classwindows_1_1SettingsWindow.html">   24</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classwindows_1_1SettingsWindow.html">SettingsWindow</a> : <span class="keyword">public</span> QDialog {</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    Q_OBJECT</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;        <span class="keyword">explicit</span> <a class="code" href="classwindows_1_1SettingsWindow.html#a25a8f5bdc27383a8fb293886bd074ce9">SettingsWindow</a>(QWidget *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
+<div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="classwindows_1_1SettingsWindow.html#a11f7dd8f5b9e427a53d2ca120b9e6324">   29</a></span>&#160;        <a class="code" href="classwindows_1_1SettingsWindow.html#a11f7dd8f5b9e427a53d2ca120b9e6324">~SettingsWindow</a>() <span class="keyword">override</span> = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        <a class="code" href="structdb__services_1_1myConnString.html">myConnString</a> <a class="code" href="classwindows_1_1SettingsWindow.html#a5ed204c696d1d83e3c4a11f8eaa5fd17">getConfiguration</a>();</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    <span class="keyword">private</span> slots:</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        <span class="keywordtype">void</span> onLoadConfig();</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        <span class="keywordtype">void</span> onSaveConfig();</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        <span class="keywordtype">void</span> onTestConnection();</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        <span class="keywordtype">void</span> onApply();</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keywordtype">void</span> checkConditions();</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        QLineEdit *dbHostLE;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        QLineEdit *dbPortLE;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        QLineEdit *dbUserLE;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        QLineEdit *dbPasswordLE;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        QLineEdit *dbNameLE;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        QVector&lt;QLineEdit *&gt; lineEditArray;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        QPushButton *applyPB;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        QPushButton *testConnectionPB;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        QPushButton *loadConfigurationPB;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        QPushButton *saveConfigurationPB;</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        QFormLayout *imputFormLay;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        QVBoxLayout *mainLayout;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        <a class="code" href="classwindows_1_1FileLineEdit.html">FileLineEdit</a> *fileLineEdit;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <a class="code" href="classQLedIndicator.html">QLedIndicator</a> *qLedIndicator;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keywordtype">void</span> setupUI();</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    };</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        QFormLayout *imputFormLay;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        QVBoxLayout *mainLayout;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <a class="code" href="classwindows_1_1FileLineEdit.html">FileLineEdit</a> *fileLineEdit;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <a class="code" href="classQLedIndicator.html">QLedIndicator</a> *qLedIndicator;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <span class="keywordtype">void</span> setupUI();</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    };</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;} <span class="comment">// windows</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//DATA_DEDUPLICATION_SERVICE_SETTINGSWINDOW_H</span></div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;} <span class="comment">// windows</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//DATA_DEDUPLICATION_SERVICE_SETTINGSWINDOW_H</span></div>
 <div class="ttc" id="aFileLineEdit_8h_html"><div class="ttname"><a href="FileLineEdit_8h.html">FileLineEdit.h</a></div></div>
-<div class="ttc" id="aclassQLedIndicator_html"><div class="ttname"><a href="classQLedIndicator.html">QLedIndicator</a></div><div class="ttdef"><b>Definition:</b> qledindicator.h:29</div></div>
-<div class="ttc" id="aclasswindows_1_1FileLineEdit_html"><div class="ttname"><a href="classwindows_1_1FileLineEdit.html">windows::FileLineEdit</a></div><div class="ttdef"><b>Definition:</b> FileLineEdit.h:23</div></div>
-<div class="ttc" id="aclasswindows_1_1SettingsWindow_html"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html">windows::SettingsWindow</a></div><div class="ttdef"><b>Definition:</b> SettingsWindow.h:23</div></div>
+<div class="ttc" id="aclassQLedIndicator_html"><div class="ttname"><a href="classQLedIndicator.html">QLedIndicator</a></div><div class="ttdoc">QLedIndicator class from https://store.kde.org/p/1132137/.</div><div class="ttdef"><b>Definition:</b> qledindicator.h:31</div></div>
+<div class="ttc" id="aclasswindows_1_1FileLineEdit_html"><div class="ttname"><a href="classwindows_1_1FileLineEdit.html">windows::FileLineEdit</a></div><div class="ttdoc">Class for file name selection.</div><div class="ttdef"><b>Definition:</b> FileLineEdit.h:27</div></div>
+<div class="ttc" id="aclasswindows_1_1SettingsWindow_html"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html">windows::SettingsWindow</a></div><div class="ttdoc">Settings window.</div><div class="ttdef"><b>Definition:</b> SettingsWindow.h:24</div></div>
 <div class="ttc" id="aclasswindows_1_1SettingsWindow_html_a11f7dd8f5b9e427a53d2ca120b9e6324"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html#a11f7dd8f5b9e427a53d2ca120b9e6324">windows::SettingsWindow::~SettingsWindow</a></div><div class="ttdeci">~SettingsWindow() override=default</div></div>
 <div class="ttc" id="aclasswindows_1_1SettingsWindow_html_a25a8f5bdc27383a8fb293886bd074ce9"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html#a25a8f5bdc27383a8fb293886bd074ce9">windows::SettingsWindow::SettingsWindow</a></div><div class="ttdeci">SettingsWindow(QWidget *parent=nullptr)</div><div class="ttdef"><b>Definition:</b> SettingsWindow.cpp:15</div></div>
 <div class="ttc" id="aclasswindows_1_1SettingsWindow_html_a5ed204c696d1d83e3c4a11f8eaa5fd17"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html#a5ed204c696d1d83e3c4a11f8eaa5fd17">windows::SettingsWindow::getConfiguration</a></div><div class="ttdeci">myConnString getConfiguration()</div><div class="ttdef"><b>Definition:</b> SettingsWindow.cpp:197</div></div>
@@ -167,7 +167,7 @@ $(document).ready(function(){initNavTree('SettingsWindow_8h_source.html',''); in
 <div class="ttc" id="ainclude_2common_8h_html"><div class="ttname"><a href="include_2common_8h.html">common.h</a></div></div>
 <div class="ttc" id="anamespacewindows_html"><div class="ttname"><a href="namespacewindows.html">windows</a></div><div class="ttdoc">windows namespace</div><div class="ttdef"><b>Definition:</b> FileLineEdit.cpp:5</div></div>
 <div class="ttc" id="aqledindicator_8h_html"><div class="ttname"><a href="qledindicator_8h.html">qledindicator.h</a></div></div>
-<div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdef"><b>Definition:</b> myConnString.h:15</div></div>
+<div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdoc">Structure to store and format connection string.</div><div class="ttdef"><b>Definition:</b> myConnString.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

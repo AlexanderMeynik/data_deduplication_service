@@ -1,6 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classmodels_1_1MyPxxxModelBase.html" title=" " alt="" coords="5,5,208,32"/>
-<area shape="rect" id="node2" href="$classmodels_1_1MyPqxxModel.html" title=" " alt="" coords="256,31,427,57"/>
-<area shape="rect" id="node3" href="$classmodels_1_1DeduplicationCharacteristicsModel.html" title=" " alt="" coords="475,23,740,65"/>
+<area shape="rect" id="node1" href="$classmodels_1_1MyPxxxModelBase.html" title="Basic class for database pqxx::result representation." alt="" coords="5,5,208,32"/>
+<area shape="rect" id="node2" href="$classmodels_1_1MyPqxxModel.html" title="Table model for pqxx::result." alt="" coords="256,31,427,57"/>
+<area shape="rect" id="node3" href="$classmodels_1_1DeduplicationCharacteristicsModel.html" title="Pqxx model that retrieves database deduplication characteristic." alt="" coords="475,23,740,65"/>
 <area shape="rect" id="node4" title=" " alt="" coords="27,56,187,83"/>
 </map>
