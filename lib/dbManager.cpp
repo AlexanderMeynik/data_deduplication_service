@@ -260,7 +260,7 @@ namespace db_services {
             txn.exec(q).one_row();
 
 
-            q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data, COUNT(t.data) AS count, t.hash "
+            q = vformat("CREATE TABLE  \"%s\" AS SELECT t.data,t.hash, COUNT(t.data) AS count  "
                         "FROM \"%s\" t "
                         "GROUP BY t.data,t.hash;", aggregationTableName.c_str(), tableName.c_str());
             txn.exec(q);
@@ -271,8 +271,8 @@ namespace db_services {
                     aggregationTableName.c_str(),
                     filePath.data());
 
-            q = vformat("INSERT INTO public.segments (segment_data, segment_count, segment_hash) "
-                        "SELECT ns.data, ns.count,ns.hash "
+            q = vformat("INSERT INTO public.segments (segment_data, segment_hash,segment_count) "
+                        "SELECT ns.data,ns.hash, ns.count "
                         "FROM \"%s\" ns "
                         "ON CONFLICT (segment_hash) "
                         "DO UPDATE "

@@ -23,7 +23,7 @@ services:
           cpus: '1'
           memory: 4G
   service:
-    image: builder
+    image: alexandermey/data-deduplication-service:enviroment_sl
     volumes:
       - .:/usr/application/src
       - build-data:/usr/application/build
