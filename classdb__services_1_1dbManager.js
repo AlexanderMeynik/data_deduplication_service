@@ -1,0 +1,25 @@
+var classdb__services_1_1dbManager =
+[
+    [ "dbManager", "classdb__services_1_1dbManager.html#ab3f7408e6fe9687fa86cefd3acea3622", null ],
+    [ "dbManager", "classdb__services_1_1dbManager.html#a45cd2d57ae54f2a1aa36af9bcd9266ad", null ],
+    [ "~dbManager", "classdb__services_1_1dbManager.html#a14bfd9bb176da14af1fd9cf8e79594b7", null ],
+    [ "checkConnection", "classdb__services_1_1dbManager.html#af99ea249fa97f1cbcb9a9a9747e20ba9", null ],
+    [ "clearSegments", "classdb__services_1_1dbManager.html#a13f2200d4ae1e1c07fc76094a471b825", null ],
+    [ "connectToDb", "classdb__services_1_1dbManager.html#ab40711f2efd6ee126d2704e70a821595", null ],
+    [ "createDatabase", "classdb__services_1_1dbManager.html#af73f01d560d4684d49f540fc547a27f0", null ],
+    [ "createDirectory", "classdb__services_1_1dbManager.html#a52075fc594c97be2352e0db382f52e0b", null ],
+    [ "createFile", "classdb__services_1_1dbManager.html#a6c8a95bbba3597bf50921f8d3a6d4ded", null ],
+    [ "deleteDirectory", "classdb__services_1_1dbManager.html#a5fe0684fd14cc832a4e9084cb56ab509", null ],
+    [ "deleteFile", "classdb__services_1_1dbManager.html#a49b721aa6b213318873fdea90f53d58a", null ],
+    [ "disconnect", "classdb__services_1_1dbManager.html#a578071ce7e55d4b25fa75fa40b7783bd", null ],
+    [ "dropDatabase", "classdb__services_1_1dbManager.html#af7ae5ad3bd0ad02566ccf0d44fc41f6e", null ],
+    [ "executeInTransaction", "classdb__services_1_1dbManager.html#aae5c6105874e16d92fcafd51927aad1a", null ],
+    [ "executeInTransaction", "classdb__services_1_1dbManager.html#a0f5fcdf2ca013d6ef2d38ef00a8113d4", null ],
+    [ "fillSchemas", "classdb__services_1_1dbManager.html#ad75cc66b5cde0e379b09e4a02edeebd9", null ],
+    [ "finishFileProcessing", "classdb__services_1_1dbManager.html#ac4ff037e7e5cf41eaa4b5ede2d2cf12f", null ],
+    [ "getAllFiles", "classdb__services_1_1dbManager.html#a4ee81febe661d4e38fe471e12436566c", null ],
+    [ "getCString", "classdb__services_1_1dbManager.html#a1994625197ee12636393ab94104f4d92", null ],
+    [ "getFileStreamed", "classdb__services_1_1dbManager.html#a293a2fe6595de34f8aae10edd400e766", null ],
+    [ "insertFileFromStream", "classdb__services_1_1dbManager.html#a73f11960734cb5095ccff35eee4d7351", null ],
+    [ "setCString", "classdb__services_1_1dbManager.html#a9734576032f46bcd6a98aec3f28d5739", null ]
+];
