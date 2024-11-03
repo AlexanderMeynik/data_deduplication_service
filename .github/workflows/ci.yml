@@ -1,4 +1,4 @@
-name: Run benchmark
+name: Build and test
 
 on:
   push:
