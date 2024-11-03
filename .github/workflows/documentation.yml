@@ -1,9 +1,9 @@
-name: Run benchmark
+name: Deploy documentation
 
 on:
   workflow_dispatch:
 jobs:
-  build-and-test:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
