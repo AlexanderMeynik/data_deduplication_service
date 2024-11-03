@@ -288,13 +288,10 @@ namespace db_services {
         }
     }
 
-    void printRowsAffected(resType &res) {
+    void printRowsAffected(const resType &res) {
         VLOG(3) << vformat("Rows affected by latest request %d\n", res.affected_rows());
     }
 
-    void printRowsAffected(resType &&res) {
-        printRowsAffected(res);
-    }
 
     resType checkTExistence(trasnactionType &txn, std::string_view fileName) {
         auto hashStr = getHashStr(fileName);

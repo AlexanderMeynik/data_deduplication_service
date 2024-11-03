@@ -17,10 +17,6 @@ namespace timing {
                 ss.str()};
     }
 
-    constexpr const char *getFunctionName(const std::source_location &location) {
-        return location.function_name();
-    }
-
 
 }
 

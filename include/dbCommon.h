@@ -39,57 +39,170 @@ namespace db_services {
     using nonTransType = pqxx::nontransaction;
 
 
+    /**
+     * Swaps / symbols for spaces
+     * @param path
+     */
     std::string toSpacedPath(std::string_view path);
 
+    /**
+     * Swaps space syblos for /
+     * @param path
+     */
     std::string fromSpacedPath(std::string_view path);
 
+    /**
+     * Replaces symbols in path to cast it to tsquery
+     * @param path
+     */
     std::string toTsquerablePath(std::string_view path);
 
+    /**
+     * Checks that conn is not null and opened
+     * @param conn
+     */
     bool checkConnection(const conPtr &conn);
 
+    /**
+     * Checks connection  for connString
+     * @param connString
+     */
+    bool checkConnString(const myConnString &connString);
+
+    /**
+     * Connects to database with cString
+     * @param cString
+     */
+    tl::expected <conPtr, returnCodes> connectIfPossible(std::string_view cString);
+
+    /**
+     * Terminates all connections to dbName via sql query
+     * @param noTransExec
+     * @param dbName
+     */
     resType terminateAllDbConnections(nonTransType &noTransExec, std::string_view dbName);
 
+    /**
+     * Checks database existence
+     * @param noTransExec
+     * @param dbName
+     */
     resType checkDatabaseExistence(nonTransType &noTransExec, std::string_view dbName);
 
+    /**
+     * Returns all schemas for database
+     * @param txn
+     */
     resType checkSchemas(trasnactionType &txn);
 
+    /**
+     * Compares segments counts from segments table to total counst from data table
+     * @param txn
+     */
     indexType checkSegmentCount(trasnactionType &txn);
 
+    /**
+     * Deletes segments with count=0
+     * @param txn
+     * @return
+     */
     resType deleteUnusedSegments(trasnactionType &txn);
 
+    /**
+     * Checks file existence
+     * @param txn
+     * @param fileName
+     */
     resType checkFileExistence(trasnactionType &txn, std::string_view fileName);
 
+    /**
+    * Multifile variant for @ref db_services::checkFileExistence() "checkFileExistence"
+    * @param txn
+    * @param files
+    */
+    [[deprecated]]resType checkFilesExistence(trasnactionType &txn, const std::vector<std::filesystem::path> &files);
+
+    /**
+     * Parses one file id from request
+     * @param txn
+     * @param fileName
+     * @see @ref db_services::checkFileExistence() "checkFileExistence"
+     */
     indexType getFileId(trasnactionType &txn, std::string_view fileName);
 
+    /**
+     * Bool variant for existence checks
+     * @param txn
+     * @param fileName
+     * @see @ref db_services::getFileId() "getFileId"
+     */
     bool doesFileExist(trasnactionType &txn, std::string_view fileName);
 
+    /**
+     * Returns resType that contains all file/subdirectory entries for the selected directory
+     * @param txn
+     * @param dirPath
+     */
     resType getEntriesForDirectory(trasnactionType &txn, std::string_view dirPath);
 
+    /**
+     * Vector returning wrapper for @ref db_services::getEntriesForDirectory() "getEntriesForDirectory
+     * @param txn
+     * @param dirPath
+     */
     std::vector<indexType> getFileIdVector(trasnactionType &txn, std::string_view dirPath);
 
+    /**
+     * Calculates sum of files sizes
+     * @param txn
+     */
     tl::expected<indexType, int> getTotalFileSize(trasnactionType &txn);
 
+    /**
+     * Gets table thta contains schemas sizes for database
+     * @param txn
+     */
     resType getTotalSchemaSizes(trasnactionType &txn);
 
+    /**
+     * Calculates main deduplication characteristics for files
+     * @param txn
+     */
     resType getDedupCharacteristics(trasnactionType &txn);
 
-    resType getFileSizes(trasnactionType &txn);
+    [[deprecated]]resType getFileSizes(trasnactionType &txn);
 
+    /**
+     * Peinrst resType to ostream
+     * @param rss
+     * @param out
+     */
     void printRes(resType &rss, std::ostream &out);
 
+    /**
+     * @tparam T
+     * @param vec
+     */
     template<printable T>
     std::string vecToString(std::vector<T> &vec);
 
-    resType checkFilesExistence(trasnactionType &txn, const std::vector<std::filesystem::path> &files);
+    /**
+     * Gets affected rows for delete/update query result
+     * @param res
+     */
+    void printRowsAffected(const resType &res);
 
-    void printRowsAffected(resType &res);
-
-    void printRowsAffected(resType &&res);
-
+    /**
+     * Checks whether temporary table was created for file
+     * @param txn
+     * @param fileName
+     */
     resType checkTExistence(db_services::trasnactionType &txn, std::string_view fileName);
 
-    tl::expected <conPtr, returnCodes> connectIfPossible(std::string_view cString);
-
+    /**
+     * Loads configuration from file
+     * @param filename
+     */
     myConnString loadConfiguration(std::string_view filename);
 
     auto defaultConfiguration = []() {
@@ -118,8 +231,6 @@ namespace db_services {
         ss << vec[i];
         return ss.str();
     }
-
-    bool checkConnString(const myConnString &connString);
 
 
     /**

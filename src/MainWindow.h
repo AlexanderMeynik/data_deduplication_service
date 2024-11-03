@@ -37,6 +37,9 @@ namespace windows {
     using namespace common;
     using namespace models;
 
+    /**
+     * MainWindow class
+     */
     class MainWindow : public QMainWindow {
     Q_OBJECT
     public:
@@ -78,11 +81,8 @@ namespace windows {
         void updateLEDS(QModelIndex &idx);
 
         void resetLeds(int i);
-        void calculateCoefficient()
-        {
-            double res= fileService.getCoefficient().value_or(0);
-            uniquePercentage->display(smartCeil(res,2));
-        }
+
+        void calculateCoefficient();
 
 
     private:

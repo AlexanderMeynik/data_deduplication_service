@@ -21,9 +21,10 @@ namespace common {
                     {3, &FileService::loadFile<file_services::CreateMain, file_services::Remove>},
             };
 
-    void writeLog(QTextEdit *logTextField, const QString &qss, LogLevel lg) {
-        logTextField->setTextColor(colourLookUp[lg]);
-        logTextField->append(QString(logLevelLookUp[lg]).arg(qss));
+    void writeLog(QTextEdit *logTextField, const QString &qLogMessage, LogLevel lg) {
+        logTextField->setTextColor(colorLookUp[lg]);
+        logTextField->append(QString(logLevelLookUp[lg]).arg(qLogMessage));
+        logTextField->update();
     }
 
     bool isDirName(const QString &path) {

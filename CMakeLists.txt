@@ -38,11 +38,6 @@ add_library(FileUtilsLib lib/FileService.cpp lib/fileUtils.cpp)
 target_link_libraries(FileUtilsLib commonLibrary dbUtilsLib)
 
 
-add_executable(file_service src/exampl/fileServiceTest.cpp)
-target_link_libraries(file_service FileUtilsLib)
-
-add_executable(ssltest src/exampl/main.cpp)
-target_link_libraries(ssltest FileUtilsLib commonLibrary )
 
 option(BUILD_DOC "Build documentation" OFF)
 if(BUILD_DOC)

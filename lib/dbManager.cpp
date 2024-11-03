@@ -657,5 +657,26 @@ namespace db_services {
         return futureFileId;
     }
 
+    int dbManager::updateFileTime(indexType fileId) {
+        trasnactionType txn(*conn_);
+
+        std::string query;
+        resType res;
+        try {
+
+            query = vformat("UPDATE public.files "
+                            "SET processed_at = CURRENT_TIMESTAMP "
+                            "WHERE file_id = %d;", fileId);
+            txn.exec(query);
+            VLOG(2) << vformat("Updated timer for file %d.", fileId);
+            txn.commit();
+        }
+        catch (const std::exception &e) {
+            VLOG(1) << "Error updating timer :" << e.what() << '\n';
+            return ErrorOccured;
+        }
+        return ReturnSucess;
+    }
+
 
 }

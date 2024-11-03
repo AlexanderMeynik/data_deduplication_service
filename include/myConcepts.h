@@ -17,18 +17,28 @@ namespace myConcepts {
     * Global clock used for time measurement
     */
     using clockType = timing::chronoClockTemplate<std::chrono::milliseconds>;
+    using SymbolType = char;
     extern clockType gClk;
 
 
+    /**
+     * Prinatble concept
+     * @tparam T
+     */
     template<typename T>
     concept printable = requires(const T &elem, std::ofstream &out){
         { out << elem } -> std::same_as<std::ostream &>;
     };
 
-    using SymbolType = char;
+
 
 
     // from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+    /**
+     * Print format function
+     * @param zcFormat
+     * @param ...
+     */
     std::string vformat(const char *zcFormat, ...);
 
     /**
@@ -42,7 +52,7 @@ namespace myConcepts {
     };
 
     /**
-     * 
+     *  Parameter type enum
      */
     enum paramType {
         EmptyParameterValue = -1

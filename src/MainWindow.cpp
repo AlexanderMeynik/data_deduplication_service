@@ -297,7 +297,7 @@ namespace windows {
         validator = new QRegularExpressionValidator(re, this);
         dataseNameLE->setValidator(validator);
 
-        databaseConfigurationArea = new QGroupBox(tr("Database configiration"));
+        databaseConfigurationArea = new QGroupBox(tr("Database configuration"));
         databaseConfigurationArea->setObjectName("databaseConfigurationArea");
         dbOptionLay = new QGridLayout();
         databaseConfigurationArea->setLayout(dbOptionLay);
@@ -674,5 +674,10 @@ namespace windows {
             writeLog(QString("%1 errors was found")
                              .arg(res[0]), ERROR);
         }
+    }
+
+    void MainWindow::calculateCoefficient() {
+        double res= fileService.getCoefficient().value_or(0);
+        uniquePercentage->display(smartCeil(res,2));
     }
 }

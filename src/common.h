@@ -10,9 +10,18 @@
 #include "FileService.h"
 
 namespace common {
+    using file_services::FileService;
+
+    /**
+     * Configuration .xml path
+     */
     static const char *const confName = "configuration.xml";
 
+
     static const QString parentTag = "fileInfo";
+    /**
+     * Log level enum
+     */
     enum LogLevel {
         INFO,
         WARNING,
@@ -20,6 +29,9 @@ namespace common {
         RESULT
     };
 
+    /**
+     * Lookup for format strings
+     */
     static constexpr std::array<const char *, 4> logLevelLookUp =
             {
                     "[INFO] %1",
@@ -27,7 +39,10 @@ namespace common {
                     "[ERROR] %1",
                     "[RESULT] %1",
             };
-    static constexpr std::array<Qt::GlobalColor, 4> colourLookUp
+    /**
+     * Lookup for text color
+     */
+    static constexpr std::array<Qt::GlobalColor, 4> colorLookUp
             {
                     Qt::black,
                     Qt::darkYellow,
@@ -35,11 +50,17 @@ namespace common {
                     Qt::darkGreen
             };
 
-    using file_services::FileService;
 
+    /**
+     * Typedef for load directory
+     * @see @ref file_services::FileService::loadDirectory "loadDirectory"
+     */
     typedef int (FileService::* dirLoad)(std::basic_string_view<char> fromDir,
                                          std::basic_string_view<char> toDir);
-
+    /**
+     * Typedef for load directory
+     * @see @ref file_services::FileService::loadFile "loadFile"
+     */
     typedef int (FileService::*fileLoad)(std::basic_string_view<char> fromDir,
                                          std::basic_string_view<char> toDir,
                                          db_services::indexType fileId);
@@ -50,12 +71,25 @@ namespace common {
     extern std::unordered_map<int, fileLoad>
             files;
 
+    /**
+     * Writes formated log message to logTextField
+     * @param logTextField
+     * @param qLogMessage
+     * @param lg
+     */
+    void writeLog(QTextEdit *logTextField, const QString &qLogMessage, LogLevel lg = RESULT);
 
-    void writeLog(QTextEdit *logTextField, const QString &qss, LogLevel lg = RESULT);
-
-
+    /**
+     * Check that path is directory path with regex
+     * @param path
+     */
     bool isDirName(const QString &path);
 
+    /**
+     * Returns value rounded up to num symbols after ,
+     * @param vaL
+     * @param num
+     */
     double smartCeil(double vaL, uint num);
 
 }

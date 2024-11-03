@@ -72,7 +72,7 @@ namespace file_services {
 
             i1.readsome(a1, segmentSize);
             i2.readsome(a2, segmentSize);
-            auto res = compareArraa(segmentSize, a1, a2);
+            auto res = compareBlock(segmentSize, a1, a2);
             byteErrors += res;
             segmentErrors += (res != 0);
         }
@@ -80,7 +80,7 @@ namespace file_services {
         if (last > 0) {
             auto sz = i1.readsome(a1, segmentSize);
             i2.readsome(a2, segmentSize);
-            auto res = compareArraa(sz, a1, a2);
+            auto res = compareBlock(sz, a1, a2);
             byteErrors += res;
             segmentErrors += (res != 0);
             segmentCount++;
@@ -93,11 +93,8 @@ namespace file_services {
         return {byteErrors, segmentErrors, segmentCount,fs};
     }
 
-    std::filesystem::path getNormalAbs(std::filesystem::path &&path) {
-        return fs::absolute(path).lexically_normal();
-    }
 
-    std::filesystem::path getNormalAbs(std::filesystem::path &path) {
+    std::filesystem::path getNormalAbs(const std::filesystem::path &path) {
         return fs::absolute(path).lexically_normal();
     }
 

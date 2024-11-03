@@ -80,7 +80,7 @@ namespace file_services {
     requires std::is_same_v<T, A> ||
              std::is_same_v<T, typename std::remove_const<A>::type> ||
              std::is_same_v<A, typename std::remove_const<T>::type>
-    int compareArraa(size_t size, T *arr, A *arr2) {
+    int compareBlock(size_t size, T *arr, A *arr2) {
         int error = 0;
         for (int arr_elem = 0; arr_elem < size; ++arr_elem) {
             error += arr[arr_elem] != arr2[arr_elem];
@@ -119,8 +119,8 @@ namespace file_services {
     * @param path
     * @return lexically normal absolute path
     */
-    fs::path getNormalAbs(fs::path &path);
+    fs::path getNormalAbs(const fs::path &path);
 
-    fs::path getNormalAbs(fs::path &&path);
+
 }
 #endif //DATA_DEDUPLICATION_SERVICE_FILEUTILS_H

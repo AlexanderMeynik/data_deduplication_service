@@ -13,7 +13,7 @@
 #include "HashUtils.h"
 
 
-using myConcepts::paramType/*, myConcepts::gClk*/;
+using myConcepts::paramType;
 using
 enum myConcepts::paramType;
 using namespace hash_utils;
@@ -98,22 +98,21 @@ namespace db_services {
          */
         indexType createDirectory(std::string_view dirPath);
 
-
         /**
-         * Recursevely deletes all file data
+         * Recursively deletes all file data
          * @param filePath
          * @param fileId
          */
         int deleteFile(std::string_view filePath, indexType fileId = paramType::EmptyParameterValue);
 
         /**
-         * Recursively deletes all file that are in directory
+         * Recursively deletes all file data for selected directory
          * @param directoryPath
          */
         int deleteDirectory(std::string_view directoryPath);
 
         /**
-         * Recreates file contents and bulk insert the in out
+         * Recreates file contents and bulk insert them in out stream
          * @param fileName
          * @param output
          * @param fileId
@@ -128,7 +127,8 @@ namespace db_services {
          * @param fileSize
          * @param hash hash function that will be used for hashing
          */
-        int insertFileFromStream(std::string_view fileName, std::istream &in, size_t segmentSize, std::size_t fileSize,const hash_function& hash=SHA_256);
+        int insertFileFromStream(std::string_view fileName, std::istream &in, size_t segmentSize, std::size_t fileSize,
+                                 const hash_function& hash=SHA_256);
 
         /**
          * Process bulk inserted file data
@@ -159,7 +159,7 @@ namespace db_services {
         }
 
         /**
-         * Functional variant of previous call
+         * Functional variant of previous function
          * @tparam ResultType
          * @tparam Args
          * @param call
@@ -172,26 +172,11 @@ namespace db_services {
         }
 
     private:
-        int updateFileTime(indexType fileId) {
-            trasnactionType txn(*conn_);
-
-            std::string query;
-            resType res;
-            try {
-
-                query = vformat("UPDATE public.files "
-                                "SET processed_at = CURRENT_TIMESTAMP "
-                                "WHERE file_id = %d;", fileId);
-                txn.exec(query);
-                VLOG(2) << vformat("Updated timer for file %d.", fileId);
-                txn.commit();
-            }
-            catch (const std::exception &e) {
-                VLOG(1) << "Error updating timer :" << e.what() << '\n';
-                return ErrorOccured;
-            }
-            return ReturnSucess;
-        }
+        /**
+         * Updates processed at time for file
+         * @param fileId
+         */
+        int updateFileTime(indexType fileId);
 
         myConnString cString_;
         conPtr conn_;

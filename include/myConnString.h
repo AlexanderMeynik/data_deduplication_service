@@ -9,6 +9,9 @@
 
 namespace db_services {
 
+    /**
+     * Structure to store and format connection string
+     */
     struct myConnString {
         myConnString() : port(5432) {}
 

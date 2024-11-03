@@ -43,7 +43,15 @@ bool operator==(const std::array<T, sz> &arr1, const std::array<T, sz> &arr2) {
 }
 /// timing namespace
 namespace timing {
+    using timepointType = std::chrono::system_clock::time_point;
+    using locationType = std::array<std::string, 5>;
 
+  /**
+   * Comaparato for arrays
+   * @tparam N
+   * @param a
+   * @param b
+   */
     auto cmpArrays = []<size_t N>(const std::array<std::string, N> &a, const std::array<std::string, N> &b) {
         for (int i = 0; i < N; i++) {
             if (a[i] != b[i])
@@ -52,27 +60,33 @@ namespace timing {
         return false;
     };
 
-    using timepointType = std::chrono::system_clock::time_point;
-
-    using locationType = std::array<std::string, 5>;
-
     template<typename T, typename T2, T2(*timeGetter)(), locationType (*src_to_loc_type)(
             std::source_location location),
             T(*double_cast)(T2 curr, T2 prev)> requires std::is_floating_point_v<T>
     class clockArray;
 
 
+    /**
+     * Formats source location fields for more readability
+     * @param location
+     */
     locationType getFileState(std::source_location location
     = std::source_location::current());
 
 
-    template<typename to_dur = std::chrono::nanoseconds, typename T>
-    T doubleCastChrono(timepointType curr, timepointType prev) {
+    /**
+     * Cast timepointType difference to double
+     * @tparam to_dur
+     * @tparam doubleType
+     * @param curr
+     * @param prev
+     * @return
+     */
+    template<typename to_dur = std::chrono::nanoseconds, typename doubleType>
+    doubleType doubleCastChrono(timepointType curr, timepointType prev) {
         return std::chrono::duration_cast<to_dur>(curr - prev).count();
     }
 
-    constexpr const char *getFunctionName(const std::source_location &location
-    = std::source_location::current());
 
     /**
      * @tparam chrono_duration_type
@@ -183,6 +197,7 @@ namespace timing {
             return out;
         }
 
+
         auto &operator[](const locationType &loc) {
             return timers[loc];
         }
@@ -193,9 +208,9 @@ namespace timing {
 
     private:
         std::map<locationType, timeStore, decltype(cmpArrays)> timers;
-
         std::map<locationType, inType, decltype(cmpArrays)> startIngTimers;
         std::stack<locationType> toTak;
+
         static inline std::mutex s_mutex;
         using guardType = std::lock_guard<std::mutex>;
     };
