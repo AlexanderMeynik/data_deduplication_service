@@ -14,16 +14,16 @@ jobs:
           path: ./src
       - name: Build and set logging directory
         run: |
+          sudo apt-get install doxygen graphviz -y
           cd src
           mkdir -p build/doc 
           cp -r doc/. build/doc 
           cd build/doc
-      - uses: DenverCoder1/doxygen-github-pages-action@v2.0.0
+          doxygen Doxyfile.in 
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
           folder: doxygen-html
-          config_file: Doxyfile.in
           
           
           
