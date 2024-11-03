@@ -38,7 +38,7 @@ namespace windows {
     using namespace models;
 
     /**
-     * MainWindow class
+     * @brief MainWindow class
      */
     class MainWindow : public QMainWindow {
     Q_OBJECT

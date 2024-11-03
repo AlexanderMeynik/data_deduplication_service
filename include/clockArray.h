@@ -95,32 +95,34 @@ namespace timing {
     using chronoClockTemplate = timing::clockArray<double, timepointType,
             &std::chrono::high_resolution_clock::now, &getFileState, &doubleCastChrono<chrono_duration_type>>;
 
+
+
     /**
-     * @ingroup timing
-     * @tparam OutType double type tha will be printed
-     * @tparam inType Type that timeGetter return
-     * @tparam timeGetter function that return current time
-     * @tparam sourceTypeConverter function that converts source location to inner representation of it
-     * @tparam timeConverter a function that casts time difference to type
+      * @tparam OutType double type tha will be printed
+      * @tparam inType Type that timeGetter return
+      * @tparam timeGetter function that return current time
+      * @tparam sourceTypeConverter function that converts source location to inner representation of it
+      * @tparam timeConverter a function that casts time difference to type
+      * @brief Clock array template class
      */
-    template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
-            std::source_location location),
-            OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
-    class clockArray {
-    public:
-        struct timeStore {
-            OutType time;
-            size_t count;
+   template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
+           std::source_location location),
+           OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
+   class clockArray {
+   public:
+       struct timeStore {
+           OutType time;
+           size_t count;
 
-            friend std::ostream &operator<<(std::ostream &out, const timeStore &ts) {
-                out << ts.time;
-                return out;
-            }
-        };
+           friend std::ostream &operator<<(std::ostream &out, const timeStore &ts) {
+               out << ts.time;
+               return out;
+           }
+       };
 
-        /**
-         * Resets timers and converted double values
-         */
+       /**
+        * Resets timers and converted double values
+        */
         void reset();
 
 

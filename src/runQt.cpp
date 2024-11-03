@@ -1,9 +1,11 @@
 #include <QApplication>
-#include <QMainWindow>
-#include <QVBoxLayout>
-#include <memory>
 #include "MainWindow.h"
 
+/**
+ * Qt entrypoint
+ * @param argc
+ * @param argv
+ */
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
     google::InitGoogleLogging(argv[0]);

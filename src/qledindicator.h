@@ -25,7 +25,9 @@
 #include <QResizeEvent>
 #include <QColor>
 #include <QDebug>
-
+/**
+ * @brief QLedIndicator class from @ref https://store.kde.org/p/1132137/
+ */
 class QLedIndicator : public QAbstractButton {
     Q_PROPERTY(QColor onColor1 WRITE setOnColor1 READ getOnColor1);
     Q_PROPERTY(QColor onColor2 WRITE setOnColor2 READ getOnColor2);

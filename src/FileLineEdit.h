@@ -15,14 +15,17 @@
 
 /// windows namespace
 namespace windows {
+    ///Entry type enum
     enum EntryType {
         File,
         Directory
     };
 
+    /**
+     * @brief Class for file name selection
+     */
     class FileLineEdit : public QWidget {
     Q_OBJECT
-
     public:
         explicit FileLineEdit(QWidget *parent = nullptr,
                               QString dirPath = QDir::currentPath(),
@@ -46,15 +49,10 @@ namespace windows {
         EntryType getType() {
             return type;
         }
-
     signals:
-
         void contentChanged(const QString &str);
-
     protected slots:
-
         virtual void onBrowse();
-
     protected:
         QString dirPath;
         QHBoxLayout *mainLayout;
@@ -68,11 +66,12 @@ namespace windows {
         void setUpUi();
     };
 
-
+    /**
+     * @brief Class that allow to choose either files or directories
+     */
     class FileLineEditWithOption : public FileLineEdit {
     Q_OBJECT
     public:
-
         explicit FileLineEditWithOption(QWidget *parent = nullptr,
                                         QString dirPath = QDir::currentPath(),
                                         bool saveFile = false,
@@ -81,11 +80,8 @@ namespace windows {
         ~FileLineEditWithOption() override = default;
 
     signals:
-
         void typeChanged(const EntryType &etr);
-
     protected slots:
-
         void onBrowse() override;
 
     protected:

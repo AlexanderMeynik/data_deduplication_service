@@ -30,7 +30,11 @@ namespace db_services {
     void diconnect(conPtr &conn);
 
     /**
-     * Database manager that handles database management
+     * @brief Database manager that handles database management
+     * @details This class is designed to handle main interactions for database.
+     * @details You can connect/create/deelte databases.
+     * @details You can send requests for file load/delete/export.
+     * @details Some external helper functions can be found in dbCommon.h
      */
     class dbManager {
     public:

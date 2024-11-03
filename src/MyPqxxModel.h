@@ -80,8 +80,7 @@ namespace models {
     using namespace db_services;
 
     /**
-     * @class
-     *  Basic class for database result representation
+     * @brief Basic class for database pqxx::result representation
      */
     class MyPxxxModelBase {
     public:
@@ -165,7 +164,7 @@ namespace models {
 
 
     /**
-     * Table model for pqxx::result
+     * @brief Table model for pqxx::result @see models::MyPxxxModelBase
      */
     class MyPqxxModel : public QAbstractTableModel, public MyPxxxModelBase {
         Q_OBJECT
@@ -200,12 +199,15 @@ namespace models {
     };
 
     /**
-     * Pqxx model that retireves database deduplication characteristics
+     * @brief Pqxx model that retrieves database deduplication characteristic @see db_services::getDedupCharacteristics
      */
     class DeduplicationCharacteristicsModel : public MyPqxxModel {
     public:
         DeduplicationCharacteristicsModel(QObject *parent = nullptr) : MyPqxxModel(parent) {}
 
+        /**
+         * Retrieves specified data for model
+         */
         void getData() override {
             beginResetModel();
             this->executeInTransaction(&db_services::getDedupCharacteristics);
@@ -215,7 +217,7 @@ namespace models {
 
 
     /**
-     * Sort filter proxy model used for searching
+     * @brief Sort filter proxy model used for searching entry names
      */
     class MySortFilterProxyModel : public QSortFilterProxyModel {
         Q_OBJECT
@@ -226,6 +228,11 @@ namespace models {
 
 
     protected:
+        /**
+         * Filter files whose path contain sourceRow
+         * @param sourceRow
+         * @param sourceParent
+         */
         bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
             QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
 
@@ -234,9 +241,8 @@ namespace models {
         }
     };
 
-    /**
-     * Sort filter model that filters out all rows with NULL values
-     */
+
+    ///Sort filter model that filters out all rows with NULL values
     class NotNullFilterProxyModel : public QSortFilterProxyModel {
         Q_OBJECT
 
@@ -247,6 +253,11 @@ namespace models {
 
 
     protected:
+        /**
+         * Filters out rows with empty values
+         * @param sourceRow
+         * @param sourceParent
+         */
         bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
             for (size_t i = 0; i < sourceModel()->columnCount(); ++i) {
                 if (sourceModel()->data(sourceModel()->index(sourceRow, i, sourceParent)).isNull()) {
@@ -257,7 +268,7 @@ namespace models {
         }
     };
 
-
+    ///Tbale view that can be deselected
     class DeselectableTableView : public QTableView {
     public:
         DeselectableTableView(QWidget *parent) : QTableView(parent) {}
@@ -265,6 +276,10 @@ namespace models {
         virtual ~DeselectableTableView() {}
 
     private:
+        /**
+         * Mouse press event handler
+         * @param event
+         */
         virtual void mousePressEvent(QMouseEvent *event) {
 
             QModelIndex item = indexAt(event->pos());
@@ -279,9 +294,6 @@ namespace models {
         }
 
     };
-
-
-
 
 
     template<typename ResType1, typename... Args>

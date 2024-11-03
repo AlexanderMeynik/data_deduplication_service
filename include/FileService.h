@@ -16,7 +16,9 @@ namespace file_services {
     using namespace db_services;
 
     /**
-     * this class handles file/directory management and uses @ref db_services::dbManager "dbManager" to perform calls
+     * @brief this class handles file/directory management and uses @ref db_services::dbManager "dbManager" to perform calls
+     * @details This class have comfortable wrappers for most db_services::dbManager functions
+     * @details Some external helepr functions can be found @ref fileUtils.h "here".
      */
     class FileService {
     public:

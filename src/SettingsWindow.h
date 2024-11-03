@@ -20,6 +20,7 @@ namespace windows {
     using common::confName;
     using common::parentTag;
 
+    ///Settings window
     class SettingsWindow : public QDialog {
     Q_OBJECT
     public:
