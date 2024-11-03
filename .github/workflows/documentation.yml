@@ -1,0 +1,30 @@
+name: Run benchmark
+
+on:
+  workflow_dispatch:
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ./src
+      - name: Build and set logging directory
+        run: |
+          cd src
+          mkdir -p build/doc 
+          cp -r doc/. build/doc 
+          cd build/doc
+      - uses: DenverCoder1/doxygen-github-pages-action@v2.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: doxygen-html
+          config_file: Doxyfile.in
+          
+          
+          
+     
