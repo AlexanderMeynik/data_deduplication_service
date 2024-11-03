@@ -10,12 +10,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          path: ./src
       - name: Build and set logging directory
         run: |
           sudo apt-get install doxygen graphviz -y
-          cd src
           mkdir -p build/doc 
           cp -r doc/. build/doc 
           cd build/doc
@@ -24,7 +21,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          folder: src/build/doc/doxygen-html
+          folder: build/doc/doxygen-html
           
           
           
