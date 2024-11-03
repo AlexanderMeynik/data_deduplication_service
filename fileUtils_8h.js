@@ -18,9 +18,8 @@ var fileUtils_8h =
     ] ],
     [ "checkDirectoryExistence", "fileUtils_8h.html#a82f7ec94730b214da1e223d73722293e", null ],
     [ "checkFileExistence", "fileUtils_8h.html#a23cc43e476dc5c665bf43e2f230980b9", null ],
-    [ "compareArraa", "fileUtils_8h.html#aa05465f39cef66f898b4086d37764b92", null ],
+    [ "compareBlock", "fileUtils_8h.html#a8ce03b8e5e33f176ad1ca26396e8e2e1", null ],
     [ "compareDirectories", "fileUtils_8h.html#a0c678a6261a158ce59ead0d397033c1c", null ],
     [ "compareFiles", "fileUtils_8h.html#ab57b0d162b8046b255ed86b2d3e2003f", null ],
-    [ "getNormalAbs", "fileUtils_8h.html#a16922ad9955037ea2037ae3ed7ceef6e", null ],
-    [ "getNormalAbs", "fileUtils_8h.html#a7f154b81d9ff965ff0995608c75264d8", null ]
+    [ "getNormalAbs", "fileUtils_8h.html#adedd3deb1505b3624db51700b1e2a462", null ]
 ];

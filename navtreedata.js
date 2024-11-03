@@ -64,8 +64,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "FileLineEdit_8cpp.html",
-"dbCommon_8h.html#a5af3e7c028ac674016c2aa5e1701d3ff",
-"structdb__services_1_1myConnString.html#a6eadb8dcce12509926dedc0d514d9622"
+"dbCommon_8h.html#a75eaf26d68fa67f1b392451870d09479"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

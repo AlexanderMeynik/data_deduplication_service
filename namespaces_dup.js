@@ -11,7 +11,7 @@ var namespaces_dup =
       ] ],
       [ "isDirName", "namespacecommon.html#a0fec0ce854518b69f5af00164db319c3", null ],
       [ "smartCeil", "namespacecommon.html#a3f93b62f96606d387686d74f01e566f1", null ],
-      [ "writeLog", "namespacecommon.html#a1855a9447cb66c17609a43d3fb676ca5", null ],
+      [ "writeLog", "namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2", null ],
       [ "dirs", "namespacecommon.html#a92d7b17227b17c664840f9efe0829577", null ],
       [ "files", "namespacecommon.html#acd7aba3546a7c0c7ba3d907eab3a1ad6", null ]
     ] ],

@@ -26,6 +26,6 @@ var searchData=
   ['dirs_68',['dirs',['../namespacecommon.html#a92d7b17227b17c664840f9efe0829577',1,'common']]],
   ['disconnect_69',['disconnect',['../classfile__services_1_1FileService.html#a2724aabed73ccf683b8837de67f5d385',1,'file_services::FileService::disconnect()'],['../classdb__services_1_1dbManager.html#a578071ce7e55d4b25fa75fa40b7783bd',1,'db_services::dbManager::disconnect()']]],
   ['doesfileexist_70',['doesFileExist',['../namespacedb__services.html#a32fb26d837ce82846f656f9dc9ce229f',1,'db_services']]],
-  ['doublecastchrono_71',['doubleCastChrono',['../namespacetiming.html#a6eea1348a600a0018c4e61818d2c1c23',1,'timing']]],
+  ['doublecastchrono_71',['doubleCastChrono',['../namespacetiming.html#adddd097ab0aec7d08cbd881d18d28857',1,'timing']]],
   ['dropdatabase_72',['dropDatabase',['../classdb__services_1_1dbManager.html#af7ae5ad3bd0ad02566ccf0d44fc41f6e',1,'db_services::dbManager']]]
 ];

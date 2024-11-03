@@ -127,6 +127,10 @@ Functions</h2></td></tr>
 <tr class="separator:ab3c456e754c27935940609165a4d448b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9fe7980487caefbd3bc7f182937c7e7a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a9fe7980487caefbd3bc7f182937c7e7a">checkConnection</a> (const <a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn)</td></tr>
 <tr class="separator:a9fe7980487caefbd3bc7f182937c7e7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebac248c11405f94f676688b6eead4de"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#aebac248c11405f94f676688b6eead4de">checkConnString</a> (const <a class="el" href="structdb__services_1_1myConnString.html">myConnString</a> &amp;connString)</td></tr>
+<tr class="separator:aebac248c11405f94f676688b6eead4de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ed5f09241d8c17c75033957ab8eeaaf"><td class="memItemLeft" align="right" valign="top">tl::expected&lt; <a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a>, returnCodes &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a3ed5f09241d8c17c75033957ab8eeaaf">connectIfPossible</a> (std::string_view cString)</td></tr>
+<tr class="separator:a3ed5f09241d8c17c75033957ab8eeaaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6ae24d20b42895858818265aef8efc6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ac6ae24d20b42895858818265aef8efc6">terminateAllDbConnections</a> (<a class="el" href="namespacedb__services.html#a3448c3802435060ed130d28da02e5bd2">nonTransType</a> &amp;noTransExec, std::string_view dbName)</td></tr>
 <tr class="separator:ac6ae24d20b42895858818265aef8efc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5db5ac0588576cef9bd899c715f670e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a5db5ac0588576cef9bd899c715f670e3">checkDatabaseExistence</a> (<a class="el" href="namespacedb__services.html#a3448c3802435060ed130d28da02e5bd2">nonTransType</a> &amp;noTransExec, std::string_view dbName)</td></tr>
@@ -139,6 +143,8 @@ Functions</h2></td></tr>
 <tr class="separator:a8db5525c11d05c52a832bf401f0d3ce0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16e07a5ec204e1159dfea6068e040454"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a16e07a5ec204e1159dfea6068e040454">checkFileExistence</a> (<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;txn, std::string_view fileName)</td></tr>
 <tr class="separator:a16e07a5ec204e1159dfea6068e040454"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a120bbb835ff70f5ed894f13c0b18207c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a120bbb835ff70f5ed894f13c0b18207c">checkFilesExistence</a> (<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;txn, const std::vector&lt; std::filesystem::path &gt; &amp;files)</td></tr>
+<tr class="separator:a120bbb835ff70f5ed894f13c0b18207c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d379fc47fc9b07ffd011d619982f766"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a3d379fc47fc9b07ffd011d619982f766">getFileId</a> (<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;txn, std::string_view fileName)</td></tr>
 <tr class="separator:a3d379fc47fc9b07ffd011d619982f766"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32fb26d837ce82846f656f9dc9ce229f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a32fb26d837ce82846f656f9dc9ce229f">doesFileExist</a> (<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;txn, std::string_view fileName)</td></tr>
@@ -160,23 +166,15 @@ Functions</h2></td></tr>
 <tr class="memitem:aaa5f12bd02e4322fea546b05302334eb"><td class="memTemplParams" colspan="2">template&lt;printable T&gt; </td></tr>
 <tr class="memitem:aaa5f12bd02e4322fea546b05302334eb"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#aaa5f12bd02e4322fea546b05302334eb">vecToString</a> (std::vector&lt; T &gt; &amp;vec)</td></tr>
 <tr class="separator:aaa5f12bd02e4322fea546b05302334eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a120bbb835ff70f5ed894f13c0b18207c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a120bbb835ff70f5ed894f13c0b18207c">checkFilesExistence</a> (<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;txn, const std::vector&lt; std::filesystem::path &gt; &amp;files)</td></tr>
-<tr class="separator:a120bbb835ff70f5ed894f13c0b18207c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3352784c422e2487a2d09c8a8568fa0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#aa3352784c422e2487a2d09c8a8568fa0">printRowsAffected</a> (<a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> &amp;res)</td></tr>
-<tr class="separator:aa3352784c422e2487a2d09c8a8568fa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed5a595ba08c4aac5c8467980d67b415"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#aed5a595ba08c4aac5c8467980d67b415">printRowsAffected</a> (<a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> &amp;&amp;res)</td></tr>
-<tr class="separator:aed5a595ba08c4aac5c8467980d67b415"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75eaf26d68fa67f1b392451870d09479"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a75eaf26d68fa67f1b392451870d09479">printRowsAffected</a> (const <a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> &amp;res)</td></tr>
+<tr class="separator:a75eaf26d68fa67f1b392451870d09479"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab75ac0dddc2e6cff4919c1cc531530f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ab75ac0dddc2e6cff4919c1cc531530f2">checkTExistence</a> (<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">db_services::trasnactionType</a> &amp;txn, std::string_view fileName)</td></tr>
 <tr class="separator:ab75ac0dddc2e6cff4919c1cc531530f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ed5f09241d8c17c75033957ab8eeaaf"><td class="memItemLeft" align="right" valign="top">tl::expected&lt; <a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a>, returnCodes &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a3ed5f09241d8c17c75033957ab8eeaaf">connectIfPossible</a> (std::string_view cString)</td></tr>
-<tr class="separator:a3ed5f09241d8c17c75033957ab8eeaaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5af3e7c028ac674016c2aa5e1701d3ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structdb__services_1_1myConnString.html">myConnString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a5af3e7c028ac674016c2aa5e1701d3ff">loadConfiguration</a> (std::string_view filename)</td></tr>
 <tr class="separator:a5af3e7c028ac674016c2aa5e1701d3ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8923f34605f19c3cd29a6f10583118d"><td class="memTemplParams" colspan="2">template&lt;typename T , unsigned long size&gt; </td></tr>
 <tr class="memitem:ac8923f34605f19c3cd29a6f10583118d"><td class="memTemplItemLeft" align="right" valign="top">std::array&lt; T, size &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ac8923f34605f19c3cd29a6f10583118d">fromString</a> (std::basic_string&lt; T &gt; &amp;string)</td></tr>
 <tr class="separator:ac8923f34605f19c3cd29a6f10583118d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aebac248c11405f94f676688b6eead4de"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#aebac248c11405f94f676688b6eead4de">checkConnString</a> (const <a class="el" href="structdb__services_1_1myConnString.html">myConnString</a> &amp;connString)</td></tr>
-<tr class="separator:aebac248c11405f94f676688b6eead4de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad04dd18b9ca72e30cd8df041d87806f3"><td class="memTemplParams" colspan="2">template&lt;typename ResultType , typename ... Args&gt; </td></tr>
 <tr class="memitem:ad04dd18b9ca72e30cd8df041d87806f3"><td class="memTemplItemLeft" align="right" valign="top">tl::expected&lt; ResultType, int &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ad04dd18b9ca72e30cd8df041d87806f3">executeInTransaction</a> (<a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn_, ResultType(*call)(<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;, Args ...), Args &amp;&amp;... args)</td></tr>
 <tr class="separator:ad04dd18b9ca72e30cd8df041d87806f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -294,6 +292,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks that conn is not null and opened </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-0" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
@@ -329,6 +333,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks connection for connString </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connString</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-1" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-1-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-1-summary" class="dynsummary" style="display:block;">
@@ -369,6 +379,13 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks database existence </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">noTransExec</td><td></td></tr>
+    <tr><td class="paramname">dbName</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-2" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-2-summary" class="dynsummary" style="display:block;">
@@ -420,6 +437,13 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks file existence </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">fileName</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-4" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-4-summary" class="dynsummary" style="display:block;">
@@ -475,6 +499,13 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Multifile variant for <a class="el" href="namespacedb__services.html#a16e07a5ec204e1159dfea6068e040454">checkFileExistence</a> </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">files</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-6" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-6-summary" class="dynsummary" style="display:block;">
@@ -505,6 +536,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns all schemas for database </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-7" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-7-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-7-summary" class="dynsummary" style="display:block;">
@@ -534,6 +571,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Compares segments counts from segments table to total counst from data table </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -562,6 +605,13 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks whether temporary table was created for file </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">fileName</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-8" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-8-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-8-summary" class="dynsummary" style="display:block;">
@@ -592,6 +642,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Connects to database with cString </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cString</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-9" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-9-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-9-summary" class="dynsummary" style="display:block;">
@@ -635,6 +691,13 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Deletes segments with count=0 </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 <div id="dynsection-11" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-11-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-11-summary" class="dynsummary" style="display:block;">
@@ -642,12 +705,11 @@ Variables</h2></td></tr>
 <div id="dynsection-11-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_a8db5525c11d05c52a832bf401f0d3ce0_icgraph.png" border="0" usemap="#anamespacedb__services_a8db5525c11d05c52a832bf401f0d3ce0_icgraph" alt=""/></div>
 <map name="anamespacedb__services_a8db5525c11d05c52a832bf401f0d3ce0_icgraph" id="anamespacedb__services_a8db5525c11d05c52a832bf401f0d3ce0_icgraph">
-<area shape="rect" title=" " alt="" coords="567,71,764,112"/>
-<area shape="rect" href="classdb__services_1_1dbManager.html#a13f2200d4ae1e1c07fc76094a471b825" title=" " alt="" coords="339,71,519,112"/>
-<area shape="rect" href="classfile__services_1_1FileService.html#a720e2bf3aca11df35ef1e1b35544f730" title=" " alt="" coords="108,5,291,47"/>
-<area shape="rect" href="classfile__services_1_1FileService.html#a912adc27256568835793a55f7ecd0fa5" title=" " alt="" coords="108,71,291,112"/>
-<area shape="rect" href="classfile__services_1_1FileService.html#ab795a0168b7e292f9e37c95217787cc7" title=" " alt="" coords="108,136,291,177"/>
-<area shape="rect" href="fileServiceTest_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,13,60,39"/>
+<area shape="rect" title=" " alt="" coords="464,71,661,112"/>
+<area shape="rect" href="classdb__services_1_1dbManager.html#a13f2200d4ae1e1c07fc76094a471b825" title=" " alt="" coords="236,71,416,112"/>
+<area shape="rect" href="classfile__services_1_1FileService.html#a720e2bf3aca11df35ef1e1b35544f730" title=" " alt="" coords="5,5,188,47"/>
+<area shape="rect" href="classfile__services_1_1FileService.html#a912adc27256568835793a55f7ecd0fa5" title=" " alt="" coords="5,71,188,112"/>
+<area shape="rect" href="classfile__services_1_1FileService.html#ab795a0168b7e292f9e37c95217787cc7" title=" " alt="" coords="5,136,188,177"/>
 </map>
 </div>
 
@@ -713,6 +775,14 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bool variant for existence checks </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">fileName</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="namespacedb__services.html#a3d379fc47fc9b07ffd011d619982f766">getFileId</a> </dd></dl>
 <div id="dynsection-13" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-13-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-13-summary" class="dynsummary" style="display:block;">
@@ -860,6 +930,12 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Swaps space syblos for / </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-15" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-15-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-15-summary" class="dynsummary" style="display:block;">
@@ -867,9 +943,8 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
 <div id="dynsection-15-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_ad8d9d8db6adfed5462f7522b9d2ca6f4_icgraph.png" border="0" usemap="#anamespacedb__services_ad8d9d8db6adfed5462f7522b9d2ca6f4_icgraph" alt=""/></div>
 <map name="anamespacedb__services_ad8d9d8db6adfed5462f7522b9d2ca6f4_icgraph" id="anamespacedb__services_ad8d9d8db6adfed5462f7522b9d2ca6f4_icgraph">
-<area shape="rect" title=" " alt="" coords="233,42,447,69"/>
+<area shape="rect" title=" " alt="" coords="233,13,447,39"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#a4ee81febe661d4e38fe471e12436566c" title=" " alt="" coords="5,5,185,47"/>
-<area shape="rect" href="fileServiceTest_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="68,71,123,98"/>
 </map>
 </div>
 
@@ -910,6 +985,12 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Calculates main deduplication characteristics for files </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-16" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-16-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-16-summary" class="dynsummary" style="display:block;">
@@ -949,6 +1030,13 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns resType that contains all file/subdirectory entries for the selected directory </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">dirPath</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-17" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-17-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-17-summary" class="dynsummary" style="display:block;">
@@ -1004,6 +1092,14 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Parses one file id from request </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">fileName</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="namespacedb__services.html#a16e07a5ec204e1159dfea6068e040454">checkFileExistence</a> </dd></dl>
 <div id="dynsection-19" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-19-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-19-summary" class="dynsummary" style="display:block;">
@@ -1059,6 +1155,13 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Vector returning wrapper for <a class="el" href="namespacedb__services.html#a5680ec1c84b85dfe07c47178b980685d">getEntriesForDirectory</a></p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+    <tr><td class="paramname">dirPath</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-21" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-21-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-21-summary" class="dynsummary" style="display:block;">
@@ -1121,6 +1224,12 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Calculates sum of files sizes </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1139,6 +1248,12 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gets table thta contains schemas sizes for database </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">txn</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1157,6 +1272,12 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Loads configuration from file </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filename</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-23" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-23-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-23-summary" class="dynsummary" style="display:block;">
@@ -1175,9 +1296,8 @@ template&lt;typename T , unsigned long size&gt; </div>
 <div id="dynsection-24-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_a5af3e7c028ac674016c2aa5e1701d3ff_icgraph.png" border="0" usemap="#anamespacedb__services_a5af3e7c028ac674016c2aa5e1701d3ff_icgraph" alt=""/></div>
 <map name="anamespacedb__services_a5af3e7c028ac674016c2aa5e1701d3ff_icgraph" id="anamespacedb__services_a5af3e7c028ac674016c2aa5e1701d3ff_icgraph">
-<area shape="rect" title=" " alt="" coords="339,13,561,39"/>
-<area shape="rect" href="classfile__services_1_1FileService.html#afafa0c086ab1e0d4469dacce259f0697" title=" " alt="" coords="108,5,291,47"/>
-<area shape="rect" href="fileServiceTest_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,13,60,39"/>
+<area shape="rect" title=" " alt="" coords="236,13,459,39"/>
+<area shape="rect" href="classfile__services_1_1FileService.html#afafa0c086ab1e0d4469dacce259f0697" title=" " alt="" coords="5,5,188,47"/>
 </map>
 </div>
 
@@ -1208,11 +1328,18 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Peinrst resType to ostream </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rss</td><td></td></tr>
+    <tr><td class="paramname">out</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a id="aed5a595ba08c4aac5c8467980d67b415"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed5a595ba08c4aac5c8467980d67b415">&#9670;&nbsp;</a></span>printRowsAffected() <span class="overload">[1/2]</span></h2>
+<a id="a75eaf26d68fa67f1b392451870d09479"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75eaf26d68fa67f1b392451870d09479">&#9670;&nbsp;</a></span>printRowsAffected()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1220,64 +1347,39 @@ template&lt;typename T , unsigned long size&gt; </div>
         <tr>
           <td class="memname">void db_services::printRowsAffected </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> &amp;&#160;</td>
           <td class="paramname"><em>res</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gets affected rows for delete/update query result </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">res</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <div id="dynsection-25" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-25-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-25-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-25-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="namespacedb__services_aed5a595ba08c4aac5c8467980d67b415_cgraph.png" border="0" usemap="#anamespacedb__services_aed5a595ba08c4aac5c8467980d67b415_cgraph" alt=""/></div>
-<map name="anamespacedb__services_aed5a595ba08c4aac5c8467980d67b415_cgraph" id="anamespacedb__services_aed5a595ba08c4aac5c8467980d67b415_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,232,32"/>
-<area shape="rect" href="namespacedb__services.html#aa3352784c422e2487a2d09c8a8568fa0" title=" " alt="" coords="280,5,507,32"/>
-<area shape="rect" href="namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1" title=" " alt="" coords="555,5,717,32"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="aa3352784c422e2487a2d09c8a8568fa0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3352784c422e2487a2d09c8a8568fa0">&#9670;&nbsp;</a></span>printRowsAffected() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void db_services::printRowsAffected </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> &amp;&#160;</td>
-          <td class="paramname"><em>res</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div id="dynsection-26" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-26-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-26-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-26-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="namespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_cgraph.png" border="0" usemap="#anamespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_cgraph" alt=""/></div>
-<map name="anamespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_cgraph" id="anamespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_cgraph">
+<div class="center"><img src="namespacedb__services_a75eaf26d68fa67f1b392451870d09479_cgraph.png" border="0" usemap="#anamespacedb__services_a75eaf26d68fa67f1b392451870d09479_cgraph" alt=""/></div>
+<map name="anamespacedb__services_a75eaf26d68fa67f1b392451870d09479_cgraph" id="anamespacedb__services_a75eaf26d68fa67f1b392451870d09479_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,232,32"/>
 <area shape="rect" href="namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1" title=" " alt="" coords="280,5,443,32"/>
 </map>
 </div>
-<div id="dynsection-27" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-27-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-27-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-26" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-26-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-26-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-27-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="namespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_icgraph.png" border="0" usemap="#anamespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_icgraph" alt=""/></div>
-<map name="anamespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_icgraph" id="anamespacedb__services_aa3352784c422e2487a2d09c8a8568fa0_icgraph">
-<area shape="rect" title=" " alt="" coords="511,78,737,105"/>
-<area shape="rect" href="classdb__services_1_1dbManager.html#a5fe0684fd14cc832a4e9084cb56ab509" title=" " alt="" coords="259,5,439,47"/>
-<area shape="rect" href="classdb__services_1_1dbManager.html#a49b721aa6b213318873fdea90f53d58a" title=" " alt="" coords="259,71,439,112"/>
-<area shape="rect" href="namespacedb__services.html#aed5a595ba08c4aac5c8467980d67b415" title=" " alt="" coords="236,137,463,163"/>
+<div id="dynsection-26-content" class="dyncontent" style="display:none;">
+<div class="center"><img src="namespacedb__services_a75eaf26d68fa67f1b392451870d09479_icgraph.png" border="0" usemap="#anamespacedb__services_a75eaf26d68fa67f1b392451870d09479_icgraph" alt=""/></div>
+<map name="anamespacedb__services_a75eaf26d68fa67f1b392451870d09479_icgraph" id="anamespacedb__services_a75eaf26d68fa67f1b392451870d09479_icgraph">
+<area shape="rect" title=" " alt="" coords="464,46,691,73"/>
+<area shape="rect" href="classdb__services_1_1dbManager.html#a5fe0684fd14cc832a4e9084cb56ab509" title=" " alt="" coords="236,5,416,47"/>
+<area shape="rect" href="classdb__services_1_1dbManager.html#a49b721aa6b213318873fdea90f53d58a" title=" " alt="" coords="236,71,416,112"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a912adc27256568835793a55f7ecd0fa5" title=" " alt="" coords="5,5,188,47"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#ab795a0168b7e292f9e37c95217787cc7" title=" " alt="" coords="5,71,188,112"/>
 </map>
@@ -1310,22 +1412,29 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div id="dynsection-28" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-28-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-28-summary" class="dynsummary" style="display:block;">
+<p>Terminates all connections to dbName via sql query </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">noTransExec</td><td></td></tr>
+    <tr><td class="paramname">dbName</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<div id="dynsection-27" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-27-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-27-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-28-content" class="dyncontent" style="display:none;">
+<div id="dynsection-27-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_ac6ae24d20b42895858818265aef8efc6_cgraph.png" border="0" usemap="#anamespacedb__services_ac6ae24d20b42895858818265aef8efc6_cgraph" alt=""/></div>
 <map name="anamespacedb__services_ac6ae24d20b42895858818265aef8efc6_cgraph" id="anamespacedb__services_ac6ae24d20b42895858818265aef8efc6_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,193,47"/>
 <area shape="rect" href="namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1" title=" " alt="" coords="241,13,404,39"/>
 </map>
 </div>
-<div id="dynsection-29" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-29-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-29-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-28" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-28-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-28-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-29-content" class="dyncontent" style="display:none;">
+<div id="dynsection-28-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_ac6ae24d20b42895858818265aef8efc6_icgraph.png" border="0" usemap="#anamespacedb__services_ac6ae24d20b42895858818265aef8efc6_icgraph" alt=""/></div>
 <map name="anamespacedb__services_ac6ae24d20b42895858818265aef8efc6_icgraph" id="anamespacedb__services_ac6ae24d20b42895858818265aef8efc6_icgraph">
 <area shape="rect" title=" " alt="" coords="233,5,421,47"/>
@@ -1350,20 +1459,25 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div id="dynsection-30" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-30-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-30-summary" class="dynsummary" style="display:block;">
+<p>Swaps / symbols for spaces </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<div id="dynsection-29" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-29-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-29-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-30-content" class="dyncontent" style="display:none;">
+<div id="dynsection-29-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_a396c4be9a87ffcab96582c39934653ec_icgraph.png" border="0" usemap="#anamespacedb__services_a396c4be9a87ffcab96582c39934653ec_icgraph" alt=""/></div>
 <map name="anamespacedb__services_a396c4be9a87ffcab96582c39934653ec_icgraph" id="anamespacedb__services_a396c4be9a87ffcab96582c39934653ec_icgraph">
-<area shape="rect" title=" " alt="" coords="1016,214,1211,241"/>
+<area shape="rect" title=" " alt="" coords="1016,181,1211,207"/>
 <area shape="rect" href="namespacedb__services.html#a16e07a5ec204e1159dfea6068e040454" title=" " alt="" coords="733,71,964,98"/>
 <area shape="rect" href="namespacedb__services.html#a120bbb835ff70f5ed894f13c0b18207c" title=" " alt="" coords="729,122,968,149"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#a52075fc594c97be2352e0db382f52e0b" title=" " alt="" coords="759,173,939,215"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#a6c8a95bbba3597bf50921f8d3a6d4ded" title=" " alt="" coords="759,239,939,280"/>
 <area shape="rect" href="namespacedb__services.html#a5680ec1c84b85dfe07c47178b980685d" title=" " alt="" coords="752,304,945,345"/>
-<area shape="rect" href="fileServiceTest_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="821,370,876,397"/>
 <area shape="rect" href="namespacedb__services.html#a3d379fc47fc9b07ffd011d619982f766" title=" " alt="" coords="498,71,661,98"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#a49b721aa6b213318873fdea90f53d58a" title=" " alt="" coords="243,5,423,47"/>
 <area shape="rect" href="namespacedb__services.html#a32fb26d837ce82846f656f9dc9ce229f" title=" " alt="" coords="236,71,429,98"/>
@@ -1394,16 +1508,21 @@ template&lt;typename T , unsigned long size&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div id="dynsection-31" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-31-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-31-summary" class="dynsummary" style="display:block;">
+<p>Replaces symbols in path to cast it to tsquery </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<div id="dynsection-30" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-30-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-30-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-31-content" class="dyncontent" style="display:none;">
+<div id="dynsection-30-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_ab3c456e754c27935940609165a4d448b_icgraph.png" border="0" usemap="#anamespacedb__services_ab3c456e754c27935940609165a4d448b_icgraph" alt=""/></div>
 <map name="anamespacedb__services_ab3c456e754c27935940609165a4d448b_icgraph" id="anamespacedb__services_ab3c456e754c27935940609165a4d448b_icgraph">
-<area shape="rect" title=" " alt="" coords="957,71,1176,98"/>
+<area shape="rect" title=" " alt="" coords="957,42,1176,69"/>
 <area shape="rect" href="namespacedb__services.html#a5680ec1c84b85dfe07c47178b980685d" title=" " alt="" coords="716,35,909,76"/>
-<area shape="rect" href="fileServiceTest_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="785,101,840,127"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#a4ee81febe661d4e38fe471e12436566c" title=" " alt="" coords="476,5,656,47"/>
 <area shape="rect" href="namespacedb__services.html#af4b623338322b5560d0955c8e4cac8b7" title=" " alt="" coords="464,71,668,98"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#a5fe0684fd14cc832a4e9084cb56ab509" title=" " alt="" coords="236,64,416,105"/>
@@ -1430,11 +1549,23 @@ template&lt;printable T&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div id="dynsection-32" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-32-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-32-summary" class="dynsummary" style="display:block;">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vec</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<div id="dynsection-31" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-31-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-31-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-32-content" class="dyncontent" style="display:none;">
+<div id="dynsection-31-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_aaa5f12bd02e4322fea546b05302334eb_icgraph.png" border="0" usemap="#anamespacedb__services_aaa5f12bd02e4322fea546b05302334eb_icgraph" alt=""/></div>
 <map name="anamespacedb__services_aaa5f12bd02e4322fea546b05302334eb_icgraph" id="anamespacedb__services_aaa5f12bd02e4322fea546b05302334eb_icgraph">
 <area shape="rect" title=" " alt="" coords="464,13,647,39"/>

@@ -21,8 +21,7 @@ var dbCommon_8cpp =
     [ "getTotalSchemaSizes", "dbCommon_8cpp.html#a14586bfecdae0c1e1570bbc5e3e3bc11", null ],
     [ "loadConfiguration", "dbCommon_8cpp.html#a5af3e7c028ac674016c2aa5e1701d3ff", null ],
     [ "printRes", "dbCommon_8cpp.html#a595787773d90c09637af777a15e8ae8c", null ],
-    [ "printRowsAffected", "dbCommon_8cpp.html#aed5a595ba08c4aac5c8467980d67b415", null ],
-    [ "printRowsAffected", "dbCommon_8cpp.html#aa3352784c422e2487a2d09c8a8568fa0", null ],
+    [ "printRowsAffected", "dbCommon_8cpp.html#a75eaf26d68fa67f1b392451870d09479", null ],
     [ "terminateAllDbConnections", "dbCommon_8cpp.html#ac6ae24d20b42895858818265aef8efc6", null ],
     [ "toSpacedPath", "dbCommon_8cpp.html#a396c4be9a87ffcab96582c39934653ec", null ],
     [ "toTsquerablePath", "dbCommon_8cpp.html#ab3c456e754c27935940609165a4d448b", null ]

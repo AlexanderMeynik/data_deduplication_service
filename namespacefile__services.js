@@ -19,11 +19,9 @@ var namespacefile__services =
     ] ],
     [ "checkDirectoryExistence", "namespacefile__services.html#a82f7ec94730b214da1e223d73722293e", null ],
     [ "checkFileExistence", "namespacefile__services.html#a23cc43e476dc5c665bf43e2f230980b9", null ],
-    [ "compareArraa", "namespacefile__services.html#aa05465f39cef66f898b4086d37764b92", null ],
+    [ "compareBlock", "namespacefile__services.html#a8ce03b8e5e33f176ad1ca26396e8e2e1", null ],
     [ "compareDirectories", "namespacefile__services.html#a0c678a6261a158ce59ead0d397033c1c", null ],
     [ "compareFiles", "namespacefile__services.html#ab57b0d162b8046b255ed86b2d3e2003f", null ],
-    [ "getNormalAbs", "namespacefile__services.html#a16922ad9955037ea2037ae3ed7ceef6e", null ],
-    [ "getNormalAbs", "namespacefile__services.html#a7f154b81d9ff965ff0995608c75264d8", null ],
-    [ "getNormalAbs", "namespacefile__services.html#a8674304fafdd51f67b0293d888c38bba", null ],
-    [ "getNormalAbs", "namespacefile__services.html#a85dd1ff47b6125bb5046a30cbcfa0da9", null ]
+    [ "getNormalAbs", "namespacefile__services.html#adedd3deb1505b3624db51700b1e2a462", null ],
+    [ "getNormalAbs", "namespacefile__services.html#a6e8b79de9cdf870e331d45318c9e2853", null ]
 ];

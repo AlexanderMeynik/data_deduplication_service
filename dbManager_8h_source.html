@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('dbManager_8h_source.html',''); initRes
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="HashUtils_8h.html">HashUtils.h</a>&quot;</span></div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">using</span> <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4">myConcepts::paramType</a><span class="comment">/*, myConcepts::gClk*/</span>;</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">using</span> <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4">myConcepts::paramType</a>;</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">using</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">enum</span> <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4">myConcepts::paramType</a>;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacehash__utils.html">hash_utils</a>;</div>
@@ -149,15 +149,15 @@ $(document).ready(function(){initNavTree('dbManager_8h_source.html',''); initRes
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> createDirectory(std::string_view dirPath);</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160; </div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;        <span class="keywordtype">int</span> deleteFile(std::string_view filePath, <a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId = <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc">paramType::EmptyParameterValue</a>);</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        <span class="keywordtype">int</span> deleteDirectory(std::string_view directoryPath);</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160; </div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        <span class="keywordtype">int</span> getFileStreamed(std::string_view fileName, std::ostream &amp;output,</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                            <a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId = <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc">paramType::EmptyParameterValue</a>);</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; </div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;        <span class="keywordtype">int</span> insertFileFromStream(std::string_view fileName, std::istream &amp;in, <span class="keywordtype">size_t</span> segmentSize, std::size_t fileSize,<span class="keyword">const</span> <a class="code" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850">hash_function</a>&amp; hash=<a class="code" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850aad16be9b1bd1871b5885ef0e25e7c5d4">SHA_256</a>);</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        <span class="keywordtype">int</span> deleteFile(std::string_view filePath, <a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId = <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc">paramType::EmptyParameterValue</a>);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        <span class="keywordtype">int</span> deleteDirectory(std::string_view directoryPath);</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        <span class="keywordtype">int</span> getFileStreamed(std::string_view fileName, std::ostream &amp;output,</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;                            <a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId = <a class="code" href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc">paramType::EmptyParameterValue</a>);</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;        <span class="keywordtype">int</span> insertFileFromStream(std::string_view fileName, std::istream &amp;in, <span class="keywordtype">size_t</span> segmentSize, std::size_t fileSize,</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;                                 <span class="keyword">const</span> <a class="code" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850">hash_function</a>&amp; hash=<a class="code" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850aad16be9b1bd1871b5885ef0e25e7c5d4">SHA_256</a>);</div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
 <div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;        <span class="keywordtype">int</span> finishFileProcessing(std::string_view filePath, <a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId);</div>
 <div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160; </div>
@@ -182,39 +182,20 @@ $(document).ready(function(){initNavTree('dbManager_8h_source.html',''); initRes
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;        }</div>
 <div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;        <span class="keywordtype">int</span> updateFileTime(<a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId) {</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;            <a class="code" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> txn(*conn_);</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;            std::string query;</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;            <a class="code" href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">resType</a> res;</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;            <span class="keywordflow">try</span> {</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;                query = <a class="code" href="namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1">vformat</a>(<span class="stringliteral">&quot;UPDATE public.files &quot;</span></div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;                                <span class="stringliteral">&quot;SET processed_at = CURRENT_TIMESTAMP &quot;</span></div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;                                <span class="stringliteral">&quot;WHERE file_id = %d;&quot;</span>, fileId);</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;                txn.exec(query);</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;                VLOG(2) &lt;&lt; <a class="code" href="namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1">vformat</a>(<span class="stringliteral">&quot;Updated timer for file %d.&quot;</span>, fileId);</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;                txn.commit();</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;            }</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;            <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception &amp;e) {</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;                VLOG(1) &lt;&lt; <span class="stringliteral">&quot;Error updating timer :&quot;</span> &lt;&lt; e.what() &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;                <span class="keywordflow">return</span> <a class="code" href="namespacemyConcepts.html#a6f393c660a9cb9085840169fbe414067a0d2172a6765f9239f68398574680ad3a">ErrorOccured</a>;</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;            }</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;            <span class="keywordflow">return</span> <a class="code" href="namespacemyConcepts.html#a6f393c660a9cb9085840169fbe414067aad67b0e8f2bf5d1042e0ead8fe1c0022">ReturnSucess</a>;</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;        }</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160; </div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;        myConnString cString_;</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;        <a class="code" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> conn_;</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    };</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160; </div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160; </div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160; </div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;}</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160; </div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//DATA_DEDUPLICATION_SERVICE_DBMANAGER_H</span></div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        <span class="keywordtype">int</span> updateFileTime(<a class="code" href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">indexType</a> fileId);</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;        <a class="code" href="structdb__services_1_1myConnString.html">myConnString</a> cString_;</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;        <a class="code" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> conn_;</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    };</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160; </div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160; </div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;}</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; </div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160; </div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//DATA_DEDUPLICATION_SERVICE_DBMANAGER_H</span></div>
 <div class="ttc" id="aHashUtils_8h_html"><div class="ttname"><a href="HashUtils_8h.html">HashUtils.h</a></div></div>
 <div class="ttc" id="aclassdb__services_1_1dbManager_html"><div class="ttname"><a href="classdb__services_1_1dbManager.html">db_services::dbManager</a></div><div class="ttdef"><b>Definition:</b> dbManager.h:35</div></div>
 <div class="ttc" id="aclassdb__services_1_1dbManager_html_a0f5fcdf2ca013d6ef2d38ef00a8113d4"><div class="ttname"><a href="classdb__services_1_1dbManager.html#a0f5fcdf2ca013d6ef2d38ef00a8113d4">db_services::dbManager::executeInTransaction</a></div><div class="ttdeci">tl::expected&lt; ResultType, int &gt; executeInTransaction(ResultType(*call)(trasnactionType &amp;, Args ...), Args &amp;&amp;... args)</div><div class="ttdef"><b>Definition:</b> dbManager.h:157</div></div>
@@ -229,24 +210,20 @@ $(document).ready(function(){initNavTree('dbManager_8h_source.html',''); initRes
 <div class="ttc" id="adbCommon_8h_html"><div class="ttname"><a href="dbCommon_8h.html">dbCommon.h</a></div></div>
 <div class="ttc" id="amyConcepts_8h_html"><div class="ttname"><a href="myConcepts_8h.html">myConcepts.h</a></div></div>
 <div class="ttc" id="anamespacedb__services_html"><div class="ttname"><a href="namespacedb__services.html">db_services</a></div><div class="ttdoc">db_services namespace</div><div class="ttdef"><b>Definition:</b> dbCommon.h:17</div></div>
-<div class="ttc" id="anamespacedb__services_html_a0aab0b03f5137b0d2c4d82679b49f725"><div class="ttname"><a href="namespacedb__services.html#a0aab0b03f5137b0d2c4d82679b49f725">db_services::defaultConfiguration</a></div><div class="ttdeci">auto defaultConfiguration</div><div class="ttdef"><b>Definition:</b> dbCommon.h:95</div></div>
+<div class="ttc" id="anamespacedb__services_html_a0aab0b03f5137b0d2c4d82679b49f725"><div class="ttname"><a href="namespacedb__services.html#a0aab0b03f5137b0d2c4d82679b49f725">db_services::defaultConfiguration</a></div><div class="ttdeci">auto defaultConfiguration</div><div class="ttdef"><b>Definition:</b> dbCommon.h:208</div></div>
 <div class="ttc" id="anamespacedb__services_html_a0dc7e039cea5fbc9841f48c898c71cf0"><div class="ttname"><a href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">db_services::trasnactionType</a></div><div class="ttdeci">pqxx::transaction&lt; pqxx::isolation_level::read_committed &gt; trasnactionType</div><div class="ttdef"><b>Definition:</b> dbCommon.h:35</div></div>
 <div class="ttc" id="anamespacedb__services_html_a1ba7f528c6282c882d4458754ae0a398"><div class="ttname"><a href="namespacedb__services.html#a1ba7f528c6282c882d4458754ae0a398">db_services::indexType</a></div><div class="ttdeci">int64_t indexType</div><div class="ttdef"><b>Definition:</b> dbCommon.h:34</div></div>
-<div class="ttc" id="anamespacedb__services_html_a1c9cae348894cb780b2f92d8fc303ad6"><div class="ttname"><a href="namespacedb__services.html#a1c9cae348894cb780b2f92d8fc303ad6">db_services::resType</a></div><div class="ttdeci">pqxx::result resType</div><div class="ttdef"><b>Definition:</b> dbCommon.h:38</div></div>
-<div class="ttc" id="anamespacedb__services_html_a9fe7980487caefbd3bc7f182937c7e7a"><div class="ttname"><a href="namespacedb__services.html#a9fe7980487caefbd3bc7f182937c7e7a">db_services::checkConnection</a></div><div class="ttdeci">bool checkConnection(const conPtr &amp;conn)</div><div class="ttdef"><b>Definition:</b> dbCommon.cpp:309</div></div>
+<div class="ttc" id="anamespacedb__services_html_a9fe7980487caefbd3bc7f182937c7e7a"><div class="ttname"><a href="namespacedb__services.html#a9fe7980487caefbd3bc7f182937c7e7a">db_services::checkConnection</a></div><div class="ttdeci">bool checkConnection(const conPtr &amp;conn)</div><div class="ttdef"><b>Definition:</b> dbCommon.cpp:306</div></div>
 <div class="ttc" id="anamespacedb__services_html_ab1bb353ffce99d26f3669e391f5d0148"><div class="ttname"><a href="namespacedb__services.html#ab1bb353ffce99d26f3669e391f5d0148">db_services::diconnect</a></div><div class="ttdeci">void diconnect(conPtr &amp;conn)</div><div class="ttdef"><b>Definition:</b> dbManager.cpp:4</div></div>
-<div class="ttc" id="anamespacedb__services_html_ad04dd18b9ca72e30cd8df041d87806f3"><div class="ttname"><a href="namespacedb__services.html#ad04dd18b9ca72e30cd8df041d87806f3">db_services::executeInTransaction</a></div><div class="ttdeci">tl::expected&lt; ResultType, int &gt; executeInTransaction(conPtr &amp;conn_, ResultType(*call)(trasnactionType &amp;, Args ...), Args &amp;&amp;... args)</div><div class="ttdef"><b>Definition:</b> dbCommon.h:135</div></div>
+<div class="ttc" id="anamespacedb__services_html_ad04dd18b9ca72e30cd8df041d87806f3"><div class="ttname"><a href="namespacedb__services.html#ad04dd18b9ca72e30cd8df041d87806f3">db_services::executeInTransaction</a></div><div class="ttdeci">tl::expected&lt; ResultType, int &gt; executeInTransaction(conPtr &amp;conn_, ResultType(*call)(trasnactionType &amp;, Args ...), Args &amp;&amp;... args)</div><div class="ttdef"><b>Definition:</b> dbCommon.h:246</div></div>
 <div class="ttc" id="anamespacedb__services_html_adf155525fda8c3a3d13125f19621e940"><div class="ttname"><a href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">db_services::conPtr</a></div><div class="ttdeci">std::shared_ptr&lt; connectionType &gt; conPtr</div><div class="ttdef"><b>Definition:</b> dbCommon.h:37</div></div>
 <div class="ttc" id="anamespacehash__utils_html"><div class="ttname"><a href="namespacehash__utils.html">hash_utils</a></div><div class="ttdoc">hash utils namespace</div><div class="ttdef"><b>Definition:</b> HashUtils.h:19</div></div>
 <div class="ttc" id="anamespacehash__utils_html_a216823b30a021fd079ff87a98180c850"><div class="ttname"><a href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850">hash_utils::hash_function</a></div><div class="ttdeci">hash_function</div><div class="ttdef"><b>Definition:</b> HashUtils.h:28</div></div>
 <div class="ttc" id="anamespacehash__utils_html_a216823b30a021fd079ff87a98180c850aad16be9b1bd1871b5885ef0e25e7c5d4"><div class="ttname"><a href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850aad16be9b1bd1871b5885ef0e25e7c5d4">hash_utils::SHA_256</a></div><div class="ttdeci">@ SHA_256</div><div class="ttdef"><b>Definition:</b> HashUtils.h:30</div></div>
-<div class="ttc" id="anamespacemyConcepts_html_a6f393c660a9cb9085840169fbe414067a0d2172a6765f9239f68398574680ad3a"><div class="ttname"><a href="namespacemyConcepts.html#a6f393c660a9cb9085840169fbe414067a0d2172a6765f9239f68398574680ad3a">myConcepts::ErrorOccured</a></div><div class="ttdeci">@ ErrorOccured</div><div class="ttdef"><b>Definition:</b> myConcepts.h:40</div></div>
-<div class="ttc" id="anamespacemyConcepts_html_a6f393c660a9cb9085840169fbe414067aad67b0e8f2bf5d1042e0ead8fe1c0022"><div class="ttname"><a href="namespacemyConcepts.html#a6f393c660a9cb9085840169fbe414067aad67b0e8f2bf5d1042e0ead8fe1c0022">myConcepts::ReturnSucess</a></div><div class="ttdeci">@ ReturnSucess</div><div class="ttdef"><b>Definition:</b> myConcepts.h:41</div></div>
-<div class="ttc" id="anamespacemyConcepts_html_ad93e6cb79879ffc74827ce89525312a1"><div class="ttname"><a href="namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1">myConcepts::vformat</a></div><div class="ttdeci">std::string vformat(const char *zcFormat,...)</div><div class="ttdef"><b>Definition:</b> myConcepts.cpp:11</div></div>
-<div class="ttc" id="anamespacemyConcepts_html_ae72de881a1ad98ddc74f41b2e87736d4"><div class="ttname"><a href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4">myConcepts::paramType</a></div><div class="ttdeci">paramType</div><div class="ttdef"><b>Definition:</b> myConcepts.h:47</div></div>
-<div class="ttc" id="anamespacemyConcepts_html_ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc"><div class="ttname"><a href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc">myConcepts::EmptyParameterValue</a></div><div class="ttdeci">@ EmptyParameterValue</div><div class="ttdef"><b>Definition:</b> myConcepts.h:48</div></div>
+<div class="ttc" id="anamespacemyConcepts_html_ae72de881a1ad98ddc74f41b2e87736d4"><div class="ttname"><a href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4">myConcepts::paramType</a></div><div class="ttdeci">paramType</div><div class="ttdef"><b>Definition:</b> myConcepts.h:57</div></div>
+<div class="ttc" id="anamespacemyConcepts_html_ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc"><div class="ttname"><a href="namespacemyConcepts.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc">myConcepts::EmptyParameterValue</a></div><div class="ttdeci">@ EmptyParameterValue</div><div class="ttdef"><b>Definition:</b> myConcepts.h:58</div></div>
 <div class="ttc" id="anamespacemyConcepts_html_af2617c8f7a5d88b30bc1b03827868a39"><div class="ttname"><a href="namespacemyConcepts.html#af2617c8f7a5d88b30bc1b03827868a39">myConcepts::gClk</a></div><div class="ttdeci">clockType gClk</div><div class="ttdef"><b>Definition:</b> myConcepts.cpp:9</div></div>
-<div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdef"><b>Definition:</b> myConnString.h:12</div></div>
+<div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdef"><b>Definition:</b> myConnString.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

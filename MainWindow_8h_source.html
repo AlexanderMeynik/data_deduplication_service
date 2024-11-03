@@ -124,64 +124,61 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keyword">using namespace </span><a class="code" href="namespacecommon.html">common</a>;</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">using namespace </span><a class="code" href="namespacemodels.html">models</a>;</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
-<div class="line"><a name="l00040"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html">   40</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a> : <span class="keyword">public</span> QMainWindow {</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    Q_OBJECT</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keyword">explicit</span> <a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a>(QWidget *parent = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        ~<a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html">   43</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a> : <span class="keyword">public</span> QMainWindow {</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    Q_OBJECT</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        <span class="keyword">explicit</span> <a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a>(QWidget *parent = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        <span class="keywordtype">void</span> readConfiguration();</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        <span class="keywordtype">void</span> resizeEvent(QResizeEvent *event) <span class="keyword">override</span>;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    signals:</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
-<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#a5b58584c834ab0d1fa0c843b7d0aa312">   54</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classwindows_1_1MainWindow.html#a5b58584c834ab0d1fa0c843b7d0aa312">connectionChanged</a>(<span class="keywordtype">bool</span> old);</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#a2d461df076c518375b048c7d813249c1">   56</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classwindows_1_1MainWindow.html#a2d461df076c518375b048c7d813249c1">modelUpdate</a>();</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#a9024c1cc8ee5c76314962aa0aa8e355f">   58</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classwindows_1_1MainWindow.html#a9024c1cc8ee5c76314962aa0aa8e355f">closed</a>();</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keyword">private</span> slots:</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        <span class="keywordtype">void</span> activateButtonsd();</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <span class="keywordtype">void</span> onImport();</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <span class="keywordtype">void</span> onExport();</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <span class="keywordtype">void</span> onDelete();</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <span class="keywordtype">void</span> onSettings();</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        <span class="keywordtype">void</span> onloadDatabase();</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <span class="keywordtype">void</span> onConnectionChanged(<span class="keywordtype">bool</span> old);</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <span class="keywordtype">void</span> updateModel();</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <span class="keywordtype">void</span> updateLEDS(QModelIndex &amp;idx);</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keywordtype">void</span> resetLeds(<span class="keywordtype">int</span> i);</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <span class="keywordtype">void</span> calculateCoefficient()</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        {</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;            <span class="keywordtype">double</span> res= fileService.getCoefficient().value_or(0);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;            uniquePercentage-&gt;display(<a class="code" href="namespacecommon.html#a3f93b62f96606d387686d74f01e566f1">smartCeil</a>(res,2));</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        }</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        ~<a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        <span class="keywordtype">void</span> readConfiguration();</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        <span class="keywordtype">void</span> resizeEvent(QResizeEvent *event) <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    signals:</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#a5b58584c834ab0d1fa0c843b7d0aa312">   57</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classwindows_1_1MainWindow.html#a5b58584c834ab0d1fa0c843b7d0aa312">connectionChanged</a>(<span class="keywordtype">bool</span> old);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#a2d461df076c518375b048c7d813249c1">   59</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classwindows_1_1MainWindow.html#a2d461df076c518375b048c7d813249c1">modelUpdate</a>();</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#a9024c1cc8ee5c76314962aa0aa8e355f">   61</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classwindows_1_1MainWindow.html#a9024c1cc8ee5c76314962aa0aa8e355f">closed</a>();</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">private</span> slots:</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keywordtype">void</span> activateButtonsd();</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        <span class="keywordtype">void</span> onImport();</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keywordtype">void</span> onExport();</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordtype">void</span> onDelete();</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        <span class="keywordtype">void</span> onSettings();</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160; </div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        <span class="keywordtype">void</span> onloadDatabase();</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        <span class="keywordtype">void</span> onConnectionChanged(<span class="keywordtype">bool</span> old);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        <span class="keywordtype">void</span> updateModel();</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <span class="keywordtype">void</span> updateLEDS(QModelIndex &amp;idx);</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        <span class="keywordtype">void</span> resetLeds(<span class="keywordtype">int</span> i);</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="keywordtype">void</span> calculateCoefficient();</div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keyword">private</span>:</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="namespacecommon.html#a1855a9447cb66c17609a43d3fb676ca5">writeLog</a>(<span class="keyword">const</span> QString &amp;qss, <a class="code" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">LogLevel</a> lg = <a class="code" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a">INFO</a>) {</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <a class="code" href="namespacecommon.html#a1855a9447cb66c17609a43d3fb676ca5">common::writeLog</a>(logTextField, qss, lg);</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">writeLog</a>(<span class="keyword">const</span> QString &amp;qss, <a class="code" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">LogLevel</a> lg = <a class="code" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a">INFO</a>) {</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <a class="code" href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">common::writeLog</a>(logTextField, qss, lg);</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        }</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        QAction *settingsAction;</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        FileLineEditWithOption *inputFileLEWO;</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        FileLineEditWithOption *outputFileLEWO;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        <a class="code" href="classwindows_1_1FileLineEditWithOption.html">FileLineEditWithOption</a> *inputFileLEWO;</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <a class="code" href="classwindows_1_1FileLineEditWithOption.html">FileLineEditWithOption</a> *outputFileLEWO;</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        QLineEdit *fileExportLE;</div>
@@ -246,7 +243,7 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
 <div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;        <a class="code" href="classQLedIndicator.html">QLedIndicator</a> *qled;</div>
 <div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        SettingsWindow *settingsWindow;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        <a class="code" href="classwindows_1_1SettingsWindow.html">SettingsWindow</a> *settingsWindow;</div>
 <div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
 <div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <a class="code" href="classmodels_1_1DeduplicationCharacteristicsModel.html">DeduplicationCharacteristicsModel</a> *myViewModel;</div>
 <div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;        <a class="code" href="classmodels_1_1MySortFilterProxyModel.html">MySortFilterProxyModel</a> *proxyModel;</div>
@@ -285,19 +282,20 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="ttc" id="aclassmodels_1_1DeselectableTableView_html"><div class="ttname"><a href="classmodels_1_1DeselectableTableView.html">models::DeselectableTableView</a></div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:261</div></div>
 <div class="ttc" id="aclassmodels_1_1MySortFilterProxyModel_html"><div class="ttname"><a href="classmodels_1_1MySortFilterProxyModel.html">models::MySortFilterProxyModel</a></div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:220</div></div>
 <div class="ttc" id="aclassmodels_1_1NotNullFilterProxyModel_html"><div class="ttname"><a href="classmodels_1_1NotNullFilterProxyModel.html">models::NotNullFilterProxyModel</a></div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:240</div></div>
-<div class="ttc" id="aclasswindows_1_1MainWindow_html"><div class="ttname"><a href="classwindows_1_1MainWindow.html">windows::MainWindow</a></div><div class="ttdef"><b>Definition:</b> MainWindow.h:40</div></div>
+<div class="ttc" id="aclasswindows_1_1FileLineEditWithOption_html"><div class="ttname"><a href="classwindows_1_1FileLineEditWithOption.html">windows::FileLineEditWithOption</a></div><div class="ttdef"><b>Definition:</b> FileLineEdit.h:72</div></div>
+<div class="ttc" id="aclasswindows_1_1MainWindow_html"><div class="ttname"><a href="classwindows_1_1MainWindow.html">windows::MainWindow</a></div><div class="ttdef"><b>Definition:</b> MainWindow.h:43</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html_a2d461df076c518375b048c7d813249c1"><div class="ttname"><a href="classwindows_1_1MainWindow.html#a2d461df076c518375b048c7d813249c1">windows::MainWindow::modelUpdate</a></div><div class="ttdeci">void modelUpdate()</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html_a5b58584c834ab0d1fa0c843b7d0aa312"><div class="ttname"><a href="classwindows_1_1MainWindow.html#a5b58584c834ab0d1fa0c843b7d0aa312">windows::MainWindow::connectionChanged</a></div><div class="ttdeci">void connectionChanged(bool old)</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html_a9024c1cc8ee5c76314962aa0aa8e355f"><div class="ttname"><a href="classwindows_1_1MainWindow.html#a9024c1cc8ee5c76314962aa0aa8e355f">windows::MainWindow::closed</a></div><div class="ttdeci">void closed()</div></div>
+<div class="ttc" id="aclasswindows_1_1SettingsWindow_html"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html">windows::SettingsWindow</a></div><div class="ttdef"><b>Definition:</b> SettingsWindow.h:23</div></div>
 <div class="ttc" id="ainclude_2common_8h_html"><div class="ttname"><a href="include_2common_8h.html">common.h</a></div></div>
 <div class="ttc" id="anamespacecommon_html"><div class="ttname"><a href="namespacecommon.html">common</a></div><div class="ttdef"><b>Definition:</b> common.cpp:3</div></div>
-<div class="ttc" id="anamespacecommon_html_a1855a9447cb66c17609a43d3fb676ca5"><div class="ttname"><a href="namespacecommon.html#a1855a9447cb66c17609a43d3fb676ca5">common::writeLog</a></div><div class="ttdeci">void writeLog(QTextEdit *logTextField, const QString &amp;qss, LogLevel lg)</div><div class="ttdef"><b>Definition:</b> common.cpp:24</div></div>
-<div class="ttc" id="anamespacecommon_html_a3f93b62f96606d387686d74f01e566f1"><div class="ttname"><a href="namespacecommon.html#a3f93b62f96606d387686d74f01e566f1">common::smartCeil</a></div><div class="ttdeci">double smartCeil(double vaL, uint num)</div><div class="ttdef"><b>Definition:</b> common.cpp:33</div></div>
-<div class="ttc" id="anamespacecommon_html_aa3dd8c5983888f4c0199cf0bb2a73b2a"><div class="ttname"><a href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">common::LogLevel</a></div><div class="ttdeci">LogLevel</div><div class="ttdef"><b>Definition:</b> common.h:16</div></div>
-<div class="ttc" id="anamespacecommon_html_aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a"><div class="ttname"><a href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a">common::INFO</a></div><div class="ttdeci">@ INFO</div><div class="ttdef"><b>Definition:</b> common.h:17</div></div>
+<div class="ttc" id="anamespacecommon_html_a0ed93bde77b6d80a62d305571a78d6b2"><div class="ttname"><a href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">common::writeLog</a></div><div class="ttdeci">void writeLog(QTextEdit *logTextField, const QString &amp;qLogMessage, LogLevel lg)</div><div class="ttdef"><b>Definition:</b> common.cpp:24</div></div>
+<div class="ttc" id="anamespacecommon_html_aa3dd8c5983888f4c0199cf0bb2a73b2a"><div class="ttname"><a href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">common::LogLevel</a></div><div class="ttdeci">LogLevel</div><div class="ttdef"><b>Definition:</b> common.h:25</div></div>
+<div class="ttc" id="anamespacecommon_html_aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a"><div class="ttname"><a href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a">common::INFO</a></div><div class="ttdeci">@ INFO</div><div class="ttdef"><b>Definition:</b> common.h:26</div></div>
 <div class="ttc" id="anamespacemodels_html"><div class="ttname"><a href="namespacemodels.html">models</a></div><div class="ttdoc">models namespace</div><div class="ttdef"><b>Definition:</b> MyPqxxModel.cpp:3</div></div>
 <div class="ttc" id="anamespacewindows_html"><div class="ttname"><a href="namespacewindows.html">windows</a></div><div class="ttdoc">windows namespace</div><div class="ttdef"><b>Definition:</b> FileLineEdit.cpp:5</div></div>
-<div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdef"><b>Definition:</b> myConnString.h:12</div></div>
+<div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdef"><b>Definition:</b> myConnString.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

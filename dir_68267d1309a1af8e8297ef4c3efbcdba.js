@@ -1,6 +1,5 @@
 var dir_68267d1309a1af8e8297ef4c3efbcdba =
 [
-    [ "exampl", "dir_cfaf400b4913aa5a0083968c25b682ae.html", "dir_cfaf400b4913aa5a0083968c25b682ae" ],
     [ "common.cpp", "common_8cpp.html", "common_8cpp" ],
     [ "common.h", "src_2common_8h.html", "src_2common_8h" ],
     [ "FileLineEdit.cpp", "FileLineEdit_8cpp.html", null ],

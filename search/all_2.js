@@ -26,7 +26,7 @@ var searchData=
   ['common_25',['common',['../namespacecommon.html',1,'']]],
   ['common_2ecpp_26',['common.cpp',['../common_8cpp.html',1,'']]],
   ['common_2eh_27',['common.h',['../include_2common_8h.html',1,'(Global Namespace)'],['../src_2common_8h.html',1,'(Global Namespace)']]],
-  ['comparearraa_28',['compareArraa',['../namespacefile__services.html#aa05465f39cef66f898b4086d37764b92',1,'file_services']]],
+  ['compareblock_28',['compareBlock',['../namespacefile__services.html#a8ce03b8e5e33f176ad1ca26396e8e2e1',1,'file_services']]],
   ['comparedirectories_29',['compareDirectories',['../namespacefile__services.html#a0c678a6261a158ce59ead0d397033c1c',1,'file_services']]],
   ['comparefiles_30',['compareFiles',['../namespacefile__services.html#ab57b0d162b8046b255ed86b2d3e2003f',1,'file_services']]],
   ['connectifpossible_31',['connectIfPossible',['../namespacedb__services.html#a3ed5f09241d8c17c75033957ab8eeaaf',1,'db_services']]],

@@ -110,8 +110,8 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1855a9447cb66c17609a43d3fb676ca5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecommon.html#a1855a9447cb66c17609a43d3fb676ca5">writeLog</a> (QTextEdit *logTextField, const QString &amp;qss, <a class="el" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">LogLevel</a> lg)</td></tr>
-<tr class="separator:a1855a9447cb66c17609a43d3fb676ca5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ed93bde77b6d80a62d305571a78d6b2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">writeLog</a> (QTextEdit *logTextField, const QString &amp;qLogMessage, <a class="el" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">LogLevel</a> lg)</td></tr>
+<tr class="separator:a0ed93bde77b6d80a62d305571a78d6b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0fec0ce854518b69f5af00164db319c3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecommon.html#a0fec0ce854518b69f5af00164db319c3">isDirName</a> (const QString &amp;path)</td></tr>
 <tr class="separator:a0fec0ce854518b69f5af00164db319c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f93b62f96606d387686d74f01e566f1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecommon.html#a3f93b62f96606d387686d74f01e566f1">smartCeil</a> (double vaL, uint num)</td></tr>
@@ -136,6 +136,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Typedef for load directory </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="classfile__services_1_1FileService.html#a83c28d9b76cf7bccbf814e54fe12f670">loadDirectory</a> </dd></dl>
 
 </div>
 </div>
@@ -150,6 +151,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Typedef for load directory </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="classfile__services_1_1FileService.html#afef873929280bf5c748e03a8af1e04f6">loadFile</a> </dd></dl>
 
 </div>
 </div>
@@ -165,6 +167,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Log level enum </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a"></a>INFO&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="aa3dd8c5983888f4c0199cf0bb2a73b2aa80b74571ace8d65a34eeeccfa278e9e1"></a>WARNING&#160;</td><td class="fielddoc"></td></tr>
@@ -190,6 +193,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Check that path is directory path with regex </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -218,11 +227,18 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns value rounded up to num symbols after , </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vaL</td><td></td></tr>
+    <tr><td class="paramname">num</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a id="a1855a9447cb66c17609a43d3fb676ca5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1855a9447cb66c17609a43d3fb676ca5">&#9670;&nbsp;</a></span>writeLog()</h2>
+<a id="a0ed93bde77b6d80a62d305571a78d6b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ed93bde77b6d80a62d305571a78d6b2">&#9670;&nbsp;</a></span>writeLog()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -237,13 +253,13 @@ Variables</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const QString &amp;&#160;</td>
-          <td class="paramname"><em>qss</em>, </td>
+          <td class="paramname"><em>qLogMessage</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">LogLevel</a>&#160;</td>
-          <td class="paramname"><em>lg</em>&#160;</td>
+          <td class="paramname"><em>lg</em> = <code><a class="el" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa98b27b9e2f454dbc3aafafbd06b9d224">RESULT</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -252,6 +268,14 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes formated log message to logTextField </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">logTextField</td><td></td></tr>
+    <tr><td class="paramname">qLogMessage</td><td></td></tr>
+    <tr><td class="paramname">lg</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
