@@ -74,7 +74,7 @@ namespace file_services {
         }
     }
 
-    tl::expected<std::array<size_t, 5>, int> FileService::getDataD() {
+    tl::expected<std::array<int, 5>, int> FileService::getDataD() {
         try {
             std::function < resType(trasnactionType & ) > ff = [](trasnactionType &txn) {
 
@@ -92,13 +92,13 @@ namespace file_services {
             {
                 return tl::unexpected{ErrorOccured};
             }
-            std::array<size_t, 5> rr{};
+            std::array<int, 5> rr{};
 
             for (int i = 0; i < res->columns(); ++i) {
                 rr[i]=res.value()[0][i].as<size_t>();
             }
 
-            return tl::expected<std::array<size_t, 5>,int>{rr};
+            return tl::expected<std::array<int, 5>,int>{rr};
         }
         catch (std::exception&ex)
         {

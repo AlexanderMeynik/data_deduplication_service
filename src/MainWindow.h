@@ -153,6 +153,7 @@ namespace windows {
         QLCDNumber *totalBlocksLCD;
         QLCDNumber * checkTimeLCD;
         QLCDNumber * uniquePercentage;
+        QLCDNumber *deduplicationPercentage;
         QList<QLCDNumber *> list;
 
 

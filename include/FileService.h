@@ -90,7 +90,7 @@ namespace file_services {
         /**
          * Gets database sizes statistics
          */
-        tl::expected<std::array<size_t ,5>,int> getDataD();
+        tl::expected<std::array<int, 5>, int> getDataD();
 
         /**
          * Retrieves directory from database to to_dir

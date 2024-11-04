@@ -188,6 +188,7 @@ namespace windows {
         dataToOriginalPercentageLCD = new QLCDNumber(this);
         totalRepetitionPercentageLCD = new QLCDNumber(this);
         uniquePercentage = new QLCDNumber(this);
+        deduplicationPercentage=new QLCDNumber(this);
 
 
         fileDataSizeLCD->setDigitCount(8);
@@ -197,6 +198,10 @@ namespace windows {
         dataToOriginalPercentageLCD->setDigitCount(5);
         totalRepetitionPercentageLCD->setDigitCount(5);
         uniquePercentage->setDigitCount(5);
+        deduplicationPercentage->setDigitCount(5);
+
+        uniquePercentage->setToolTip("(unique seggemnt count/total segemnt count) * 100");
+        deduplicationPercentage->setToolTip("(original data size/deduplicated data size) * 100");
 
         importTimeLCD = new QLCDNumber(this);
         replaceFileCB = new QCheckBox();
@@ -210,28 +215,34 @@ namespace windows {
         incudeOptionLay->addWidget(new QLabel("Replace files", this), 0, 0, 1, 1);
         incudeOptionLay->addWidget(replaceFileCB, 0, 1, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("Unique segments percentage", this), 0, 2, 1, 2);
-        incudeOptionLay->addWidget(uniquePercentage, 0, 4, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("%", this), 0, 5, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Segment size", this), 1, 0, 1, 1);
+        incudeOptionLay->addWidget(segmentSizeLCD, 1, 1, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("Load time (ms)", this), 1, 0, 1, 1);
-        incudeOptionLay->addWidget(importTimeLCD, 1, 1, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("Segment size", this), 1, 2, 1, 1);
-        incudeOptionLay->addWidget(segmentSizeLCD, 1, 3, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Deduplication percentage", this), 1, 2, 1, 2);
+        incudeOptionLay->addWidget(deduplicationPercentage,1, 4, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("%", this), 1, 5, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("File data size", this), 2, 0, 1, 1);
-        incudeOptionLay->addWidget(fileDataSizeLCD, 2, 1, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("Total file size", this), 2, 2, 1, 1);
-        incudeOptionLay->addWidget(totalSizeLCD, 2, 3, 1, 1);
-        incudeOptionLay->addWidget(dataToOriginalPercentageLCD, 2, 4, 1, 1);
+
+        incudeOptionLay->addWidget(new QLabel("Load time (ms)", this), 2, 0, 1, 1);
+        incudeOptionLay->addWidget(importTimeLCD, 2, 1, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Unique segments percentage", this), 2, 2, 1, 2);
+        incudeOptionLay->addWidget(uniquePercentage,2, 4, 1, 1);
         incudeOptionLay->addWidget(new QLabel("%", this), 2, 5, 1, 1);
 
-        incudeOptionLay->addWidget(new QLabel("Files segment count", this), 3, 0, 1, 1);
-        incudeOptionLay->addWidget(fileSegmentLCD, 3, 1, 1, 1);
-        incudeOptionLay->addWidget(new QLabel("Unique segment count", this), 3, 2, 1, 1);
-        incudeOptionLay->addWidget(totalRepeatedBlocksLCD, 3, 3, 1, 1);
-        incudeOptionLay->addWidget(totalRepetitionPercentageLCD, 3, 4, 1, 1);
+
+        incudeOptionLay->addWidget(new QLabel("File data size", this), 3, 0, 1, 1);
+        incudeOptionLay->addWidget(fileDataSizeLCD, 3, 1, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Total file size", this), 3, 2, 1, 1);
+        incudeOptionLay->addWidget(totalSizeLCD, 3, 3, 1, 1);
+        incudeOptionLay->addWidget(dataToOriginalPercentageLCD, 3, 4, 1, 1);
         incudeOptionLay->addWidget(new QLabel("%", this), 3, 5, 1, 1);
+
+        incudeOptionLay->addWidget(new QLabel("Files segment count", this), 4, 0, 1, 1);
+        incudeOptionLay->addWidget(fileSegmentLCD, 4, 1, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("Unique segment count", this), 4, 2, 1, 1);
+        incudeOptionLay->addWidget(totalRepeatedBlocksLCD, 4, 3, 1, 1);
+        incudeOptionLay->addWidget(totalRepetitionPercentageLCD, 4, 4, 1, 1);
+        incudeOptionLay->addWidget(new QLabel("%", this), 4, 5, 1, 1);
 
 
         deleteFilesCB = new QCheckBox();
@@ -342,7 +353,7 @@ namespace windows {
 
         list = {fileDataSizeLCD, segmentSizeLCD, totalSizeLCD, fileSegmentLCD, totalRepeatedBlocksLCD,
                 dataToOriginalPercentageLCD, totalRepetitionPercentageLCD, importTimeLCD, exportTimeLCD,
-                errorCountLCD, deleteTimeLCD, totalBlocksLCD, checkTimeLCD, uniquePercentage};
+                errorCountLCD, deleteTimeLCD, totalBlocksLCD, checkTimeLCD, uniquePercentage,deduplicationPercentage};
 
         for (auto *elem: list) {
             elem->setSegmentStyle(QLCDNumber::Flat);
@@ -578,6 +589,7 @@ namespace windows {
                 myViewModel->Reset();
             }
             uniquePercentage->display(0);
+            deduplicationPercentage->display(0);
             writeLog("Unable to connect", WARNING);
         } else {
             auto dbName = dataseNameLE->text().toStdString();
@@ -678,6 +690,14 @@ namespace windows {
 
     void MainWindow::calculateCoefficient() {
         double res= fileService.getCoefficient().value_or(0);
+
+        auto array =fileService.getDataD().value_or(std::array<int,5>{-1, -1, -1, -1, -1});
+        double coef=smartCeil((array[0]*100.0)/((array[1]+array[2])),2);
+        if(std::any_of(array.begin(), array.end(), [](auto&elem){return elem==-1;}))
+        {
+            coef=0;
+        }
         uniquePercentage->display(smartCeil(res,2));
+        deduplicationPercentage->display(coef);
     }
 }
