@@ -4,11 +4,11 @@
 
 class ClockArrayTest : public ::testing::Test {
 protected:
-    chronoClockTemplate<durType> clk;
+    chronoClockTemplate<ratio> clk;
 };
 
 TEST_F(ClockArrayTest, simple_linear_calculation) {
-    durType dd{14};
+    durationType dd{14};
     auto key = clk.tikLoc();
     SLEEP(dd);
     clk.tak();
@@ -16,8 +16,8 @@ TEST_F(ClockArrayTest, simple_linear_calculation) {
 }
 
 TEST_F(ClockArrayTest, inlined_clocks) {
-    durType dd{20};
-    durType dd2{5};
+    durationType dd{20};
+    durationType dd2{5};
     auto key1 = clk.tikLoc();
 
     locationType key2;
@@ -34,7 +34,7 @@ TEST_F(ClockArrayTest, inlined_clocks) {
 
 
 TEST_F(ClockArrayTest, loop_clock) {
-    durType dd{20};
+    durationType dd{20};
     constexpr size_t loop_count = 10;
     locationType key;
     for (int i = 0; i < loop_count; ++i) {
@@ -46,9 +46,9 @@ TEST_F(ClockArrayTest, loop_clock) {
 }
 
 TEST_F(ClockArrayTest, subsequent_section_clock) {
-    durType dd{20};
-    durType dd2{60};
-    durType dd3{12};
+    durationType dd{20};
+    durationType dd2{60};
+    durationType dd3{12};
     auto pair = clk.tikPair();
     locationType key = pair.second;
     SLEEP(dd);
@@ -65,7 +65,7 @@ TEST_F(ClockArrayTest, subsequent_section_clock) {
 
 
 TEST_F(ClockArrayTest, lambda_function_call) {
-    durType dd{20};
+    durationType dd{20};
 
     locationType key = clk.tikLoc();
 

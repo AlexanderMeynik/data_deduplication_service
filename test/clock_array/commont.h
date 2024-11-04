@@ -14,8 +14,8 @@ using namespace std::chrono_literals;
 #define ASSERT_HISTORY_EQ(index, function) ASSERT_EQ(fff.call_history[index],(void *)function);
 #define COMMA ,
 
-using durType = std::chrono::duration<int64_t, std::milli>;
-
+using ratio = std::milli;
+using durationType = std::chrono::duration<int64_t, ratio>;
 static constexpr double absErr = 1e-2;
 static constexpr double relErr = 1;
 

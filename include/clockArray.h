@@ -33,7 +33,7 @@ struct ::std::hash<std::array<std::string, N>> {
 
 
 template<typename T, size_t sz>
-requires std::is_convertible_v<T, std::string>
+requires std::is_floating_point_v<T> or std::is_integral_v<T>
 std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr);
 
 
@@ -60,9 +60,10 @@ namespace timing {
         return false;
     };
 
-    template<typename T, typename T2, T2(*timeGetter)(), locationType (*src_to_loc_type)(
+    template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
             std::source_location location),
-            T(*double_cast)(T2 curr, T2 prev)> requires std::is_floating_point_v<T>
+            OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
+                                                                       or std::is_integral_v<OutType>
     class clockArray;
 
 
@@ -82,18 +83,22 @@ namespace timing {
      * @param prev
      * @return
      */
-    template<typename to_dur = std::chrono::nanoseconds, typename doubleType>
+    template<typename to_dur = std::milli, typename doubleType>
     doubleType doubleCastChrono(timepointType curr, timepointType prev) {
-        return std::chrono::duration_cast<to_dur>(curr - prev).count();
+        std::chrono::duration<doubleType, to_dur> ret =
+                std::chrono::duration_cast<std::chrono::duration<doubleType, to_dur>>(curr - prev);
+        return ret.count();
     }
 
 
     /**
      * @tparam chrono_duration_type
      */
-    template<typename chrono_duration_type>
-    using chronoClockTemplate = timing::clockArray<double, timepointType,
-            &std::chrono::high_resolution_clock::now, &getFileState, &doubleCastChrono<chrono_duration_type>>;
+    template<typename chrono_duration_type=std::milli>
+    using chronoClockTemplate = timing::clockArray<int64_t, timepointType,
+    &std::chrono::high_resolution_clock::now,
+    &getFileState,
+    &doubleCastChrono<chrono_duration_type>>;
 
 
 
@@ -108,6 +113,7 @@ namespace timing {
    template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
            std::source_location location),
            OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
+                   or std::is_integral_v<OutType>
    class clockArray {
    public:
        struct timeStore {
@@ -235,7 +241,7 @@ std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr) {
 namespace timing {
     template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
             std::source_location), OutType (*timeConverter)(inType, inType)>
-    requires std::is_floating_point_v<OutType>void
+    requires std::is_floating_point_v<OutType> or std::is_integral_v<OutType>void
     clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter>::tak(
             const std::source_location &location) {
         const guardType guard{s_mutex};
@@ -260,7 +266,7 @@ namespace timing {
 
     template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
             std::source_location), OutType (*timeConverter)(inType, inType)>
-    requires std::is_floating_point_v<OutType>void
+    requires std::is_floating_point_v<OutType> or std::is_integral_v<OutType>void
     clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter>::tik(
             const std::source_location &location) {
         const guardType guard{s_mutex};
@@ -272,7 +278,7 @@ namespace timing {
 
     template<typename OutType, typename inType, inType (*timeGetter)(), locationType (*sourceTypeConverter)(
             std::source_location), OutType (*timeConverter)(inType, inType)>
-    requires std::is_floating_point_v<OutType>void
+    requires std::is_floating_point_v<OutType> or std::is_integral_v<OutType>void
     clockArray<OutType, inType, timeGetter, sourceTypeConverter, timeConverter>::reset() {
         assert(toTak.empty());
         this->timers.clear();
