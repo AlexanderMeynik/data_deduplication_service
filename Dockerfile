@@ -77,7 +77,7 @@ RUN cd /home/deps && \
     cmake --install .
 
 RUN apt-get update && \
-    apt-get install build-essential && \
+    apt-get install -qqy build-essential  && \
     wget  --no-check-certificate \
      https://github.com/openssl/openssl/releases/download/openssl-3.4.0/openssl-3.4.0.tar.gz && \
     tar -xf openssl-3.4.0.tar.gz openssl-3.4.0/ && \
