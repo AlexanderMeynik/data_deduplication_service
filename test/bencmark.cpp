@@ -7,8 +7,10 @@
 
 
 namespace fs = std::filesystem;
-std::string parent_path = "../../testDirectories/";
-std::string new_dir_prefix = "../../testDirectoriesRes/";
+
+fs::path pparent="../..";
+std::string parent_path = pparent/"testDirectories/";
+std::string new_dir_prefix = pparent/"testDirectoriesRes/";
 std::vector<fs::path> from_dirs = {"images",
                                    "res",
                                    "res"};
