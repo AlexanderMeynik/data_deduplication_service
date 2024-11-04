@@ -1,5 +1,5 @@
 deduplication
 testuser
 password
-localhost
-5501
+postgres
+5432
