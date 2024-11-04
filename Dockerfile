@@ -76,7 +76,9 @@ RUN cd /home/deps && \
       -DCMAKE_CXX_COMPILER:PATH="/usr/bin/clang++" .. || true && \
     cmake --install .
 
-RUN wget  --no-check-certificate \
+RUN apt-get update && \
+    apt-get install build-essential && \
+    wget  --no-check-certificate \
      https://github.com/openssl/openssl/releases/download/openssl-3.4.0/openssl-3.4.0.tar.gz && \
     tar -xf openssl-3.4.0.tar.gz openssl-3.4.0/ && \
     cd openssl-3.4.0 && \
