@@ -79,6 +79,7 @@ RUN cd /home/deps && \
 RUN wget  --no-check-certificate \
      https://github.com/openssl/openssl/releases/download/openssl-3.4.0/openssl-3.4.0.tar.gz && \
     tar -xf openssl-3.4.0.tar.gz openssl-3.4.0/ && \
+    cd openssl-3.4.0 && \
     ./Configure enable-md2 --prefix=/opt/openssl-md2 && \
     make -j$(nproc) && \
     make install
