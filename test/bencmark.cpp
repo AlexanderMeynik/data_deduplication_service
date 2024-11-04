@@ -15,7 +15,7 @@ std::vector<fs::path> from_dirs = {"images",
                                    "res",
                                    "res"};
 std::vector<fs::path> to_dirs(from_dirs.size(), "");
-constexpr std::array<int,5> indx={0,1,2,3,4};
+constexpr std::array<int,7> indx= {0,1,2,3,4,5,6};
 constexpr std::array<int,10> multipliers={2,4,8,16,64,256,512,1024,2048,4096};
 std::filesystem::path dir("becnhmarkData");
 

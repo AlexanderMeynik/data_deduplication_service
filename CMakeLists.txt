@@ -17,10 +17,12 @@ add_subdirectory(test)
 
 find_package(libpqxx REQUIRED)
 find_package(glog 0.7.1 REQUIRED)
-find_package(OpenSSL REQUIRED)
 
 
-
+add_library( ssl  SHARED IMPORTED )
+set_target_properties( ssl  PROPERTIES IMPORTED_LOCATION /opt/openssl-md2/lib64/libssl.a)
+add_library( crypto SHARED IMPORTED )
+set_target_properties( crypto PROPERTIES IMPORTED_LOCATION /opt/openssl-md2/lib64/libcrypto.a)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -29,7 +31,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include_directories(include)
 
 add_library(commonLibrary lib/myConcepts.cpp lib/clockArray.cpp lib/HashUtils.cpp)
-target_link_libraries(commonLibrary glog::glog OpenSSL::SSL -lcrypto)
+target_link_libraries(commonLibrary glog::glog  ssl crypto )
+target_include_directories(commonLibrary BEFORE PRIVATE /opt/openssl-md2/include)
 
 add_library(dbUtilsLib lib/dbManager.cpp lib/dbCommon.cpp)
 target_link_libraries(dbUtilsLib pqxx pq commonLibrary)

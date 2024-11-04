@@ -3,7 +3,6 @@
 #ifndef DATA_DEDUPLICATION_SERVICE_HASHUTILS_H
 #define DATA_DEDUPLICATION_SERVICE_HASHUTILS_H
 
-
 #include <array>
 #include <string>
 #include <sstream>
@@ -13,14 +12,14 @@
 #include <openssl/core.h>
 #include <openssl/sha.h>
 #include <openssl/md5.h>
+#include <openssl/md4.h>
 #include <openssl/md2.h>
-
 ///hash utils namespace
 namespace hash_utils {
 
-    constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 5> funcs
+    constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 7> funcs
             = {&SHA224, &SHA256,
-               &MD5, &SHA384, &SHA512};
+               &MD5, &SHA384, &SHA512,&MD4,&MD2};
 
     /**
      * Enum for selected hash function
@@ -30,33 +29,45 @@ namespace hash_utils {
         SHA_256,
         MD_5,
         SHA_384,
-        SHA_512
-
+        SHA_512,
+        MD_4,
+        MD_2
     };
+
+    /**
+     * Generates hash string with specified hash function
+     * @tparam hash
+     * @param stringView
+     */
+    template<hash_function hash = MD_5>
+    std::string getHashStr(std::string_view stringView);
 
     /**
      * Lookup table for hash function size
      */
-    static constexpr std::array<unsigned short, 5> hash_function_size
+    static constexpr std::array<unsigned short, 7> hash_function_size
             {
                     SHA224_DIGEST_LENGTH,
                     SHA256_DIGEST_LENGTH,
                     MD5_DIGEST_LENGTH,
                     SHA384_DIGEST_LENGTH,
-                    SHA512_DIGEST_LENGTH
+                    SHA512_DIGEST_LENGTH,
+                    MD4_DIGEST_LENGTH,
+                    MD2_DIGEST_LENGTH
             };
-
 
     /**
      * Lookup table for hash function name
      */
-    static constexpr std::array<const char *, 5> hash_function_name
+    static constexpr std::array<const char *, 7> hash_function_name
             {
                     "sha224",
                     "sha256",
                     "md5",
                     "sha384",
-                    "sha512"
+                    "sha512",
+                    "md4",
+                    "md2"
             };
 
 
@@ -73,12 +84,8 @@ namespace hash_utils {
      */
     std::string hexToString(std::string_view in);
 
-    /**
-     * Generates hash string with specified hash function
-     * @tparam hash
-     * @param stringView
-     */
-    template<hash_function hash = MD_5>
+
+    template<hash_function hash>
     std::string getHashStr(std::string_view stringView) {
         unsigned char md[hash_function_size[hash]];
         funcs[hash](reinterpret_cast<const unsigned char *>(stringView.data()),

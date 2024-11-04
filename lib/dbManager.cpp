@@ -593,10 +593,7 @@ namespace db_services {
 
             query = "CREATE INDEX if not exists segment_count on public.segments(segment_count); "
                     "CREATE INDEX  if not exists bin_file_id on public.data(file_id); "
-                    /*"create index if not exists hash_index on public.segments(segment_hash);"*/
-                    ""
-                    "create index if not exists gin_f_name ON files USING GIN "
-                    "(to_tsvector('simple',replace(file_name,'_', '/')));";
+                    /*"create index if not exists hash_index on public.segments(segment_hash);"*/;
             txn.exec(query);
             VLOG(2) << "Create indexes for main tables\n";
 

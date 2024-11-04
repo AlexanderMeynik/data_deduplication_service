@@ -60,9 +60,9 @@ namespace db_services {
     resType
     getEntriesForDirectory(trasnactionType &txn, std::string_view dirPath) {
         std::string query = "select * from files "
-                            "where to_tsvector('simple',replace(file_name,'_', '/'))"
-                            "@@ \'%s\' and file_name LIKE \'%s%%\' ;";
-        auto formattedQuery = vformat(query.c_str(), toTsquerablePath(dirPath).c_str(),
+                            "where "
+                            "file_name LIKE \'%s%%\' ;";
+        auto formattedQuery = vformat(query.c_str(),
                                       toSpacedPath(dirPath).c_str());
 
         return txn.exec(formattedQuery);
@@ -149,6 +149,7 @@ namespace db_services {
         std::string res(path.size(), '\0');
         std::transform(path.begin(), path.end(), res.begin(),
                        [](char c) {
+                           std::cout<<c;
                            switch (c) {
                                case ' ':
                                case '/':
@@ -157,8 +158,10 @@ namespace db_services {
                                    return '/';
                                default:
                                    return static_cast<char>(std::tolower(c));
+
                            }
                        });
+        std::cout<<'\t'<<res<<'\n';
         if (res[0] == '&')
             res = res.substr(1);
 
