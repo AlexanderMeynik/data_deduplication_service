@@ -17,9 +17,9 @@
 ///hash utils namespace
 namespace hash_utils {
 
-    constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 7> funcs
+    constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 6> funcs
             = {&SHA224, &SHA256,
-               &MD5, &SHA384, &SHA512,&MD4,&MD2};
+               &MD5, &SHA384, &SHA512,&MD4/*,&MD2*/};
 
     /**
      * Enum for selected hash function
@@ -30,8 +30,8 @@ namespace hash_utils {
         MD_5,
         SHA_384,
         SHA_512,
-        MD_4,
-        MD_2
+        MD_4/*,
+        MD_2*/
     };
 
     /**
@@ -45,29 +45,29 @@ namespace hash_utils {
     /**
      * Lookup table for hash function size
      */
-    static constexpr std::array<unsigned short, 7> hash_function_size
+    static constexpr std::array<unsigned short, 6> hash_function_size
             {
                     SHA224_DIGEST_LENGTH,
                     SHA256_DIGEST_LENGTH,
                     MD5_DIGEST_LENGTH,
                     SHA384_DIGEST_LENGTH,
                     SHA512_DIGEST_LENGTH,
-                    MD4_DIGEST_LENGTH,
-                    MD2_DIGEST_LENGTH
+                    MD4_DIGEST_LENGTH/*,
+                    MD2_DIGEST_LENGTH*/
             };
 
     /**
      * Lookup table for hash function name
      */
-    static constexpr std::array<const char *, 7> hash_function_name
+    static constexpr std::array<const char *, 6> hash_function_name
             {
                     "sha224",
                     "sha256",
                     "md5",
                     "sha384",
                     "sha512",
-                    "md4",
-                    "md2"
+                    "md4"/*,
+                    "md2"*/
             };
 
 
