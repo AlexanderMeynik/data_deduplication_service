@@ -1,10 +1,9 @@
 <map id="db_services::dbManager::deleteDirectory" name="db_services::dbManager::deleteDirectory">
-<area shape="rect" id="node1" title=" " alt="" coords="5,129,185,170"/>
-<area shape="rect" id="node2" href="$namespacedb__services.html#af4b623338322b5560d0955c8e4cac8b7" title=" " alt="" coords="233,56,437,83"/>
-<area shape="rect" id="node6" href="$namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1" title=" " alt="" coords="788,111,951,137"/>
-<area shape="rect" id="node7" href="$namespacedb__services.html#a75eaf26d68fa67f1b392451870d09479" title=" " alt="" coords="485,161,712,188"/>
-<area shape="rect" id="node8" href="$namespacedb__services.html#aaa5f12bd02e4322fea546b05302334eb" title=" " alt="" coords="244,212,427,239"/>
-<area shape="rect" id="node3" href="$namespacedb__services.html#a5680ec1c84b85dfe07c47178b980685d" title=" " alt="" coords="502,45,695,86"/>
-<area shape="rect" id="node4" href="$namespacedb__services.html#a396c4be9a87ffcab96582c39934653ec" title=" " alt="" coords="772,5,967,32"/>
-<area shape="rect" id="node5" href="$namespacedb__services.html#ab3c456e754c27935940609165a4d448b" title=" " alt="" coords="760,56,979,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,89,185,131"/>
+<area shape="rect" id="node2" href="$namespacedb__services.html#af4b623338322b5560d0955c8e4cac8b7" title=" " alt="" coords="233,17,437,43"/>
+<area shape="rect" id="node5" href="$namespacemyConcepts.html#ad93e6cb79879ffc74827ce89525312a1" title=" " alt="" coords="776,71,939,98"/>
+<area shape="rect" id="node6" href="$namespacedb__services.html#a75eaf26d68fa67f1b392451870d09479" title=" " alt="" coords="485,122,712,149"/>
+<area shape="rect" id="node7" href="$namespacedb__services.html#aaa5f12bd02e4322fea546b05302334eb" title=" " alt="" coords="244,173,427,199"/>
+<area shape="rect" id="node3" href="$namespacedb__services.html#a5680ec1c84b85dfe07c47178b980685d" title=" " alt="" coords="502,5,695,47"/>
+<area shape="rect" id="node4" href="$namespacedb__services.html#a396c4be9a87ffcab96582c39934653ec" title=" " alt="" coords="760,13,955,39"/>
 </map>

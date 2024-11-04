@@ -103,24 +103,25 @@ Enumerations</h2></td></tr>
 , <a class="el" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850a17ec95ada1d4c21d559d7991e62eaf65">SHA_384</a>
 , <br />
 &#160;&#160;<a class="el" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850a495a7274e7edc4bb27c80a238579bbd1">SHA_512</a>
+, <a class="el" href="namespacehash__utils.html#a216823b30a021fd079ff87a98180c850ab0f08245b33bee4e81a9b43c53cb14a2">MD_4</a>
 <br />
  }</td></tr>
 <tr class="separator:a216823b30a021fd079ff87a98180c850"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a5ecacb3894936398c9759fd4bed4c8b0"><td class="memTemplParams" colspan="2">template&lt;hash_function hash = MD_5&gt; </td></tr>
+<tr class="memitem:a5ecacb3894936398c9759fd4bed4c8b0"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacehash__utils.html#a5ecacb3894936398c9759fd4bed4c8b0">getHashStr</a> (std::string_view stringView)</td></tr>
+<tr class="separator:a5ecacb3894936398c9759fd4bed4c8b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8ce4eb75c6f5d5bea07e42ae86eaf11"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehash__utils.html#ad8ce4eb75c6f5d5bea07e42ae86eaf11">stringToHex</a> (std::string_view in)</td></tr>
 <tr class="separator:ad8ce4eb75c6f5d5bea07e42ae86eaf11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa44f911bfadd9828759df671123c501c"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehash__utils.html#aa44f911bfadd9828759df671123c501c">hexToString</a> (std::string_view in)</td></tr>
 <tr class="separator:aa44f911bfadd9828759df671123c501c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ecacb3894936398c9759fd4bed4c8b0"><td class="memTemplParams" colspan="2">template&lt;hash_function hash = MD_5&gt; </td></tr>
-<tr class="memitem:a5ecacb3894936398c9759fd4bed4c8b0"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacehash__utils.html#a5ecacb3894936398c9759fd4bed4c8b0">getHashStr</a> (std::string_view stringView)</td></tr>
-<tr class="separator:a5ecacb3894936398c9759fd4bed4c8b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a7fab884204c2439be3f0c336c270a543"><td class="memItemLeft" align="right" valign="top">constexpr std::array&lt; unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 5 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehash__utils.html#a7fab884204c2439be3f0c336c270a543">funcs</a></td></tr>
-<tr class="separator:a7fab884204c2439be3f0c336c270a543"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24f3237cd47a9b4958d2cb69995eb37b"><td class="memItemLeft" align="right" valign="top">constexpr std::array&lt; unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 6 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehash__utils.html#a24f3237cd47a9b4958d2cb69995eb37b">funcs</a></td></tr>
+<tr class="separator:a24f3237cd47a9b4958d2cb69995eb37b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>hash utils namespace </p>
@@ -143,6 +144,7 @@ Variables</h2></td></tr>
 <tr><td class="fieldname"><a id="a216823b30a021fd079ff87a98180c850ac528e04b915fe7abe4c55151260a1283"></a>MD_5&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a216823b30a021fd079ff87a98180c850a17ec95ada1d4c21d559d7991e62eaf65"></a>SHA_384&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a216823b30a021fd079ff87a98180c850a495a7274e7edc4bb27c80a238579bbd1"></a>SHA_512&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a216823b30a021fd079ff87a98180c850ab0f08245b33bee4e81a9b43c53cb14a2"></a>MD_4&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
@@ -245,8 +247,8 @@ template&lt;hash_function hash = MD_5&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
-<a id="a7fab884204c2439be3f0c336c270a543"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7fab884204c2439be3f0c336c270a543">&#9670;&nbsp;</a></span>funcs</h2>
+<a id="a24f3237cd47a9b4958d2cb69995eb37b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24f3237cd47a9b4958d2cb69995eb37b">&#9670;&nbsp;</a></span>funcs</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -255,7 +257,7 @@ template&lt;hash_function hash = MD_5&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">constexpr std::array&lt;unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 5&gt; hash_utils::funcs</td>
+          <td class="memname">constexpr std::array&lt;unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 6&gt; hash_utils::funcs</td>
         </tr>
       </table>
   </td>
@@ -265,7 +267,7 @@ template&lt;hash_function hash = MD_5&gt; </div>
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= {&amp;SHA224, &amp;SHA256,</div>
-<div class="line">               &amp;MD5, &amp;SHA384, &amp;SHA512}</div>
+<div class="line">               &amp;MD5, &amp;SHA384, &amp;SHA512,&amp;MD4}</div>
 </div><!-- fragment -->
 </div>
 </div>

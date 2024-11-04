@@ -23,12 +23,13 @@ var namespaces_dup =
         [ "SHA_256", "namespacehash__utils.html#a216823b30a021fd079ff87a98180c850aad16be9b1bd1871b5885ef0e25e7c5d4", null ],
         [ "MD_5", "namespacehash__utils.html#a216823b30a021fd079ff87a98180c850ac528e04b915fe7abe4c55151260a1283", null ],
         [ "SHA_384", "namespacehash__utils.html#a216823b30a021fd079ff87a98180c850a17ec95ada1d4c21d559d7991e62eaf65", null ],
-        [ "SHA_512", "namespacehash__utils.html#a216823b30a021fd079ff87a98180c850a495a7274e7edc4bb27c80a238579bbd1", null ]
+        [ "SHA_512", "namespacehash__utils.html#a216823b30a021fd079ff87a98180c850a495a7274e7edc4bb27c80a238579bbd1", null ],
+        [ "MD_4", "namespacehash__utils.html#a216823b30a021fd079ff87a98180c850ab0f08245b33bee4e81a9b43c53cb14a2", null ]
       ] ],
       [ "getHashStr", "namespacehash__utils.html#a5ecacb3894936398c9759fd4bed4c8b0", null ],
       [ "hexToString", "namespacehash__utils.html#aa44f911bfadd9828759df671123c501c", null ],
       [ "stringToHex", "namespacehash__utils.html#ad8ce4eb75c6f5d5bea07e42ae86eaf11", null ],
-      [ "funcs", "namespacehash__utils.html#a7fab884204c2439be3f0c336c270a543", null ]
+      [ "funcs", "namespacehash__utils.html#a24f3237cd47a9b4958d2cb69995eb37b", null ]
     ] ],
     [ "models", "namespacemodels.html", "namespacemodels" ],
     [ "myConcepts", "namespacemyConcepts.html", [
