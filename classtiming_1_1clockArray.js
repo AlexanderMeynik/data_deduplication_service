@@ -7,9 +7,9 @@ var classtiming_1_1clockArray =
     [ "contains", "classtiming_1_1clockArray.html#aa222a1d6182295c89798c85152f74e8b", null ],
     [ "end", "classtiming_1_1clockArray.html#ad1cf14dc37fffea8075c6e4569f73c9c", null ],
     [ "operator[]", "classtiming_1_1clockArray.html#abc78d3f6d3e9147417051610d6762b79", null ],
-    [ "reset", "classtiming_1_1clockArray.html#ae5d1c981e27c3983652b79b7bd2a16aa", null ],
-    [ "tak", "classtiming_1_1clockArray.html#a4c2fd065b09fef903feb5386aad71101", null ],
-    [ "tik", "classtiming_1_1clockArray.html#a12c4dc31dfdb925aac9a98c1154624ff", null ],
+    [ "reset", "classtiming_1_1clockArray.html#ae74013cb1e3e18be514b554e1da595ea", null ],
+    [ "tak", "classtiming_1_1clockArray.html#a4b443457d274d11c17d5a19b5569f1d5", null ],
+    [ "tik", "classtiming_1_1clockArray.html#af13a1ac1f4e1d577e7adbc4ef7bdaacb", null ],
     [ "tikLoc", "classtiming_1_1clockArray.html#a8140ea1a0960a920081d0302aae9bcf0", null ],
     [ "tikPair", "classtiming_1_1clockArray.html#ab23ff8303353a6d9411112fb97d40357", null ],
     [ "operator<<", "classtiming_1_1clockArray.html#a629dd5e7a88f0ad671878c082a34054b", null ]

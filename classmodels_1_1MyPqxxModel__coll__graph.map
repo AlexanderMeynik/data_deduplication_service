@@ -1,5 +1,0 @@
-<map id="models::MyPqxxModel" name="models::MyPqxxModel">
-<area shape="rect" id="node1" title="Table model for pqxx::result." alt="" coords="103,80,273,107"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,165,32"/>
-<area shape="rect" id="node3" href="$classmodels_1_1MyPxxxModelBase.html" title="Basic class for database pqxx::result representation." alt="" coords="189,5,392,32"/>
-</map>

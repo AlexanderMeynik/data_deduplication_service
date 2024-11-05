@@ -20,8 +20,8 @@ var namespacedb__services =
     [ "deleteUnusedSegments", "namespacedb__services.html#a8db5525c11d05c52a832bf401f0d3ce0", null ],
     [ "diconnect", "namespacedb__services.html#ab1bb353ffce99d26f3669e391f5d0148", null ],
     [ "doesFileExist", "namespacedb__services.html#a32fb26d837ce82846f656f9dc9ce229f", null ],
-    [ "executeInTransaction", "namespacedb__services.html#ad266745537a2594ae46e6b0830149a08", null ],
-    [ "executeInTransaction", "namespacedb__services.html#ad04dd18b9ca72e30cd8df041d87806f3", null ],
+    [ "executeInTransaction", "namespacedb__services.html#a6e4e5e1588b6c51cf2a7f55fcbc032f4", null ],
+    [ "executeInTransaction", "namespacedb__services.html#a1ef5a96c8652683e59dbafc8b1049a90", null ],
     [ "fromSpacedPath", "namespacedb__services.html#ad8d9d8db6adfed5462f7522b9d2ca6f4", null ],
     [ "fromString", "namespacedb__services.html#ac8923f34605f19c3cd29a6f10583118d", null ],
     [ "getDedupCharacteristics", "namespacedb__services.html#a8bdf13ad162e9eabd9d9bf03a2baa556", null ],
@@ -37,6 +37,5 @@ var namespacedb__services =
     [ "terminateAllDbConnections", "namespacedb__services.html#ac6ae24d20b42895858818265aef8efc6", null ],
     [ "toSpacedPath", "namespacedb__services.html#a396c4be9a87ffcab96582c39934653ec", null ],
     [ "toTsquerablePath", "namespacedb__services.html#ab3c456e754c27935940609165a4d448b", null ],
-    [ "vecToString", "namespacedb__services.html#aaa5f12bd02e4322fea546b05302334eb", null ],
-    [ "defaultConfiguration", "namespacedb__services.html#a0aab0b03f5137b0d2c4d82679b49f725", null ]
+    [ "vecToString", "namespacedb__services.html#aaa5f12bd02e4322fea546b05302334eb", null ]
 ];

@@ -1,5 +1,0 @@
-<map id="models::MyPxxxModelBase" name="models::MyPxxxModelBase">
-<area shape="rect" id="node1" title="Basic class for database pqxx::result representation." alt="" coords="37,5,239,32"/>
-<area shape="rect" id="node2" href="$classmodels_1_1MyPqxxModel.html" title="Table model for pqxx::result." alt="" coords="53,80,223,107"/>
-<area shape="rect" id="node3" href="$classmodels_1_1DeduplicationCharacteristicsModel.html" title="Pqxx model that retrieves database deduplication characteristic." alt="" coords="5,155,271,196"/>
-</map>

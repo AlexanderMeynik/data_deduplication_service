@@ -17,8 +17,8 @@ var dbCommon_8h =
     [ "connectIfPossible", "dbCommon_8h.html#a3ed5f09241d8c17c75033957ab8eeaaf", null ],
     [ "deleteUnusedSegments", "dbCommon_8h.html#a8db5525c11d05c52a832bf401f0d3ce0", null ],
     [ "doesFileExist", "dbCommon_8h.html#a32fb26d837ce82846f656f9dc9ce229f", null ],
-    [ "executeInTransaction", "dbCommon_8h.html#ad266745537a2594ae46e6b0830149a08", null ],
-    [ "executeInTransaction", "dbCommon_8h.html#ad04dd18b9ca72e30cd8df041d87806f3", null ],
+    [ "executeInTransaction", "dbCommon_8h.html#a6e4e5e1588b6c51cf2a7f55fcbc032f4", null ],
+    [ "executeInTransaction", "dbCommon_8h.html#a1ef5a96c8652683e59dbafc8b1049a90", null ],
     [ "fromSpacedPath", "dbCommon_8h.html#ad8d9d8db6adfed5462f7522b9d2ca6f4", null ],
     [ "fromString", "dbCommon_8h.html#ac8923f34605f19c3cd29a6f10583118d", null ],
     [ "getDedupCharacteristics", "dbCommon_8h.html#a8bdf13ad162e9eabd9d9bf03a2baa556", null ],
@@ -34,6 +34,5 @@ var dbCommon_8h =
     [ "terminateAllDbConnections", "dbCommon_8h.html#ac6ae24d20b42895858818265aef8efc6", null ],
     [ "toSpacedPath", "dbCommon_8h.html#a396c4be9a87ffcab96582c39934653ec", null ],
     [ "toTsquerablePath", "dbCommon_8h.html#ab3c456e754c27935940609165a4d448b", null ],
-    [ "vecToString", "dbCommon_8h.html#aaa5f12bd02e4322fea546b05302334eb", null ],
-    [ "defaultConfiguration", "dbCommon_8h.html#a0aab0b03f5137b0d2c4d82679b49f725", null ]
+    [ "vecToString", "dbCommon_8h.html#aaa5f12bd02e4322fea546b05302334eb", null ]
 ];

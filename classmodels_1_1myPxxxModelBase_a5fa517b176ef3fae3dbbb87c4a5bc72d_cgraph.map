@@ -1,0 +1,4 @@
+<map id="models::myPxxxModelBase::getData" name="models::myPxxxModelBase::getData">
+<area shape="rect" id="node1" title="Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be w..." alt="" coords="5,5,208,47"/>
+<area shape="rect" id="node2" href="$namespacemodels.html#a969afa29a81e50267c1480dd05ab0a1c" title=" " alt="" coords="256,13,408,39"/>
+</map>

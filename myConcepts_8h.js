@@ -1,7 +1,7 @@
 var myConcepts_8h =
 [
-    [ "clockType", "myConcepts_8h.html#a77d88fe936b5c4d283a9945357f20904", null ],
-    [ "SymbolType", "myConcepts_8h.html#a7cceaa9dc6e8d02a02b88b45074aa8b0", null ],
+    [ "clockType", "myConcepts_8h.html#ac19070af2f139b8ee0cfaf92fdc4937e", null ],
+    [ "symbolType", "myConcepts_8h.html#a3d07eb2da95cd86097d3ec6af956b757", null ],
     [ "paramType", "myConcepts_8h.html#ae72de881a1ad98ddc74f41b2e87736d4", [
       [ "EmptyParameterValue", "myConcepts_8h.html#ae72de881a1ad98ddc74f41b2e87736d4a19f808d015dcb5ed0b0846910d91dbdc", null ]
     ] ],

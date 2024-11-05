@@ -118,7 +118,7 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="FileService_8h.html">FileService.h</a>&quot;</span></div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="FileLineEdit_8h.html">FileLineEdit.h</a>&quot;</span></div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="SettingsWindow_8h.html">SettingsWindow.h</a>&quot;</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="MyPqxxModel_8h.html">MyPqxxModel.h</a>&quot;</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="myPqxxModel_8h.html">myPqxxModel.h</a>&quot;</span></div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacewindows.html">windows</a> {</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keyword">using namespace </span><a class="code" href="namespacecommon.html">common</a>;</div>
@@ -130,7 +130,7 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        <span class="keyword">explicit</span> <a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a>(QWidget *parent = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        ~<a class="code" href="classwindows_1_1MainWindow.html">MainWindow</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classwindows_1_1MainWindow.html#ae2de65663d1cf4fa683f4c8f14b1cc40">   49</a></span>&#160;        <a class="code" href="classwindows_1_1MainWindow.html#ae2de65663d1cf4fa683f4c8f14b1cc40">~MainWindow</a>() <span class="keyword">override</span>;</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        <span class="keywordtype">void</span> readConfiguration();</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
@@ -162,7 +162,7 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        <span class="keywordtype">void</span> updateModel();</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <span class="keywordtype">void</span> updateLEDS(QModelIndex &amp;idx);</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <span class="keywordtype">void</span> updateLeds(QModelIndex &amp;idx);</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        <span class="keywordtype">void</span> resetLeds(<span class="keywordtype">int</span> i);</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
@@ -171,8 +171,8 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keyword">private</span>:</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">writeLog</a>(<span class="keyword">const</span> QString &amp;qss, <a class="code" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">LogLevel</a> lg = <a class="code" href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a">INFO</a>) {</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <a class="code" href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">common::writeLog</a>(logTextField, qss, lg);</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="namespacecommon.html#ac9efd92b8894cf46449767c3d6ae8a8d">writeLog</a>(<span class="keyword">const</span> QString &amp;qss, <a class="code" href="namespacecommon.html#a0e3277ab9938d0d4a0a4de13d21c52c1">logLevel</a> lg = <a class="code" href="namespacecommon.html#a0e3277ab9938d0d4a0a4de13d21c52c1a18077678a2df66e1e41e5692a1d7bf3a">INFO</a>) {</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <a class="code" href="namespacecommon.html#ac9efd92b8894cf46449767c3d6ae8a8d">common::writeLog</a>(logTextField, qss, lg);</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        }</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        QAction *settingsAction;</div>
@@ -193,7 +193,7 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        QPushButton *connectPB;</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;        QPushButton *dropPB;</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        <a class="code" href="classmodels_1_1DeselectableTableView.html">DeselectableTableView</a> *dataTableView;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        <a class="code" href="classmodels_1_1deselectableTableView.html">deselectableTableView</a> *dataTableView;</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        QTextEdit *logTextField;</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
@@ -237,64 +237,66 @@ $(document).ready(function(){initNavTree('MainWindow_8h_source.html',''); initRe
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        QLCDNumber *totalBlocksLCD;</div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;        QLCDNumber * checkTimeLCD;</div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        QLCDNumber * uniquePercentage;</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        QList&lt;QLCDNumber *&gt; list;</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        QLCDNumber *deduplicationPercentage;</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        QList&lt;QLCDNumber *&gt; list;</div>
 <div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160; </div>
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;        <a class="code" href="classQLedIndicator.html">QLedIndicator</a> *qled;</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        <a class="code" href="classwindows_1_1SettingsWindow.html">SettingsWindow</a> *settingsWindow;</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <a class="code" href="classmodels_1_1DeduplicationCharacteristicsModel.html">DeduplicationCharacteristicsModel</a> *myViewModel;</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;        <a class="code" href="classmodels_1_1MySortFilterProxyModel.html">MySortFilterProxyModel</a> *proxyModel;</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;        <a class="code" href="classmodels_1_1NotNullFilterProxyModel.html">NotNullFilterProxyModel</a> *nNullProxyModel;</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160; </div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;        <a class="code" href="classQLedIndicator.html">QLedIndicator</a> *qled;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;        <a class="code" href="classwindows_1_1SettingsWindow.html">SettingsWindow</a> *settingsWindow;</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;        <a class="code" href="classmodels_1_1deduplicationCharacteristicsModel.html">deduplicationCharacteristicsModel</a> *myViewModel;</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;        <a class="code" href="classmodels_1_1mySortFilterProxyModel.html">mySortFilterProxyModel</a> *proxyModel;</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;        <a class="code" href="classmodels_1_1notNullFilterProxyModel.html">notNullFilterProxyModel</a> *nNullProxyModel;</div>
 <div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160; </div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        QRegularExpression re;</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;        QRegularExpressionValidator *validator;</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        QTimer *timer;</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160; </div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160; </div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;        QRegularExpression re;</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        QRegularExpressionValidator *validator;</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;        QTimer *timer;</div>
 <div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;        <a class="code" href="classfile__services_1_1FileService.html">file_services::FileService</a> fileService;</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;        <span class="keywordtype">bool</span> dbConnection;</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;        <a class="code" href="structdb__services_1_1myConnString.html">db_services::myConnString</a> c_str;</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        <span class="keywordtype">void</span> setupUI();</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160; </div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;        QString toShortPath(<span class="keyword">const</span> QString &amp;qString);</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;        <span class="keywordtype">void</span> updateStylesheet();</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;        <a class="code" href="classfile__services_1_1FileService.html">file_services::FileService</a> fileService;</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;        <span class="keywordtype">bool</span> dbConnection;</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        <a class="code" href="structdb__services_1_1myConnString.html">db_services::myConnString</a> cStr;</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160; </div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        <span class="keywordtype">void</span> setupUi();</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;        <span class="keyword">static</span> QString toShortPath(<span class="keyword">const</span> QString &amp;qString);</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160; </div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;        <span class="keywordtype">void</span> updateStylesheet();</div>
 <div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160; </div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;        <span class="keywordtype">void</span> compareExport(<span class="keyword">const</span> QString &amp;exportee, <span class="keyword">const</span> QString &amp;output, <span class="keywordtype">bool</span> isDirectory);</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    };</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;}</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160; </div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        <span class="keywordtype">void</span> compareExport(<span class="keyword">const</span> QString &amp;exportee, <span class="keyword">const</span> QString &amp;output, <span class="keywordtype">bool</span> isDirectory);</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    };</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;}</div>
 <div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160; </div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//DATA_DEDUPLICATION_SERVICE_MAINWINDOW_H</span></div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; </div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//DATA_DEDUPLICATION_SERVICE_MAINWINDOW_H</span></div>
 <div class="ttc" id="aFileLineEdit_8h_html"><div class="ttname"><a href="FileLineEdit_8h.html">FileLineEdit.h</a></div></div>
 <div class="ttc" id="aFileService_8h_html"><div class="ttname"><a href="FileService_8h.html">FileService.h</a></div></div>
-<div class="ttc" id="aMyPqxxModel_8h_html"><div class="ttname"><a href="MyPqxxModel_8h.html">MyPqxxModel.h</a></div></div>
 <div class="ttc" id="aSettingsWindow_8h_html"><div class="ttname"><a href="SettingsWindow_8h.html">SettingsWindow.h</a></div></div>
 <div class="ttc" id="aclassQLedIndicator_html"><div class="ttname"><a href="classQLedIndicator.html">QLedIndicator</a></div><div class="ttdoc">QLedIndicator class from https://store.kde.org/p/1132137/.</div><div class="ttdef"><b>Definition:</b> qledindicator.h:31</div></div>
-<div class="ttc" id="aclassfile__services_1_1FileService_html"><div class="ttname"><a href="classfile__services_1_1FileService.html">file_services::FileService</a></div><div class="ttdoc">this class handles file/directory management and uses dbManager to perform calls</div><div class="ttdef"><b>Definition:</b> FileService.h:23</div></div>
-<div class="ttc" id="aclassmodels_1_1DeduplicationCharacteristicsModel_html"><div class="ttname"><a href="classmodels_1_1DeduplicationCharacteristicsModel.html">models::DeduplicationCharacteristicsModel</a></div><div class="ttdoc">Pqxx model that retrieves database deduplication characteristic.</div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:204</div></div>
-<div class="ttc" id="aclassmodels_1_1DeselectableTableView_html"><div class="ttname"><a href="classmodels_1_1DeselectableTableView.html">models::DeselectableTableView</a></div><div class="ttdoc">Tbale view that can be deselected.</div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:272</div></div>
-<div class="ttc" id="aclassmodels_1_1MySortFilterProxyModel_html"><div class="ttname"><a href="classmodels_1_1MySortFilterProxyModel.html">models::MySortFilterProxyModel</a></div><div class="ttdoc">Sort filter proxy model used for searching entry names.</div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:222</div></div>
-<div class="ttc" id="aclassmodels_1_1NotNullFilterProxyModel_html"><div class="ttname"><a href="classmodels_1_1NotNullFilterProxyModel.html">models::NotNullFilterProxyModel</a></div><div class="ttdoc">Sort filter model that filters out all rows with NULL values.</div><div class="ttdef"><b>Definition:</b> MyPqxxModel.h:246</div></div>
+<div class="ttc" id="aclassfile__services_1_1FileService_html"><div class="ttname"><a href="classfile__services_1_1FileService.html">file_services::FileService</a></div><div class="ttdoc">this class handles file/directory management and uses dbManager to perform calls</div><div class="ttdef"><b>Definition:</b> FileService.h:24</div></div>
+<div class="ttc" id="aclassmodels_1_1deduplicationCharacteristicsModel_html"><div class="ttname"><a href="classmodels_1_1deduplicationCharacteristicsModel.html">models::deduplicationCharacteristicsModel</a></div><div class="ttdoc">Pqxx model that retrieves database deduplication characteristic.</div><div class="ttdef"><b>Definition:</b> myPqxxModel.h:204</div></div>
+<div class="ttc" id="aclassmodels_1_1deselectableTableView_html"><div class="ttname"><a href="classmodels_1_1deselectableTableView.html">models::deselectableTableView</a></div><div class="ttdoc">Tbale view that can be deselected.</div><div class="ttdef"><b>Definition:</b> myPqxxModel.h:272</div></div>
+<div class="ttc" id="aclassmodels_1_1mySortFilterProxyModel_html"><div class="ttname"><a href="classmodels_1_1mySortFilterProxyModel.html">models::mySortFilterProxyModel</a></div><div class="ttdoc">Sort filter proxy model used for searching entry names.</div><div class="ttdef"><b>Definition:</b> myPqxxModel.h:222</div></div>
+<div class="ttc" id="aclassmodels_1_1notNullFilterProxyModel_html"><div class="ttname"><a href="classmodels_1_1notNullFilterProxyModel.html">models::notNullFilterProxyModel</a></div><div class="ttdoc">Sort filter model that filters out all rows with NULL values.</div><div class="ttdef"><b>Definition:</b> myPqxxModel.h:246</div></div>
 <div class="ttc" id="aclasswindows_1_1FileLineEditWithOption_html"><div class="ttname"><a href="classwindows_1_1FileLineEditWithOption.html">windows::FileLineEditWithOption</a></div><div class="ttdoc">Class that allow to choose either files or directories.</div><div class="ttdef"><b>Definition:</b> FileLineEdit.h:72</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html"><div class="ttname"><a href="classwindows_1_1MainWindow.html">windows::MainWindow</a></div><div class="ttdoc">MainWindow class.</div><div class="ttdef"><b>Definition:</b> MainWindow.h:43</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html_a2d461df076c518375b048c7d813249c1"><div class="ttname"><a href="classwindows_1_1MainWindow.html#a2d461df076c518375b048c7d813249c1">windows::MainWindow::modelUpdate</a></div><div class="ttdeci">void modelUpdate()</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html_a5b58584c834ab0d1fa0c843b7d0aa312"><div class="ttname"><a href="classwindows_1_1MainWindow.html#a5b58584c834ab0d1fa0c843b7d0aa312">windows::MainWindow::connectionChanged</a></div><div class="ttdeci">void connectionChanged(bool old)</div></div>
 <div class="ttc" id="aclasswindows_1_1MainWindow_html_a9024c1cc8ee5c76314962aa0aa8e355f"><div class="ttname"><a href="classwindows_1_1MainWindow.html#a9024c1cc8ee5c76314962aa0aa8e355f">windows::MainWindow::closed</a></div><div class="ttdeci">void closed()</div></div>
+<div class="ttc" id="aclasswindows_1_1MainWindow_html_ae2de65663d1cf4fa683f4c8f14b1cc40"><div class="ttname"><a href="classwindows_1_1MainWindow.html#ae2de65663d1cf4fa683f4c8f14b1cc40">windows::MainWindow::~MainWindow</a></div><div class="ttdeci">~MainWindow() override</div></div>
 <div class="ttc" id="aclasswindows_1_1SettingsWindow_html"><div class="ttname"><a href="classwindows_1_1SettingsWindow.html">windows::SettingsWindow</a></div><div class="ttdoc">Settings window.</div><div class="ttdef"><b>Definition:</b> SettingsWindow.h:24</div></div>
 <div class="ttc" id="ainclude_2common_8h_html"><div class="ttname"><a href="include_2common_8h.html">common.h</a></div></div>
+<div class="ttc" id="amyPqxxModel_8h_html"><div class="ttname"><a href="myPqxxModel_8h.html">myPqxxModel.h</a></div></div>
 <div class="ttc" id="anamespacecommon_html"><div class="ttname"><a href="namespacecommon.html">common</a></div><div class="ttdef"><b>Definition:</b> common.cpp:3</div></div>
-<div class="ttc" id="anamespacecommon_html_a0ed93bde77b6d80a62d305571a78d6b2"><div class="ttname"><a href="namespacecommon.html#a0ed93bde77b6d80a62d305571a78d6b2">common::writeLog</a></div><div class="ttdeci">void writeLog(QTextEdit *logTextField, const QString &amp;qLogMessage, LogLevel lg)</div><div class="ttdef"><b>Definition:</b> common.cpp:24</div></div>
-<div class="ttc" id="anamespacecommon_html_aa3dd8c5983888f4c0199cf0bb2a73b2a"><div class="ttname"><a href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2a">common::LogLevel</a></div><div class="ttdeci">LogLevel</div><div class="ttdef"><b>Definition:</b> common.h:25</div></div>
-<div class="ttc" id="anamespacecommon_html_aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a"><div class="ttname"><a href="namespacecommon.html#aa3dd8c5983888f4c0199cf0bb2a73b2aa18077678a2df66e1e41e5692a1d7bf3a">common::INFO</a></div><div class="ttdeci">@ INFO</div><div class="ttdef"><b>Definition:</b> common.h:26</div></div>
-<div class="ttc" id="anamespacemodels_html"><div class="ttname"><a href="namespacemodels.html">models</a></div><div class="ttdoc">models namespace</div><div class="ttdef"><b>Definition:</b> MyPqxxModel.cpp:3</div></div>
-<div class="ttc" id="anamespacewindows_html"><div class="ttname"><a href="namespacewindows.html">windows</a></div><div class="ttdoc">windows namespace</div><div class="ttdef"><b>Definition:</b> FileLineEdit.cpp:5</div></div>
+<div class="ttc" id="anamespacecommon_html_a0e3277ab9938d0d4a0a4de13d21c52c1"><div class="ttname"><a href="namespacecommon.html#a0e3277ab9938d0d4a0a4de13d21c52c1">common::logLevel</a></div><div class="ttdeci">logLevel</div><div class="ttdef"><b>Definition:</b> common.h:25</div></div>
+<div class="ttc" id="anamespacecommon_html_a0e3277ab9938d0d4a0a4de13d21c52c1a18077678a2df66e1e41e5692a1d7bf3a"><div class="ttname"><a href="namespacecommon.html#a0e3277ab9938d0d4a0a4de13d21c52c1a18077678a2df66e1e41e5692a1d7bf3a">common::INFO</a></div><div class="ttdeci">@ INFO</div><div class="ttdef"><b>Definition:</b> common.h:26</div></div>
+<div class="ttc" id="anamespacecommon_html_ac9efd92b8894cf46449767c3d6ae8a8d"><div class="ttname"><a href="namespacecommon.html#ac9efd92b8894cf46449767c3d6ae8a8d">common::writeLog</a></div><div class="ttdeci">void writeLog(QTextEdit *logTextField, const QString &amp;qLogMessage, logLevel lg)</div><div class="ttdef"><b>Definition:</b> common.cpp:24</div></div>
+<div class="ttc" id="anamespacemodels_html"><div class="ttname"><a href="namespacemodels.html">models</a></div><div class="ttdoc">models namespace</div><div class="ttdef"><b>Definition:</b> myPqxxModel.cpp:3</div></div>
+<div class="ttc" id="anamespacewindows_html"><div class="ttname"><a href="namespacewindows.html">windows</a></div><div class="ttdoc">windows namespace</div><div class="ttdef"><b>Definition:</b> FileLineEdit.cpp:4</div></div>
 <div class="ttc" id="astructdb__services_1_1myConnString_html"><div class="ttname"><a href="structdb__services_1_1myConnString.html">db_services::myConnString</a></div><div class="ttdoc">Structure to store and format connection string.</div><div class="ttdef"><b>Definition:</b> myConnString.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

@@ -85,8 +85,7 @@ $(document).ready(function(){initNavTree('namespacedb__services.html',''); initR
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">db_services Namespace Reference</div>  </div>
 </div><!--header-->
@@ -177,19 +176,14 @@ Functions</h2></td></tr>
 <tr class="memitem:ac8923f34605f19c3cd29a6f10583118d"><td class="memTemplParams" colspan="2">template&lt;typename T , unsigned long size&gt; </td></tr>
 <tr class="memitem:ac8923f34605f19c3cd29a6f10583118d"><td class="memTemplItemLeft" align="right" valign="top">std::array&lt; T, size &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ac8923f34605f19c3cd29a6f10583118d">fromString</a> (std::basic_string&lt; T &gt; &amp;string)</td></tr>
 <tr class="separator:ac8923f34605f19c3cd29a6f10583118d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad04dd18b9ca72e30cd8df041d87806f3"><td class="memTemplParams" colspan="2">template&lt;typename ResultType , typename ... Args&gt; </td></tr>
-<tr class="memitem:ad04dd18b9ca72e30cd8df041d87806f3"><td class="memTemplItemLeft" align="right" valign="top">tl::expected&lt; ResultType, int &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ad04dd18b9ca72e30cd8df041d87806f3">executeInTransaction</a> (<a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn_, ResultType(*call)(<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;, Args ...), Args &amp;&amp;... args)</td></tr>
-<tr class="separator:ad04dd18b9ca72e30cd8df041d87806f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad266745537a2594ae46e6b0830149a08"><td class="memTemplParams" colspan="2">template&lt;typename ResultType , typename ... Args&gt; </td></tr>
-<tr class="memitem:ad266745537a2594ae46e6b0830149a08"><td class="memTemplItemLeft" align="right" valign="top">tl::expected&lt; ResultType, int &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ad266745537a2594ae46e6b0830149a08">executeInTransaction</a> (<a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn_, const std::function&lt; ResultType(<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;, Args ...)&gt; &amp;call, Args &amp;&amp;... args)</td></tr>
-<tr class="separator:ad266745537a2594ae46e6b0830149a08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ef5a96c8652683e59dbafc8b1049a90"><td class="memTemplParams" colspan="2">template&lt;typename ResultType , typename ... Args&gt; </td></tr>
+<tr class="memitem:a1ef5a96c8652683e59dbafc8b1049a90"><td class="memTemplItemLeft" align="right" valign="top">tl::expected&lt; ResultType, int &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a1ef5a96c8652683e59dbafc8b1049a90">executeInTransaction</a> (<a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn, ResultType(*call)(<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;, Args ...), Args &amp;&amp;... args)</td></tr>
+<tr class="separator:a1ef5a96c8652683e59dbafc8b1049a90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e4e5e1588b6c51cf2a7f55fcbc032f4"><td class="memTemplParams" colspan="2">template&lt;typename ResultType , typename ... Args&gt; </td></tr>
+<tr class="memitem:a6e4e5e1588b6c51cf2a7f55fcbc032f4"><td class="memTemplItemLeft" align="right" valign="top">tl::expected&lt; ResultType, int &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a6e4e5e1588b6c51cf2a7f55fcbc032f4">executeInTransaction</a> (<a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn, const std::function&lt; ResultType(<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">trasnactionType</a> &amp;, Args ...)&gt; &amp;call, Args &amp;&amp;... args)</td></tr>
+<tr class="separator:a6e4e5e1588b6c51cf2a7f55fcbc032f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1bb353ffce99d26f3669e391f5d0148"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#ab1bb353ffce99d26f3669e391f5d0148">diconnect</a> (<a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;conn)</td></tr>
 <tr class="separator:ab1bb353ffce99d26f3669e391f5d0148"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a0aab0b03f5137b0d2c4d82679b49f725"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedb__services.html#a0aab0b03f5137b0d2c4d82679b49f725">defaultConfiguration</a></td></tr>
-<tr class="separator:a0aab0b03f5137b0d2c4d82679b49f725"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="namespacedb__services.html" title="db_services namespace">db_services</a> namespace </p>
@@ -309,12 +303,12 @@ Variables</h2></td></tr>
 <map name="anamespacedb__services_a9fe7980487caefbd3bc7f182937c7e7a_icgraph" id="anamespacedb__services_a9fe7980487caefbd3bc7f182937c7e7a_icgraph">
 <area shape="rect" title=" " alt="" coords="520,173,739,199"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#af99ea249fa97f1cbcb9a9a9747e20ba9" title=" " alt="" coords="274,71,454,112"/>
-<area shape="rect" href="classmodels_1_1MyPxxxModelBase.html#ad64a09844c4ad7bb36e84ea3f6a1d700" title=" " alt="" coords="263,136,465,177"/>
+<area shape="rect" href="classmodels_1_1myPxxxModelBase.html#a4393ab57259f58cd46d4d1ecc3e61f71" title=" " alt="" coords="263,136,465,177"/>
 <area shape="rect" href="namespacedb__services.html#aebac248c11405f94f676688b6eead4de" title=" " alt="" coords="256,202,472,229"/>
-<area shape="rect" href="classmodels_1_1MyPxxxModelBase.html#a135918857ec474a7c32f60dd597c1640" title=" " alt="" coords="263,253,465,295"/>
+<area shape="rect" href="classmodels_1_1myPxxxModelBase.html#a6b672ae3ec0f8217562a0ee75df48d05" title=" " alt="" coords="263,253,465,295"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#ab40711f2efd6ee126d2704e70a821595" title=" " alt="" coords="17,5,197,47"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#af7ae5ad3bd0ad02566ccf0d44fc41f6e" title=" " alt="" coords="17,71,197,112"/>
-<area shape="rect" href="classmodels_1_1MyPxxxModelBase.html#a88a6029beaa1a8db40eeb9b6b48ca5e4" title=" " alt="" coords="5,136,208,177"/>
+<area shape="rect" href="classmodels_1_1myPxxxModelBase.html#af268ae6776076f884f6c98b3b7b47864" title=" " alt="" coords="5,136,208,177"/>
 </map>
 </div>
 
@@ -672,7 +666,7 @@ Variables</h2></td></tr>
 <area shape="rect" href="classdb__services_1_1dbManager.html#ab40711f2efd6ee126d2704e70a821595" title=" " alt="" coords="17,5,197,47"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#af73f01d560d4684d49f540fc547a27f0" title=" " alt="" coords="17,71,197,112"/>
 <area shape="rect" href="classdb__services_1_1dbManager.html#af7ae5ad3bd0ad02566ccf0d44fc41f6e" title=" " alt="" coords="17,136,197,177"/>
-<area shape="rect" href="classmodels_1_1MyPxxxModelBase.html#a88a6029beaa1a8db40eeb9b6b48ca5e4" title=" " alt="" coords="5,201,208,243"/>
+<area shape="rect" href="classmodels_1_1myPxxxModelBase.html#af268ae6776076f884f6c98b3b7b47864" title=" " alt="" coords="5,201,208,243"/>
 </map>
 </div>
 
@@ -802,8 +796,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="ad266745537a2594ae46e6b0830149a08"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad266745537a2594ae46e6b0830149a08">&#9670;&nbsp;</a></span>executeInTransaction() <span class="overload">[1/2]</span></h2>
+<a id="a6e4e5e1588b6c51cf2a7f55fcbc032f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e4e5e1588b6c51cf2a7f55fcbc032f4">&#9670;&nbsp;</a></span>executeInTransaction() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -814,7 +808,7 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
           <td class="memname">tl::expected&lt;ResultType, int&gt; db_services::executeInTransaction </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;&#160;</td>
-          <td class="paramname"><em>conn_</em>, </td>
+          <td class="paramname"><em>conn</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -844,7 +838,7 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">conn_</td><td>not null connection </td></tr>
+    <tr><td class="paramname">conn</td><td>not null connection </td></tr>
     <tr><td class="paramname">call</td><td></td></tr>
     <tr><td class="paramname">args</td><td></td></tr>
   </table>
@@ -853,8 +847,8 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
 
 </div>
 </div>
-<a id="ad04dd18b9ca72e30cd8df041d87806f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad04dd18b9ca72e30cd8df041d87806f3">&#9670;&nbsp;</a></span>executeInTransaction() <span class="overload">[2/2]</span></h2>
+<a id="a1ef5a96c8652683e59dbafc8b1049a90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ef5a96c8652683e59dbafc8b1049a90">&#9670;&nbsp;</a></span>executeInTransaction() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -865,7 +859,7 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
           <td class="memname">tl::expected&lt;ResultType, int&gt; db_services::executeInTransaction </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedb__services.html#adf155525fda8c3a3d13125f19621e940">conPtr</a> &amp;&#160;</td>
-          <td class="paramname"><em>conn_</em>, </td>
+          <td class="paramname"><em>conn</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -895,7 +889,7 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">conn_</td><td>not null connection </td></tr>
+    <tr><td class="paramname">conn</td><td>not null connection </td></tr>
     <tr><td class="paramname">call</td><td></td></tr>
     <tr><td class="paramname">args</td><td></td></tr>
   </table>
@@ -906,12 +900,12 @@ template&lt;typename ResultType , typename ... Args&gt; </div>
 <div id="dynsection-14-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-14-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="namespacedb__services_ad04dd18b9ca72e30cd8df041d87806f3_icgraph.png" border="0" usemap="#anamespacedb__services_ad04dd18b9ca72e30cd8df041d87806f3_icgraph" alt=""/></div>
-<map name="anamespacedb__services_ad04dd18b9ca72e30cd8df041d87806f3_icgraph" id="anamespacedb__services_ad04dd18b9ca72e30cd8df041d87806f3_icgraph">
-<area shape="rect" title=" " alt="" coords="319,78,563,105"/>
-<area shape="rect" href="classmodels_1_1MyPxxxModelBase.html#a135918857ec474a7c32f60dd597c1640" title=" " alt="" coords="37,5,239,47"/>
-<area shape="rect" href="classdb__services_1_1dbManager.html#a0f5fcdf2ca013d6ef2d38ef00a8113d4" title=" " alt="" coords="48,71,228,112"/>
-<area shape="rect" href="classmodels_1_1DeduplicationCharacteristicsModel.html#ab0d91c970c1c894dfec025b4282cc7f1" title=" " alt="" coords="5,136,271,177"/>
+<div class="center"><img src="namespacedb__services_a1ef5a96c8652683e59dbafc8b1049a90_icgraph.png" border="0" usemap="#anamespacedb__services_a1ef5a96c8652683e59dbafc8b1049a90_icgraph" alt=""/></div>
+<map name="anamespacedb__services_a1ef5a96c8652683e59dbafc8b1049a90_icgraph" id="anamespacedb__services_a1ef5a96c8652683e59dbafc8b1049a90_icgraph">
+<area shape="rect" title=" " alt="" coords="316,78,560,105"/>
+<area shape="rect" href="classmodels_1_1myPxxxModelBase.html#a6b672ae3ec0f8217562a0ee75df48d05" title=" " alt="" coords="35,5,238,47"/>
+<area shape="rect" href="classdb__services_1_1dbManager.html#a0f5fcdf2ca013d6ef2d38ef00a8113d4" title=" " alt="" coords="47,71,227,112"/>
+<area shape="rect" href="classmodels_1_1deduplicationCharacteristicsModel.html#a2844373e8a45ef13e66bb1be16f6f41a" title=" " alt="" coords="5,136,268,177"/>
 </map>
 </div>
 
@@ -1000,8 +994,8 @@ template&lt;typename T , unsigned long size&gt; </div>
 <div id="dynsection-16-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="namespacedb__services_a8bdf13ad162e9eabd9d9bf03a2baa556_icgraph.png" border="0" usemap="#anamespacedb__services_a8bdf13ad162e9eabd9d9bf03a2baa556_icgraph" alt=""/></div>
 <map name="anamespacedb__services_a8bdf13ad162e9eabd9d9bf03a2baa556_icgraph" id="anamespacedb__services_a8bdf13ad162e9eabd9d9bf03a2baa556_icgraph">
-<area shape="rect" title=" " alt="" coords="319,13,585,39"/>
-<area shape="rect" href="classmodels_1_1DeduplicationCharacteristicsModel.html#ab0d91c970c1c894dfec025b4282cc7f1" title=" " alt="" coords="5,5,271,47"/>
+<area shape="rect" title=" " alt="" coords="316,13,583,39"/>
+<area shape="rect" href="classmodels_1_1deduplicationCharacteristicsModel.html#a2844373e8a45ef13e66bb1be16f6f41a" title=" " alt="" coords="5,5,268,47"/>
 </map>
 </div>
 
@@ -1559,25 +1553,6 @@ template&lt;printable T&gt; </div>
 </map>
 </div>
 
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="a0aab0b03f5137b0d2c4d82679b49f725"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0aab0b03f5137b0d2c4d82679b49f725">&#9670;&nbsp;</a></span>defaultConfiguration</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto db_services::defaultConfiguration</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= []() {</div>
-<div class="line">        <span class="keywordflow">return</span> <a class="code" href="namespacedb__services.html#a5af3e7c028ac674016c2aa5e1701d3ff">loadConfiguration</a>(cfileName);</div>
-<div class="line">    }</div>
-<div class="ttc" id="anamespacedb__services_html_a5af3e7c028ac674016c2aa5e1701d3ff"><div class="ttname"><a href="namespacedb__services.html#a5af3e7c028ac674016c2aa5e1701d3ff">db_services::loadConfiguration</a></div><div class="ttdeci">myConnString loadConfiguration(std::string_view filename)</div><div class="ttdef"><b>Definition:</b> dbCommon.cpp:106</div></div>
-</div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->

@@ -102,7 +102,7 @@ $(document).ready(function(){initNavTree('fileUtils_8h_source.html',''); initRes
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacefile__services.html">file_services</a> {</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <span class="keyword">using</span> <a class="code" href="namespacemyConcepts.html#a7cceaa9dc6e8d02a02b88b45074aa8b0">myConcepts::SymbolType</a>;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <span class="keyword">using</span> <a class="code" href="namespacemyConcepts.html#a3d07eb2da95cd86097d3ec6af956b757">myConcepts::symbolType</a>;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <span class="keyword">namespace </span>fs = std::filesystem;</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keyword">using</span> <a class="code" href="namespacemyConcepts.html#af2617c8f7a5d88b30bc1b03827868a39">myConcepts::gClk</a>;</div>
@@ -139,8 +139,8 @@ $(document).ready(function(){initNavTree('fileUtils_8h_source.html',''); initRes
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;             std::is_same_v&lt;A, typename std::remove_const&lt;T&gt;::type&gt;</div>
 <div class="line"><a name="l00083"></a><span class="lineno"><a class="line" href="namespacefile__services.html#a8ce03b8e5e33f176ad1ca26396e8e2e1">   83</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="namespacefile__services.html#a8ce03b8e5e33f176ad1ca26396e8e2e1">compareBlock</a>(<span class="keywordtype">size_t</span> size, T *arr, A *arr2) {</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        <span class="keywordtype">int</span> error = 0;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> arr_elem = 0; arr_elem &lt; size; ++arr_elem) {</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;            error += arr[arr_elem] != arr2[arr_elem];</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> arrElem = 0; arrElem &lt; size; ++arrElem) {</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;            error += arr[arrElem] != arr2[arrElem];</div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        }</div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        <span class="keywordflow">return</span> error;</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    }</div>
@@ -174,7 +174,7 @@ $(document).ready(function(){initNavTree('fileUtils_8h_source.html',''); initRes
 <div class="ttc" id="anamespacefile__services_html_aa077d26ba24fcf1f7553f297e73060c7abc6d7c424963232fcc1752d7748efd2b"><div class="ttname"><a href="namespacefile__services.html#aa077d26ba24fcf1f7553f297e73060c7abc6d7c424963232fcc1752d7748efd2b">file_services::use</a></div><div class="ttdeci">@ use</div><div class="ttdoc">if database exist connection will be established</div><div class="ttdef"><b>Definition:</b> fileUtils.h:27</div></div>
 <div class="ttc" id="anamespacefile__services_html_ab57b0d162b8046b255ed86b2d3e2003f"><div class="ttname"><a href="namespacefile__services.html#ab57b0d162b8046b255ed86b2d3e2003f">file_services::compareFiles</a></div><div class="ttdeci">std::array&lt; size_t, 4 &gt; compareFiles(const fs::path &amp;file1, const fs::path &amp;file2, size_t segmentSize)</div><div class="ttdef"><b>Definition:</b> fileUtils.cpp:53</div></div>
 <div class="ttc" id="anamespacefile__services_html_adedd3deb1505b3624db51700b1e2a462"><div class="ttname"><a href="namespacefile__services.html#adedd3deb1505b3624db51700b1e2a462">file_services::getNormalAbs</a></div><div class="ttdeci">fs::path getNormalAbs(const fs::path &amp;path)</div></div>
-<div class="ttc" id="anamespacemyConcepts_html_a7cceaa9dc6e8d02a02b88b45074aa8b0"><div class="ttname"><a href="namespacemyConcepts.html#a7cceaa9dc6e8d02a02b88b45074aa8b0">myConcepts::SymbolType</a></div><div class="ttdeci">char SymbolType</div><div class="ttdef"><b>Definition:</b> myConcepts.h:20</div></div>
+<div class="ttc" id="anamespacemyConcepts_html_a3d07eb2da95cd86097d3ec6af956b757"><div class="ttname"><a href="namespacemyConcepts.html#a3d07eb2da95cd86097d3ec6af956b757">myConcepts::symbolType</a></div><div class="ttdeci">char symbolType</div><div class="ttdef"><b>Definition:</b> myConcepts.h:20</div></div>
 <div class="ttc" id="anamespacemyConcepts_html_af2617c8f7a5d88b30bc1b03827868a39"><div class="ttname"><a href="namespacemyConcepts.html#af2617c8f7a5d88b30bc1b03827868a39">myConcepts::gClk</a></div><div class="ttdeci">clockType gClk</div><div class="ttdef"><b>Definition:</b> myConcepts.cpp:9</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

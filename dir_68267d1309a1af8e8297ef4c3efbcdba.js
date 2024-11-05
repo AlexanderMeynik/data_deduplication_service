@@ -8,8 +8,8 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "MainWindow.h", "MainWindow_8h.html", [
       [ "MainWindow", "classwindows_1_1MainWindow.html", "classwindows_1_1MainWindow" ]
     ] ],
-    [ "MyPqxxModel.cpp", "MyPqxxModel_8cpp.html", null ],
-    [ "MyPqxxModel.h", "MyPqxxModel_8h.html", "MyPqxxModel_8h" ],
+    [ "myPqxxModel.cpp", "myPqxxModel_8cpp.html", null ],
+    [ "myPqxxModel.h", "myPqxxModel_8h.html", "myPqxxModel_8h" ],
     [ "qledindicator.cpp", "qledindicator_8cpp.html", null ],
     [ "qledindicator.h", "qledindicator_8h.html", [
       [ "QLedIndicator", "classQLedIndicator.html", "classQLedIndicator" ]

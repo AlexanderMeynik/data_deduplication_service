@@ -8,14 +8,15 @@ var annotated_dup =
       [ "FileService", "classfile__services_1_1FileService.html", "classfile__services_1_1FileService" ]
     ] ],
     [ "models", "namespacemodels.html", [
-      [ "MyPxxxModelBase", "classmodels_1_1MyPxxxModelBase.html", "classmodels_1_1MyPxxxModelBase" ],
-      [ "MyPqxxModel", "classmodels_1_1MyPqxxModel.html", "classmodels_1_1MyPqxxModel" ],
-      [ "DeduplicationCharacteristicsModel", "classmodels_1_1DeduplicationCharacteristicsModel.html", "classmodels_1_1DeduplicationCharacteristicsModel" ],
-      [ "MySortFilterProxyModel", "classmodels_1_1MySortFilterProxyModel.html", "classmodels_1_1MySortFilterProxyModel" ],
-      [ "NotNullFilterProxyModel", "classmodels_1_1NotNullFilterProxyModel.html", "classmodels_1_1NotNullFilterProxyModel" ],
-      [ "DeselectableTableView", "classmodels_1_1DeselectableTableView.html", "classmodels_1_1DeselectableTableView" ]
+      [ "myPxxxModelBase", "classmodels_1_1myPxxxModelBase.html", "classmodels_1_1myPxxxModelBase" ],
+      [ "myPqxxModel", "classmodels_1_1myPqxxModel.html", "classmodels_1_1myPqxxModel" ],
+      [ "deduplicationCharacteristicsModel", "classmodels_1_1deduplicationCharacteristicsModel.html", "classmodels_1_1deduplicationCharacteristicsModel" ],
+      [ "mySortFilterProxyModel", "classmodels_1_1mySortFilterProxyModel.html", "classmodels_1_1mySortFilterProxyModel" ],
+      [ "notNullFilterProxyModel", "classmodels_1_1notNullFilterProxyModel.html", "classmodels_1_1notNullFilterProxyModel" ],
+      [ "deselectableTableView", "classmodels_1_1deselectableTableView.html", "classmodels_1_1deselectableTableView" ]
     ] ],
     [ "timing", "namespacetiming.html", [
+      [ "cmpArr", "structtiming_1_1cmpArr.html", "structtiming_1_1cmpArr" ],
       [ "clockArray", "classtiming_1_1clockArray.html", "classtiming_1_1clockArray" ]
     ] ],
     [ "windows", "namespacewindows.html", [

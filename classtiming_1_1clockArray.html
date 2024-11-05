@@ -104,12 +104,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae5d1c981e27c3983652b79b7bd2a16aa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#ae5d1c981e27c3983652b79b7bd2a16aa">reset</a> ()</td></tr>
-<tr class="separator:ae5d1c981e27c3983652b79b7bd2a16aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12c4dc31dfdb925aac9a98c1154624ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#a12c4dc31dfdb925aac9a98c1154624ff">tik</a> (const std::source_location &amp;location=std::source_location::current())</td></tr>
-<tr class="separator:a12c4dc31dfdb925aac9a98c1154624ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c2fd065b09fef903feb5386aad71101"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#a4c2fd065b09fef903feb5386aad71101">tak</a> (const std::source_location &amp;location=std::source_location::current())</td></tr>
-<tr class="separator:a4c2fd065b09fef903feb5386aad71101"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae74013cb1e3e18be514b554e1da595ea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#ae74013cb1e3e18be514b554e1da595ea">reset</a> ()</td></tr>
+<tr class="separator:ae74013cb1e3e18be514b554e1da595ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af13a1ac1f4e1d577e7adbc4ef7bdaacb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#af13a1ac1f4e1d577e7adbc4ef7bdaacb">tik</a> (const std::source_location &amp;location=std::source_location::current())</td></tr>
+<tr class="separator:af13a1ac1f4e1d577e7adbc4ef7bdaacb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b443457d274d11c17d5a19b5569f1d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#a4b443457d274d11c17d5a19b5569f1d5">tak</a> (const std::source_location &amp;location=std::source_location::current())</td></tr>
+<tr class="separator:a4b443457d274d11c17d5a19b5569f1d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8140ea1a0960a920081d0302aae9bcf0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetiming.html#a90abe985843f7783a7a3f8958183f579">locationType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#a8140ea1a0960a920081d0302aae9bcf0">tikLoc</a> (const std::source_location &amp;location=std::source_location::current())</td></tr>
 <tr class="separator:a8140ea1a0960a920081d0302aae9bcf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab23ff8303353a6d9411112fb97d40357"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::source_location, <a class="el" href="namespacetiming.html#a90abe985843f7783a7a3f8958183f579">locationType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html#ab23ff8303353a6d9411112fb97d40357">tikPair</a> (const std::source_location &amp;location=std::source_location::current())</td></tr>
@@ -312,8 +312,8 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 
 </div>
 </div>
-<a id="ae5d1c981e27c3983652b79b7bd2a16aa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae5d1c981e27c3983652b79b7bd2a16aa">&#9670;&nbsp;</a></span>reset()</h2>
+<a id="ae74013cb1e3e18be514b554e1da595ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae74013cb1e3e18be514b554e1da595ea">&#9670;&nbsp;</a></span>reset()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -321,7 +321,7 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 template&lt;typename OutType , typename inType , inType(*)() timeGetter, locationType(*)(std::source_location) sourceTypeConverter, OutType(*)(inType, inType) timeConverter&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">requires std::is_floating_point_v&lt; OutType &gt; void <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; OutType, inType, timeGetter, sourceTypeConverter, timeConverter &gt;::reset</td>
+          <td class="memname">requires std::is_floating_point_v&lt; OutType &gt; or std::is_integral_v&lt; OutType &gt; void <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; OutType, inType, timeGetter, sourceTypeConverter, timeConverter &gt;::reset</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -329,8 +329,8 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 
 </div>
 </div>
-<a id="a4c2fd065b09fef903feb5386aad71101"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c2fd065b09fef903feb5386aad71101">&#9670;&nbsp;</a></span>tak()</h2>
+<a id="a4b443457d274d11c17d5a19b5569f1d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b443457d274d11c17d5a19b5569f1d5">&#9670;&nbsp;</a></span>tak()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -338,7 +338,7 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 template&lt;typename OutType , typename inType , inType(*)() timeGetter, locationType(*)(std::source_location) sourceTypeConverter, OutType(*)(inType, inType) timeConverter&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">requires std::is_floating_point_v&lt; OutType &gt; void <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; OutType, inType, timeGetter, sourceTypeConverter, timeConverter &gt;::tak </td>
+          <td class="memname">requires std::is_floating_point_v&lt; OutType &gt; or std::is_integral_v&lt; OutType &gt; void <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; OutType, inType, timeGetter, sourceTypeConverter, timeConverter &gt;::tak </td>
           <td>(</td>
           <td class="paramtype">const std::source_location &amp;&#160;</td>
           <td class="paramname"><em>location</em> = <code>std::source_location::current()</code></td><td>)</td>
@@ -357,22 +357,22 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-0-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classtiming_1_1clockArray_a4c2fd065b09fef903feb5386aad71101_icgraph.png" border="0" usemap="#aclasstiming_1_1clockArray_a4c2fd065b09fef903feb5386aad71101_icgraph" alt=""/></div>
-<map name="aclasstiming_1_1clockArray_a4c2fd065b09fef903feb5386aad71101_icgraph" id="aclasstiming_1_1clockArray_a4c2fd065b09fef903feb5386aad71101_icgraph">
+<div class="center"><img src="classtiming_1_1clockArray_a4b443457d274d11c17d5a19b5569f1d5_icgraph.png" border="0" usemap="#aclasstiming_1_1clockArray_a4b443457d274d11c17d5a19b5569f1d5_icgraph" alt=""/></div>
+<map name="aclasstiming_1_1clockArray_a4b443457d274d11c17d5a19b5569f1d5_icgraph" id="aclasstiming_1_1clockArray_a4b443457d274d11c17d5a19b5569f1d5_icgraph">
 <area shape="rect" title=" " alt="" coords="236,177,405,203"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a720e2bf3aca11df35ef1e1b35544f730" title=" " alt="" coords="5,5,188,47"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a912adc27256568835793a55f7ecd0fa5" title=" " alt="" coords="5,71,188,112"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#ab795a0168b7e292f9e37c95217787cc7" title=" " alt="" coords="5,136,188,177"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#aa5a1f1072eee1649bb0909401b1fb958" title=" " alt="" coords="5,201,188,243"/>
-<area shape="rect" href="classfile__services_1_1FileService.html#a3772101128b01065e40bba4f11cb00b3" title=" " alt="" coords="5,267,188,308"/>
+<area shape="rect" href="classfile__services_1_1FileService.html#aa36cb9441e23d2f26a608eede04995e0" title=" " alt="" coords="5,267,188,308"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a65fe8cfc46145d24c0f814f5f02c646b" title=" " alt="" coords="5,332,188,373"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a12c4dc31dfdb925aac9a98c1154624ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a12c4dc31dfdb925aac9a98c1154624ff">&#9670;&nbsp;</a></span>tik()</h2>
+<a id="af13a1ac1f4e1d577e7adbc4ef7bdaacb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af13a1ac1f4e1d577e7adbc4ef7bdaacb">&#9670;&nbsp;</a></span>tik()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -380,7 +380,7 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 template&lt;typename OutType , typename inType , inType(*)() timeGetter, locationType(*)(std::source_location) sourceTypeConverter, OutType(*)(inType, inType) timeConverter&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">requires std::is_floating_point_v&lt; OutType &gt; void <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; OutType, inType, timeGetter, sourceTypeConverter, timeConverter &gt;::tik </td>
+          <td class="memname">requires std::is_floating_point_v&lt; OutType &gt; or std::is_integral_v&lt; OutType &gt; void <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; OutType, inType, timeGetter, sourceTypeConverter, timeConverter &gt;::tik </td>
           <td>(</td>
           <td class="paramtype">const std::source_location &amp;&#160;</td>
           <td class="paramname"><em>location</em> = <code>std::source_location::current()</code></td><td>)</td>
@@ -400,14 +400,14 @@ template&lt;typename OutType , typename inType , inType(*)() timeGetter, locatio
 <div id="dynsection-1-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classtiming_1_1clockArray_a12c4dc31dfdb925aac9a98c1154624ff_icgraph.png" border="0" usemap="#aclasstiming_1_1clockArray_a12c4dc31dfdb925aac9a98c1154624ff_icgraph" alt=""/></div>
-<map name="aclasstiming_1_1clockArray_a12c4dc31dfdb925aac9a98c1154624ff_icgraph" id="aclasstiming_1_1clockArray_a12c4dc31dfdb925aac9a98c1154624ff_icgraph">
+<div class="center"><img src="classtiming_1_1clockArray_af13a1ac1f4e1d577e7adbc4ef7bdaacb_icgraph.png" border="0" usemap="#aclasstiming_1_1clockArray_af13a1ac1f4e1d577e7adbc4ef7bdaacb_icgraph" alt=""/></div>
+<map name="aclasstiming_1_1clockArray_af13a1ac1f4e1d577e7adbc4ef7bdaacb_icgraph" id="aclasstiming_1_1clockArray_af13a1ac1f4e1d577e7adbc4ef7bdaacb_icgraph">
 <area shape="rect" title=" " alt="" coords="236,177,401,203"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a720e2bf3aca11df35ef1e1b35544f730" title=" " alt="" coords="5,5,188,47"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a912adc27256568835793a55f7ecd0fa5" title=" " alt="" coords="5,71,188,112"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#ab795a0168b7e292f9e37c95217787cc7" title=" " alt="" coords="5,136,188,177"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#aa5a1f1072eee1649bb0909401b1fb958" title=" " alt="" coords="5,201,188,243"/>
-<area shape="rect" href="classfile__services_1_1FileService.html#a3772101128b01065e40bba4f11cb00b3" title=" " alt="" coords="5,267,188,308"/>
+<area shape="rect" href="classfile__services_1_1FileService.html#aa36cb9441e23d2f26a608eede04995e0" title=" " alt="" coords="5,267,188,308"/>
 <area shape="rect" href="classfile__services_1_1FileService.html#a65fe8cfc46145d24c0f814f5f02c646b" title=" " alt="" coords="5,332,188,373"/>
 </map>
 </div>

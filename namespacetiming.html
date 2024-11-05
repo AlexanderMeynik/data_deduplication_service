@@ -85,8 +85,7 @@ $(document).ready(function(){initNavTree('namespacetiming.html',''); initResizab
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">timing Namespace Reference</div>  </div>
 </div><!--header-->
@@ -97,6 +96,9 @@ $(document).ready(function(){initNavTree('namespacetiming.html',''); initResizab
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtiming_1_1cmpArr.html">cmpArr</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Comparator functor arrays.  <a href="structtiming_1_1cmpArr.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtiming_1_1clockArray.html">clockArray</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock array template class.  <a href="classtiming_1_1clockArray.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -107,36 +109,31 @@ Typedefs</h2></td></tr>
 <tr class="separator:ad47b8a9b1a4188a00a64497565b2a95a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90abe985843f7783a7a3f8958183f579"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetiming.html#a90abe985843f7783a7a3f8958183f579">locationType</a> = std::array&lt; std::string, 5 &gt;</td></tr>
 <tr class="separator:a90abe985843f7783a7a3f8958183f579"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b0a0bfdd030878727dc0ed1af285232"><td class="memTemplParams" colspan="2">template&lt;typename chrono_duration_type &gt; </td></tr>
-<tr class="memitem:a6b0a0bfdd030878727dc0ed1af285232"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetiming.html#a6b0a0bfdd030878727dc0ed1af285232">chronoClockTemplate</a> = <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; double, <a class="el" href="namespacetiming.html#ad47b8a9b1a4188a00a64497565b2a95a">timepointType</a>, &amp;std::chrono::high_resolution_clock::now, &amp;<a class="el" href="namespacetiming.html#ac2960f54eacbf87d71913ca0984e4c00">getFileState</a>, &amp;<a class="el" href="namespacetiming.html#adddd097ab0aec7d08cbd881d18d28857">doubleCastChrono</a>&lt; chrono_duration_type &gt; &gt;</td></tr>
-<tr class="separator:a6b0a0bfdd030878727dc0ed1af285232"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71480eee475f7e22f296f2fd7b56170c"><td class="memTemplParams" colspan="2">template&lt;typename chrono_duration_type  = std::milli&gt; </td></tr>
+<tr class="memitem:a71480eee475f7e22f296f2fd7b56170c"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetiming.html#a71480eee475f7e22f296f2fd7b56170c">chronoClockTemplate</a> = <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt; int64_t, <a class="el" href="namespacetiming.html#ad47b8a9b1a4188a00a64497565b2a95a">timepointType</a>, &amp;std::chrono::high_resolution_clock::now, &amp;<a class="el" href="namespacetiming.html#ac2960f54eacbf87d71913ca0984e4c00">getFileState</a>, &amp;<a class="el" href="namespacetiming.html#adddd097ab0aec7d08cbd881d18d28857">doubleCastChrono</a>&lt; chrono_duration_type &gt; &gt;</td></tr>
+<tr class="separator:a71480eee475f7e22f296f2fd7b56170c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ac2960f54eacbf87d71913ca0984e4c00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetiming.html#a90abe985843f7783a7a3f8958183f579">locationType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetiming.html#ac2960f54eacbf87d71913ca0984e4c00">getFileState</a> (std::source_location location=std::source_location::current())</td></tr>
 <tr class="separator:ac2960f54eacbf87d71913ca0984e4c00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adddd097ab0aec7d08cbd881d18d28857"><td class="memTemplParams" colspan="2">template&lt;typename to_dur  = std::chrono::nanoseconds, typename doubleType &gt; </td></tr>
+<tr class="memitem:adddd097ab0aec7d08cbd881d18d28857"><td class="memTemplParams" colspan="2">template&lt;typename to_dur  = std::milli, typename doubleType &gt; </td></tr>
 <tr class="memitem:adddd097ab0aec7d08cbd881d18d28857"><td class="memTemplItemLeft" align="right" valign="top">doubleType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetiming.html#adddd097ab0aec7d08cbd881d18d28857">doubleCastChrono</a> (<a class="el" href="namespacetiming.html#ad47b8a9b1a4188a00a64497565b2a95a">timepointType</a> curr, <a class="el" href="namespacetiming.html#ad47b8a9b1a4188a00a64497565b2a95a">timepointType</a> prev)</td></tr>
 <tr class="separator:adddd097ab0aec7d08cbd881d18d28857"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:ac9f18c0307262b42b14e6b7b0da937fc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetiming.html#ac9f18c0307262b42b14e6b7b0da937fc">cmpArrays</a></td></tr>
-<tr class="separator:ac9f18c0307262b42b14e6b7b0da937fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>timing namespace </p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
-<a id="a6b0a0bfdd030878727dc0ed1af285232"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b0a0bfdd030878727dc0ed1af285232">&#9670;&nbsp;</a></span>chronoClockTemplate</h2>
+<a id="a71480eee475f7e22f296f2fd7b56170c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71480eee475f7e22f296f2fd7b56170c">&#9670;&nbsp;</a></span>chronoClockTemplate</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename chrono_duration_type &gt; </div>
+template&lt;typename chrono_duration_type  = std::milli&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespacetiming.html#a6b0a0bfdd030878727dc0ed1af285232">timing::chronoClockTemplate</a> = typedef <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt;double, <a class="el" href="namespacetiming.html#ad47b8a9b1a4188a00a64497565b2a95a">timepointType</a>, &amp;std::chrono::high_resolution_clock::now, &amp;<a class="el" href="namespacetiming.html#ac2960f54eacbf87d71913ca0984e4c00">getFileState</a>, &amp;<a class="el" href="namespacetiming.html#adddd097ab0aec7d08cbd881d18d28857">doubleCastChrono</a>&lt;chrono_duration_type&gt; &gt;</td>
+          <td class="memname">using <a class="el" href="namespacetiming.html#a71480eee475f7e22f296f2fd7b56170c">timing::chronoClockTemplate</a> = typedef <a class="el" href="classtiming_1_1clockArray.html">timing::clockArray</a>&lt;int64_t, <a class="el" href="namespacetiming.html#ad47b8a9b1a4188a00a64497565b2a95a">timepointType</a>, &amp;std::chrono::high_resolution_clock::now, &amp;<a class="el" href="namespacetiming.html#ac2960f54eacbf87d71913ca0984e4c00">getFileState</a>, &amp;<a class="el" href="namespacetiming.html#adddd097ab0aec7d08cbd881d18d28857">doubleCastChrono</a>&lt;chrono_duration_type&gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -184,7 +181,7 @@ template&lt;typename chrono_duration_type &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename to_dur  = std::chrono::nanoseconds, typename doubleType &gt; </div>
+template&lt;typename to_dur  = std::milli, typename doubleType &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">doubleType timing::doubleCastChrono </td>
@@ -241,41 +238,6 @@ template&lt;typename to_dur  = std::chrono::nanoseconds, typename doubleType &gt
 <p>Formats source location fields for more readability </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">location</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="ac9f18c0307262b42b14e6b7b0da937fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9f18c0307262b42b14e6b7b0da937fc">&#9670;&nbsp;</a></span>cmpArrays</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto timing::cmpArrays</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= []&lt;<span class="keywordtype">size_t</span> N&gt;(<span class="keyword">const</span> std::array&lt;std::string, N&gt; &amp;a, <span class="keyword">const</span> std::array&lt;std::string, N&gt; &amp;b) {</div>
-<div class="line">        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; N; i++) {</div>
-<div class="line">            <span class="keywordflow">if</span> (a[i] != b[i])</div>
-<div class="line">                <span class="keywordflow">return</span> b[i] &gt; a[i];</div>
-<div class="line">        }</div>
-<div class="line">        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line">    }</div>
-</div><!-- fragment --><p>Comaparato for arrays </p><dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">N</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">a</td><td></td></tr>
-    <tr><td class="paramname">b</td><td></td></tr>
   </table>
   </dd>
 </dl>
