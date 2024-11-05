@@ -22,7 +22,7 @@ namespace common {
     /**
      * Log level enum
      */
-    enum LogLevel {
+    enum logLevel {
         INFO,
         WARNING,
         ERROR,
@@ -77,7 +77,7 @@ namespace common {
      * @param qLogMessage
      * @param lg
      */
-    void writeLog(QTextEdit *logTextField, const QString &qLogMessage, LogLevel lg = RESULT);
+    void writeLog(QTextEdit *logTextField, const QString &qLogMessage, logLevel lg = RESULT);
 
     /**
      * Check that path is directory path with regex

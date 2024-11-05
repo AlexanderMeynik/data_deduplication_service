@@ -14,12 +14,13 @@
 #include <openssl/md5.h>
 #include <openssl/md4.h>
 #include <openssl/md2.h>
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 ///hash utils namespace
 namespace hash_utils {
 
     constexpr std::array<unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md), 6> funcs
             = {&SHA224, &SHA256,
-               &MD5, &SHA384, &SHA512,&MD4/*,&MD2*/};
+               &MD5, &SHA384, &SHA512,&MD4};
 
     /**
      * Enum for selected hash function
@@ -30,8 +31,7 @@ namespace hash_utils {
         MD_5,
         SHA_384,
         SHA_512,
-        MD_4/*,
-        MD_2*/
+        MD_4
     };
 
     /**
@@ -45,29 +45,27 @@ namespace hash_utils {
     /**
      * Lookup table for hash function size
      */
-    static constexpr std::array<unsigned short, 6> hash_function_size
+    static constexpr std::array<unsigned short, 6> hashFunctionSize
             {
                     SHA224_DIGEST_LENGTH,
                     SHA256_DIGEST_LENGTH,
                     MD5_DIGEST_LENGTH,
                     SHA384_DIGEST_LENGTH,
                     SHA512_DIGEST_LENGTH,
-                    MD4_DIGEST_LENGTH/*,
-                    MD2_DIGEST_LENGTH*/
+                    MD4_DIGEST_LENGTH
             };
 
     /**
      * Lookup table for hash function name
      */
-    static constexpr std::array<const char *, 6> hash_function_name
+    static constexpr std::array<const char *, 6> hashFunctionName
             {
                     "sha224",
                     "sha256",
                     "md5",
                     "sha384",
                     "sha512",
-                    "md4"/*,
-                    "md2"*/
+                    "md4"
             };
 
 
@@ -87,14 +85,14 @@ namespace hash_utils {
 
     template<hash_function hash>
     std::string getHashStr(std::string_view stringView) {
-        unsigned char md[hash_function_size[hash]];
+        unsigned char md[hashFunctionSize[hash]];
         funcs[hash](reinterpret_cast<const unsigned char *>(stringView.data()),
                     stringView.size(),
                     md
         );
 
         std::stringstream ss;
-        for (size_t i = 0; i < hash_function_size[hash]; ++i) {
+        for (size_t i = 0; i < hashFunctionSize[hash]; ++i) {
             ss << std::hex << std::setw(2)
                << std::setfill('0') << (int) md[i];
         }

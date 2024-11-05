@@ -66,9 +66,9 @@ namespace windows {
         ).string());
         fileLineEdit = new FileLineEdit(this, prevFileDir);
 
-        auto d1 = new QHBoxLayout();
-        auto d2 = new QHBoxLayout();
-        auto d3 = new QHBoxLayout();
+        d1 = new QHBoxLayout();
+        d2 = new QHBoxLayout();
+        d3 = new QHBoxLayout();
 
 
         loadConfigurationPB = new QPushButton("Load", this);

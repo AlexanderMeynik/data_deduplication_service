@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
         auto segment_size=multip;
         FileService fs;
 
-        std::string dbName = std::string("deduplication_bench_ss")+hash_function_name[hashNum]+"_M"+std::to_string(multip);
+        std::string dbName = std::string("deduplication_bench_ss") + hashFunctionName[hashNum] + "_M" + std::to_string(multip);
         std::cout<<dbName<<'\n';
         fs.template dbLoad<dbUsageStrategy::create>(dbName);
         gClk.tak();
@@ -210,7 +210,7 @@ void tablePrint(const std::string &name, const std::string &value, int multip, s
             }
         }
         osPtr->write(lineEnd,1);
-        osPtr->write(hash_function_name[hashNum],strlen(hash_function_name[hashNum]));
+        osPtr->write(hashFunctionName[hashNum], strlen(hashFunctionName[hashNum]));
         osPtr->write(lineTab,1);
     }
     osPtr->write(value.c_str(),value.size());

@@ -16,13 +16,14 @@ namespace file_services {
     using namespace db_services;
 
     /**
-     * @brief this class handles file/directory management and uses @ref db_services::dbManager "dbManager" to perform calls
+     * @brief this class handles file/directory management and uses
+     * @ref db_services::dbManager "dbManager" to perform calls
      * @details This class have comfortable wrappers for most db_services::dbManager functions
      * @details Some external helepr functions can be found @ref fileUtils.h "here".
      */
     class FileService {
     public:
-        using index_type = db_services::indexType;
+        using indexType = db_services::indexType;
 
         FileService()
         = default;
@@ -42,12 +43,12 @@ namespace file_services {
         /**
          *
          * @tparam dbUsageStrategy
-         * @param c_str
+         * @param cStr
          * @ref "dbLoad(std::string_view dbName, std::string_view configurationFile = db_services::cfileName)
          * "dbLoad()"
          */
         template<dbUsageStrategy dbUsageStrategy = use>
-        int dbLoad(db_services::myConnString &c_str);
+        int dbLoad(db_services::myConnString &cStr);
 
         int dbDrop(std::string_view dbName) {
             auto res = manager_.dropDatabase(dbName);
@@ -58,11 +59,11 @@ namespace file_services {
          * Processes all files in the given directory runs @ref process_file() "processFile()" for each file
          * @tparam data_insertion_str
          * @param dirPath
-         * @param segment_size
+         * @param segmentSize
          * @param hash
          */
         template<dataInsetionStrategy data_insertion_str = PreserveOld>
-        int processDirectory(std::string_view dirPath, size_t segment_size,const hash_function& hash= SHA_256);
+        int processDirectory(std::string_view dirPath, size_t segmentSize, const hash_function& hash= SHA_256);
 
         /** @details Creates entry for file in database.
          * @details Load file segments into temp table.
@@ -107,13 +108,13 @@ namespace file_services {
          * Retrieves file from database to to_file
          * @tparam dir_s
          * @tparam retrievalStrategy
-         * @param from_file
+         * @param fromFile
          * @param toFile
          */
         template<rootDirectoryHandlingStrategy dir_s = NoCreateMain,
                 dataRetrievalStrategy retrievalStrategy = Persist, bool from_load_dir = false>
-        int loadFile(std::string_view from_file, std::string_view toFile,
-                     index_type fileId = paramType::EmptyParameterValue);
+        int loadFile(std::string_view fromFile, std::string_view toFile,
+                     indexType fileId = paramType::EmptyParameterValue);
 
         /**
          * Deletes file entry and data from database
@@ -166,15 +167,15 @@ namespace file_services {
 
 
     template<rootDirectoryHandlingStrategy dir_s, dataRetrievalStrategy rr, bool from_load_dir>
-    int FileService::loadFile(std::string_view from_file, std::string_view toFile,
-                              index_type fileId) {
+    int FileService::loadFile(std::string_view fromFile, std::string_view toFile,
+                              indexType fileId) {
         fs::path toFilePath;
         fs::path fromFilePath;
         fs::path parentDirPath;
         try {
             toFilePath = getNormalAbs(toFile);
             parentDirPath = toFilePath.parent_path();
-            fromFilePath = getNormalAbs(from_file);
+            fromFilePath = getNormalAbs(fromFile);
 
             if (!fs::exists(parentDirPath)) {
                 if constexpr (dir_s == CreateMain) {
@@ -207,17 +208,17 @@ namespace file_services {
             return returnCodes::ErrorOccured;
         }
 
-        std::basic_ofstream<SymbolType> out(toFilePath.c_str());
+        std::basic_ofstream<symbolType> out(toFilePath.c_str());
 
-        auto stream_res = manager_.getFileStreamed(fromFilePath.string(), out, fileId);
+        auto streamRes = manager_.getFileStreamed(fromFilePath.string(), out, fileId);
 
         out.close();
 
-        if (stream_res == returnCodes::ErrorOccured) {
+        if (streamRes == returnCodes::ErrorOccured) {
             VLOG(1) << vformat("Error occurred during "
                                "file \"%s\" streaming",
                                fromFilePath.c_str());
-            return stream_res;
+            return streamRes;
         }
 
         if constexpr (!from_load_dir && rr == dataRetrievalStrategy::Remove) {
@@ -300,22 +301,22 @@ namespace file_services {
 
     template<dbUsageStrategy str>
     int FileService::dbLoad(std::string_view dbName, std::string_view configurationFile) {
-        auto CString = db_services::loadConfiguration(configurationFile);
-        CString.setDbname(dbName);
-        return dbLoad<str>(CString);
+        auto cString = db_services::loadConfiguration(configurationFile);
+        cString.setDbname(dbName);
+        return dbLoad<str>(cString);
     }
 
 
     template<dbUsageStrategy str>
-    int FileService::dbLoad(db_services::myConnString &c_str) {
-        manager_ = dbManager(c_str);
+    int FileService::dbLoad(db_services::myConnString &cStr) {
+        manager_ = dbManager(cStr);
 
         if constexpr (str == create) {
 
-            auto reusult = manager_.createDatabase(c_str.getDbname());
+            auto reusult = manager_.createDatabase(cStr.getDbname());
 
             if (reusult == returnCodes::ErrorOccured) {
-                VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", c_str.getDbname().data());
+                VLOG(1) << vformat("Error occurred during database \"%s\" creation\n", cStr.getDbname().data());
                 return returnCodes::ErrorOccured;
             }
 
@@ -324,7 +325,7 @@ namespace file_services {
             if (reusult == returnCodes::ErrorOccured) {
                 VLOG(1)
                                 << vformat("Error occurred during database's \"%s\" schema's creation\n",
-                                           c_str.getDbname().data());
+                                           cStr.getDbname().data());
                 return returnCodes::ErrorOccured;
             }
         } else {
@@ -333,7 +334,7 @@ namespace file_services {
             if (res == returnCodes::ErrorOccured) {
                 VLOG(1)
                                 << vformat("Error occurred during database's \"%s\" schema's creation\n",
-                                           c_str.getDbname().data());
+                                           cStr.getDbname().data());
                 return returnCodes::ErrorOccured;
             }
         }
@@ -358,15 +359,15 @@ namespace file_services {
         auto size = fs::file_size(file);
 
         gClk.tik();
-        auto file_id = manager_.createFile(file, size, segmentSize, hash);
+        auto fileId = manager_.createFile(file, size, segmentSize, hash);
         gClk.tak();
 
-        if (file_id == returnCodes::AlreadyExists) {
+        if (fileId == returnCodes::AlreadyExists) {
             if (strategy == PreserveOld) {
                 return returnCodes::AlreadyExists;
             }
 
-            auto res = manager_.deleteFile(file, file_id);
+            auto res = manager_.deleteFile(file, fileId);
 
             if (res == returnCodes::ErrorOccured) {
                 VLOG(1)
@@ -374,15 +375,15 @@ namespace file_services {
                                            file.c_str());
                 return returnCodes::ErrorOccured;
             }
-            file_id = manager_.createFile(file, size, segmentSize, hash);
+            fileId = manager_.createFile(file, size, segmentSize, hash);
         }
 
-        if (file_id == returnCodes::ErrorOccured) {
+        if (fileId == returnCodes::ErrorOccured) {
             VLOG(1)
                             << vformat("Error occurred during file creation.\n File path \"%s\"!", file.c_str());
             return returnCodes::ErrorOccured;
         }
-        std::basic_ifstream<SymbolType> in(file);
+        std::basic_ifstream<symbolType> in(file);
 
         gClk.tik();
         auto res1 = manager_.insertFileFromStream(file, in, segmentSize, size,hash);
@@ -395,7 +396,7 @@ namespace file_services {
             return res1;
         }
         gClk.tik();
-        res1 = manager_.finishFileProcessing(file, file_id);
+        res1 = manager_.finishFileProcessing(file, fileId);
         gClk.tak();
 
         if (res1 == returnCodes::ErrorOccured) {
@@ -409,7 +410,7 @@ namespace file_services {
 
 
     template<dataInsetionStrategy strategy>
-    int FileService::processDirectory(std::string_view dirPath, size_t segment_size,const hash_function& hash) {
+    int FileService::processDirectory(std::string_view dirPath, size_t segmentSize, const hash_function& hash) {
         fs::path pp;
 
         auto result = checkDirectoryExistence(dirPath);
@@ -433,7 +434,7 @@ namespace file_services {
             if (!fs::is_directory(entry)) {
                 auto file = fs::canonical(entry.path()).string();
                 gClk.tik();
-                auto results = this->template processFile<strategy, false>(file, segment_size,hash);
+                auto results = this->template processFile<strategy, false>(file, segmentSize, hash);
                 gClk.tak();
 
                 if (results == AlreadyExists) {

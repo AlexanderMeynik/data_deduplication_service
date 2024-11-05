@@ -1,37 +1,37 @@
-#include "MyPqxxModel.h"
+#include "myPqxxModel.h"
 
 namespace models {
 
-    MyPqxxModel::MyPqxxModel(QObject *parent) : QAbstractTableModel(parent), MyPxxxModelBase() {
+    myPqxxModel::myPqxxModel(QObject *parent) : QAbstractTableModel(parent), myPxxxModelBase() {
         res = pqxx::result();
         isEmpty_ = true;
     }
 
-    QVariant MyPqxxModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    QVariant myPqxxModel::headerData(int section, Qt::Orientation orientation, int role) const {
         if (role == Qt::DisplayRole) {
             if (orientation == Qt::Orientation::Vertical) {
-                return QVariant(section);
+                return {section};
             }
-            return QVariant(QString::fromStdString(res.column_name(section)));
+            return {(QString::fromStdString(res.column_name(section)))};
         }
-        return QVariant();
+        return {};
     }
 
-    QVariant MyPqxxModel::data(const QModelIndex &index, int role) const {
+    QVariant myPqxxModel::data(const QModelIndex &index, int role) const {
         if (role == Qt::DisplayRole) {
             return getData(index, role);
         }
-        return QVariant();
+        return {};
     }
 
-    void MyPqxxModel::Reset() {
+    void myPqxxModel::Reset() {
         beginResetModel();
-        MyPxxxModelBase::reset();
+        myPxxxModelBase::reset();
         endResetModel();
     }
 
 
-    void MyPxxxModelBase::setColumnsTypes() {
+    void myPxxxModelBase::setColumnsTypes() {
         columnTypes.resize(res.columns());
         columnNames.resize(res.columns());
         for (int i = 0; i < res.columns(); ++i) {
@@ -40,16 +40,16 @@ namespace models {
         }
     }
 
-    bool MyPxxxModelBase::performConnection(myConnString &cstring) {
-        this->connection_ = connectIfPossible(cstring.c_str()).value_or(nullptr);
+    bool myPxxxModelBase::performConnection(myConnString &cstring) {
+        this->connection = connectIfPossible(cstring.c_str()).value_or(nullptr);
         good = checkConnection();
         return good;
     }
 
-    QVariant MyPxxxModelBase::getData(const QModelIndex &index, int role) const {
+    QVariant myPxxxModelBase::getData(const QModelIndex &index, int role) const {
         if (columnTypes.contains(index.column())) {
             if (res[index.row()][index.column()].is_null()) {
-                return QVariant();
+                return {};
             }
             return toQtVariant(res[index.row()][index.column()].as<std::string>());
         }
@@ -61,8 +61,8 @@ namespace models {
         }, oidToTypeMap.at(columnTypes[index.column()]));
     }
 
-    bool MyPxxxModelBase::checkConnection() {
-        good = db_services::checkConnection(connection_);
+    bool myPxxxModelBase::checkConnection() {
+        good = db_services::checkConnection(connection);
         return good;
     }
 

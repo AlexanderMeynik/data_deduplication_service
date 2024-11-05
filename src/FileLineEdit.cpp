@@ -1,17 +1,16 @@
 #include <QHBoxLayout>
 #include "FileLineEdit.h"
-#include "dbCommon.h"
 
 namespace windows {
     FileLineEdit::FileLineEdit(QWidget *parent,
-                               QString dirPath,
+                               const QString &dirPath,
                                bool saveFile,
-                               bool ReadOnly) :
+                               bool readOnly) :
             QWidget(parent),
             dirPath(dirPath),
             saveFile(saveFile) {
         setUpUi();
-        lineEdit->setReadOnly(ReadOnly);
+        lineEdit->setReadOnly(readOnly);
 
 
         connect(pushButton, &QPushButton::pressed, this, &FileLineEdit::onBrowse);
@@ -75,13 +74,13 @@ namespace windows {
 
 
     FileLineEditWithOption::FileLineEditWithOption(QWidget *parent,
-                                                   QString dirPath,
+                                                   const QString &dirPath,
                                                    bool saveFile,
-                                                   bool ReadOnly) :
+                                                   bool readOnly) :
             FileLineEdit(parent,
-                         std::move(dirPath),
+                         dirPath,
                          saveFile,
-                         ReadOnly) {
+                         readOnly) {
 
         selectModeCheckBox = new QCheckBox(this);
         selectModeCheckBox->setChecked(false);

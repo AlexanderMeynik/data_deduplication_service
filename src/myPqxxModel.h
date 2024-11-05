@@ -19,7 +19,7 @@ namespace models {
     /**
      * Type for postgresql OID storage
      */
-    using OID = uint32_t;
+    using oid = uint32_t;
 
     /**
      * Variant type for runtime type evaluation
@@ -32,7 +32,7 @@ namespace models {
     /**
      *  Map from postgresql OID to some types
      */
-    static const std::unordered_map <OID, returnType> oidToTypeMap = {
+    static const std::unordered_map <oid, returnType> oidToTypeMap = {
             {20,   std::type_identity < int64_t > {}},
             {701,  std::type_identity < double > {}},
             {25,   std::type_identity < std::string > {}},
@@ -49,22 +49,22 @@ namespace models {
     template<typename ReturnType>
     QVariant
     toQtVariant(const ReturnType &val) {
-        return QVariant();
+        return {};
     }
 
     template<>
     QVariant inline toQtVariant(const pqxx::binarystring &val) {
-        return QVariant(QString::fromStdString(val.str()));
+        return {QString::fromStdString(val.str())};
     }
 
     template<>
     QVariant inline toQtVariant(const std::string_view &val) {
-        return QVariant(QString::fromStdString(val.data()));
+        return {QString::fromStdString(val.data())};
     }
 
     template<>
     QVariant inline toQtVariant(const std::string &val) {
-        return QVariant(QString::fromStdString(val));
+        return {QString::fromStdString(val)};
     }
 
     template<>
@@ -82,7 +82,7 @@ namespace models {
     /**
      * @brief Basic class for database pqxx::result representation
      */
-    class MyPxxxModelBase {
+    class myPxxxModelBase {
     public:
         /**
          * Connects to database using given connection string
@@ -155,8 +155,8 @@ namespace models {
         }
 
         resType res;
-        conPtr connection_;
-        QList <OID> columnTypes;
+        conPtr connection;
+        QList <oid> columnTypes;
         QList <QString> columnNames;
         bool good;
         bool isEmpty_;
@@ -166,11 +166,11 @@ namespace models {
     /**
      * @brief Table model for pqxx::result @see models::MyPxxxModelBase
      */
-    class MyPqxxModel : public QAbstractTableModel, public MyPxxxModelBase {
+    class myPqxxModel : public QAbstractTableModel, public myPxxxModelBase {
         Q_OBJECT
     public:
 
-        MyPqxxModel(QObject *parent = nullptr);
+        explicit myPqxxModel(QObject *parent = nullptr);
 
         int rowCount(const QModelIndex &parent) const override {
             return res.size();
@@ -188,7 +188,7 @@ namespace models {
          * @return
          */
         QVariant headerData(int section, Qt::Orientation orientation,
-                            int role = Qt::DisplayRole) const override;
+                            int role) const override;
 
         QVariant data(const QModelIndex &index, int role) const override;
 
@@ -201,9 +201,9 @@ namespace models {
     /**
      * @brief Pqxx model that retrieves database deduplication characteristic @see db_services::getDedupCharacteristics
      */
-    class DeduplicationCharacteristicsModel : public MyPqxxModel {
+    class deduplicationCharacteristicsModel : public myPqxxModel {
     public:
-        DeduplicationCharacteristicsModel(QObject *parent = nullptr) : MyPqxxModel(parent) {}
+        explicit deduplicationCharacteristicsModel(QObject *parent = nullptr) : myPqxxModel(parent) {}
 
         /**
          * Retrieves specified data for model
@@ -219,10 +219,10 @@ namespace models {
     /**
      * @brief Sort filter proxy model used for searching entry names
      */
-    class MySortFilterProxyModel : public QSortFilterProxyModel {
+    class mySortFilterProxyModel : public QSortFilterProxyModel {
         Q_OBJECT
     public:
-        MySortFilterProxyModel(QObject *parent = nullptr)
+        mySortFilterProxyModel(QObject *parent = nullptr)
                 : QSortFilterProxyModel(parent) {
         }
 
@@ -243,11 +243,11 @@ namespace models {
 
 
     ///Sort filter model that filters out all rows with NULL values
-    class NotNullFilterProxyModel : public QSortFilterProxyModel {
+    class notNullFilterProxyModel : public QSortFilterProxyModel {
         Q_OBJECT
 
     public:
-        NotNullFilterProxyModel(QObject *parent = nullptr)
+        explicit notNullFilterProxyModel(QObject *parent = nullptr)
                 : QSortFilterProxyModel(parent) {
         }
 
@@ -259,7 +259,7 @@ namespace models {
          * @param sourceParent
          */
         bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
-            for (size_t i = 0; i < sourceModel()->columnCount(); ++i) {
+            for (int i = 0; i < sourceModel()->columnCount(); ++i) {
                 if (sourceModel()->data(sourceModel()->index(sourceRow, i, sourceParent)).isNull()) {
                     return false;
                 }
@@ -269,18 +269,18 @@ namespace models {
     };
 
     ///Tbale view that can be deselected
-    class DeselectableTableView : public QTableView {
+    class deselectableTableView : public QTableView {
     public:
-        DeselectableTableView(QWidget *parent) : QTableView(parent) {}
+        explicit deselectableTableView(QWidget *parent) : QTableView(parent) {}
 
-        virtual ~DeselectableTableView() {}
+        ~deselectableTableView() override = default;
 
     private:
         /**
          * Mouse press event handler
          * @param event
          */
-        virtual void mousePressEvent(QMouseEvent *event) {
+        void mousePressEvent(QMouseEvent *event) override {
 
             QModelIndex item = indexAt(event->pos());
 
@@ -298,13 +298,13 @@ namespace models {
 
     template<typename ResType1, typename... Args>
     void
-    MyPxxxModelBase::executeInTransaction(ResType1 (*call)(db_services::trasnactionType &, Args...), Args &&... args) {
+    myPxxxModelBase::executeInTransaction(ResType1 (*call)(db_services::trasnactionType &, Args...), Args &&... args) {
         if (!checkConnection()) {
             res = pqxx::result();
             return;
         }
         try {
-            auto ss = db_services::executeInTransaction(connection_, call, std::forward<Args>(args)...);
+            auto ss = db_services::executeInTransaction(connection, call, std::forward<Args>(args)...);
             if (!ss.has_value()) {
                 res = pqxx::result();
             }
@@ -324,14 +324,14 @@ namespace models {
     }
 
     template<typename ResType1, typename... Args>
-    void MyPxxxModelBase::executeInTransaction(const std::function<ResType1(trasnactionType &, Args...)> &call,
+    void myPxxxModelBase::executeInTransaction(const std::function<ResType1(trasnactionType &, Args...)> &call,
                                                Args &&... args) {
         if (!checkConnection()) {
             res = pqxx::result();
             return;
         }
         try {
-            auto ss = db_services::executeInTransaction(connection_, call, std::forward<Args>(args)...);
+            auto ss = db_services::executeInTransaction(connection, call, std::forward<Args>(args)...);
             if (!ss.has_value()) {
                 res = pqxx::result();
             }
@@ -350,6 +350,6 @@ namespace models {
         isEmpty_ = false;
     }
 
-};
+}
 
 #endif //DATA_DEDUPLICATION_SERVICE_MYPQXXMODEL_H

@@ -61,9 +61,9 @@ namespace db_services {
     getEntriesForDirectory(trasnactionType &txn, std::string_view dirPath) {
         std::string query = "select * from files "
                             "where "
-                            "file_name LIKE \'%s%%\' ;";
+                            "file_name LIKE \'%s %%\'  or file_name = \'%s\';";
         auto formattedQuery = vformat(query.c_str(),
-                                      toSpacedPath(dirPath).c_str());
+                                      toSpacedPath(dirPath).c_str(),toSpacedPath(dirPath).c_str());
 
         return txn.exec(formattedQuery);
     }

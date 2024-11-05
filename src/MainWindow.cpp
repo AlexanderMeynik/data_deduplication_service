@@ -21,13 +21,13 @@ namespace windows {
         fileService = file_services::FileService();
 
 
-        setupUI();
+        setupUi();
         updateStylesheet();
 
 
-        myViewModel = new DeduplicationCharacteristicsModel(this);
-        proxyModel = new MySortFilterProxyModel(this);
-        nNullProxyModel = new NotNullFilterProxyModel(this);
+        myViewModel = new deduplicationCharacteristicsModel(this);
+        proxyModel = new mySortFilterProxyModel(this);
+        nNullProxyModel = new notNullFilterProxyModel(this);
         proxyModel->setSourceModel(myViewModel);
         nNullProxyModel->setSourceModel(proxyModel);
 
@@ -35,7 +35,7 @@ namespace windows {
         dataTableView->setSelectionMode(QAbstractItemView::SingleSelection);
         dataTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-        QCompleter *completer = new QCompleter(this);
+        auto *completer = new QCompleter(this);
         completer->setModel(proxyModel);
         completer->setCompletionColumn(0);
         completer->setCompletionRole(Qt::DisplayRole);
@@ -94,7 +94,7 @@ namespace windows {
                         int row = index.row();
                         int columnCount = dataTableView->model()->columnCount();
 
-                        updateLEDS(index);
+                        updateLeds(index);
                     } else {
                         resetLeds(0);
 
@@ -103,7 +103,7 @@ namespace windows {
 
         connect(this, &MainWindow::modelUpdate, this, &MainWindow::calculateCoefficient);
 
-        for (const char *hashName: hash_utils::hash_function_name) {
+        for (const char *hashName: hash_utils::hashFunctionName) {
             hashFunctionCoB->addItem(hashName);
         }
 
@@ -125,10 +125,9 @@ namespace windows {
         styleFile.close();
     }
 
-    MainWindow::~MainWindow() {
-    }
+    MainWindow::~MainWindow() = default;
 
-    void MainWindow::setupUI() {
+    void MainWindow::setupUi() {
         setWindowTitle("File Processing Application");
 
         setCentralWidget(new QWidget());
@@ -322,7 +321,7 @@ namespace windows {
         dbOptionLay->addWidget(qled, 1, 3, 1, 1);
 
 
-        dataTableView = new DeselectableTableView(this);
+        dataTableView = new deselectableTableView(this);
         logTextField = new QTextEdit();
         logTextField->setReadOnly(true);
 
@@ -470,14 +469,14 @@ namespace windows {
         auto stat = settingsWindow->exec();
 
         if (stat == QDialog::Accepted) {
-            c_str = std::move(settingsWindow->getConfiguration());
-            this->dataseNameLE->setText(QString::fromStdString(c_str.getDbname()));
-            writeLog(QString("Settings updated  new connection string \"%1\"").arg(c_str.c_str()));
+            cStr = std::move(settingsWindow->getConfiguration());
+            this->dataseNameLE->setText(QString::fromStdString(cStr.getDbname()));
+            writeLog(QString("Settings updated  new connection string \"%1\"").arg(cStr.c_str()));
         } else {
             writeLog("Rejected connection", ERROR);
         }
         bool old = dbConnection;
-        dbConnection = (checkConnString(c_str));
+        dbConnection = (checkConnString(cStr));
         emit connectionChanged(old);
     }
 
@@ -501,25 +500,25 @@ namespace windows {
 
 
     void MainWindow::onloadDatabase() {
-        this->c_str.setDbname(dataseNameLE->text().toStdString());
+        this->cStr.setDbname(dataseNameLE->text().toStdString());
         bool old = dbConnection;
 
 
         if (dbUsageCB->isChecked()) {
-            dbConnection = checkConnString(c_str);
+            dbConnection = checkConnString(cStr);
             if (dbConnection) {
                 writeLog("Database already exists", WARNING);
                 return;
             }
             writeLog(QString("Creating database %1!").arg(dataseNameLE->text()));
-            fileService.dbLoad<file_services::create>(c_str.getDbname());
+            fileService.dbLoad<file_services::create>(cStr.getDbname());
 
         } else {
             writeLog(QString("Connecting to database %1!").arg(dataseNameLE->text()));
-            fileService.dbLoad(c_str.getDbname());
+            fileService.dbLoad(cStr.getDbname());
         }
 
-        dbConnection = checkConnString(c_str);
+        dbConnection = checkConnString(cStr);
         emit connectionChanged(old);
 
     }
@@ -543,6 +542,8 @@ namespace windows {
                 case QMessageBox::Ok:
                     onSettings();
                     break;
+                default:
+                    break;
             }
             return;
         }
@@ -557,12 +558,12 @@ namespace windows {
                     for (auto &attr: xmlReader.attributes()) {
                         if (attr.name().toString() == "path") {
                             path = attr.value().toString().toStdString();
-                            this->c_str = db_services::loadConfiguration(path);
-                            dataseNameLE->setText(QString::fromStdString(c_str.getDbname()));
+                            this->cStr = db_services::loadConfiguration(path);
+                            dataseNameLE->setText(QString::fromStdString(cStr.getDbname()));
 
 
                             old = dbConnection;
-                            dbConnection = checkConnString(c_str);
+                            dbConnection = checkConnString(cStr);
                             break;
                         }
                     }
@@ -594,9 +595,9 @@ namespace windows {
         } else {
             auto dbName = dataseNameLE->text().toStdString();
 
-            bool conn = myViewModel->performConnection(c_str);
+            bool conn = myViewModel->performConnection(cStr);
 
-            auto res = fileService.dbLoad(c_str);
+            auto res = fileService.dbLoad(cStr);
 
             if (!conn || res != 0) {
                 goto reset;
@@ -626,7 +627,7 @@ namespace windows {
 
     }
 
-    void MainWindow::updateLEDS(QModelIndex &idx) {
+    void MainWindow::updateLeds(QModelIndex &idx) {
         updateStylesheet();
         int row = idx.row();
 
@@ -673,7 +674,7 @@ namespace windows {
                          .arg(isDirectory ? "directories" : "files")
                          .arg(exportee).arg(output));
         size_t segmentSize = segmentSizeCoB->currentText().toUInt();
-        std::array<size_t, 4> res;
+        std::array<size_t, 4> res{};
         if (isDirectory) {
             res = file_services::compareDirectories(exportee.toStdString(), output.toStdString(), segmentSize);
 

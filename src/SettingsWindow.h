@@ -58,6 +58,11 @@ namespace windows {
 
 
         QFormLayout *imputFormLay;
+
+        QHBoxLayout* d1;
+        QHBoxLayout* d2;
+        QHBoxLayout* d3;
+
         QVBoxLayout *mainLayout;
 
         FileLineEdit *fileLineEdit;

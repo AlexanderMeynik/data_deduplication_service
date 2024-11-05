@@ -13,25 +13,6 @@
 #include <thread>
 #include <sstream>
 
-template<typename T, std::size_t N>
-std::array<T, N> constexpr makeArray(T val) {
-    std::array<T, N> tempArray{};
-    for (T &elem: tempArray)
-        elem = val;
-    return tempArray;
-}
-
-//for unordered maps
-template<size_t N>
-struct ::std::hash<std::array<std::string, N>> {
-    std::size_t operator()(const std::array<std::string, N> &s) const noexcept {
-
-        return std::hash<std::string>{}([&s]<std::size_t... Is>(std::index_sequence<Is...>) { return (s[Is]+...); }
-                                                (std::make_index_sequence<N>{}));
-    }
-};
-
-
 template<typename T, size_t sz>
 requires std::is_floating_point_v<T> or std::is_integral_v<T>
 std::ostream &operator<<(std::ostream &out, std::array<T, sz> &arr);
@@ -46,24 +27,30 @@ namespace timing {
     using timepointType = std::chrono::system_clock::time_point;
     using locationType = std::array<std::string, 5>;
 
-  /**
-   * Comaparato for arrays
-   * @tparam N
-   * @param a
-   * @param b
-   */
-    auto cmpArrays = []<size_t N>(const std::array<std::string, N> &a, const std::array<std::string, N> &b) {
-        for (int i = 0; i < N; i++) {
-            if (a[i] != b[i])
-                return b[i] > a[i];
+    /**
+     * @brief Comparator functor arrays
+     */
+    struct cmpArr {
+        /* Comparator for arrays
+         * @tparam N
+         * @param a
+         * @param b
+         * @return
+         */
+        template<size_t N>
+        bool operator()(const std::array<std::string, N> &a, const std::array<std::string, N> &b) const {
+            for (int i = 0; i < N; i++) {
+                if (a[i] != b[i])
+                    return b[i] > a[i];
+            }
+            return false;
         }
-        return false;
     };
 
     template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
             std::source_location location),
             OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
-                                                                       or std::is_integral_v<OutType>
+                                                                        or std::is_integral_v<OutType>
     class clockArray;
 
 
@@ -96,10 +83,9 @@ namespace timing {
      */
     template<typename chrono_duration_type=std::milli>
     using chronoClockTemplate = timing::clockArray<int64_t, timepointType,
-    &std::chrono::high_resolution_clock::now,
-    &getFileState,
-    &doubleCastChrono<chrono_duration_type>>;
-
+            &std::chrono::high_resolution_clock::now,
+            &getFileState,
+            &doubleCastChrono<chrono_duration_type>>;
 
 
     /**
@@ -110,25 +96,25 @@ namespace timing {
       * @tparam timeConverter a function that casts time difference to type
       * @brief Clock array template class
      */
-   template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
-           std::source_location location),
-           OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
-                   or std::is_integral_v<OutType>
-   class clockArray {
-   public:
-       struct timeStore {
-           OutType time;
-           size_t count;
+    template<typename OutType, typename inType, inType(*timeGetter)(), locationType (*sourceTypeConverter)(
+            std::source_location location),
+            OutType(*timeConverter)(inType curr, inType prev)> requires std::is_floating_point_v<OutType>
+                                                                        or std::is_integral_v<OutType>
+    class clockArray {
+    public:
+        struct timeStore {
+            OutType time;
+            size_t count;
 
-           friend std::ostream &operator<<(std::ostream &out, const timeStore &ts) {
-               out << ts.time;
-               return out;
-           }
-       };
+            friend std::ostream &operator<<(std::ostream &out, const timeStore &ts) {
+                out << ts.time;
+                return out;
+            }
+        };
 
-       /**
-        * Resets timers and converted double values
-        */
+        /**
+         * Resets timers and converted double values
+         */
         void reset();
 
 
@@ -215,8 +201,8 @@ namespace timing {
         }
 
     private:
-        std::map<locationType, timeStore, decltype(cmpArrays)> timers;
-        std::map<locationType, inType, decltype(cmpArrays)> startIngTimers;
+        std::map<locationType, timeStore, cmpArr> timers;
+        std::map<locationType, inType, cmpArr> startIngTimers;
         std::stack<locationType> toTak;
 
         static inline std::mutex s_mutex;

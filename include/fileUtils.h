@@ -15,7 +15,7 @@
 /// file services namespace
 namespace file_services {
 
-    using myConcepts::SymbolType;
+    using myConcepts::symbolType;
     namespace fs = std::filesystem;
 
     using myConcepts::gClk;
@@ -82,8 +82,8 @@ namespace file_services {
              std::is_same_v<A, typename std::remove_const<T>::type>
     int compareBlock(size_t size, T *arr, A *arr2) {
         int error = 0;
-        for (int arr_elem = 0; arr_elem < size; ++arr_elem) {
-            error += arr[arr_elem] != arr2[arr_elem];
+        for (int arrElem = 0; arrElem < size; ++arrElem) {
+            error += arr[arrElem] != arr2[arrElem];
         }
         return error;
     }

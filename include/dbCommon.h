@@ -205,7 +205,7 @@ namespace db_services {
      */
     myConnString loadConfiguration(std::string_view filename);
 
-    auto defaultConfiguration = []() {
+    auto static defaultConfiguration = []() {
         return loadConfiguration(cfileName);
     };
 
@@ -237,14 +237,14 @@ namespace db_services {
      * Wraps function in transaction block
      * @tparam ResultType
      * @tparam Args
-     * @param conn_ not null connection
+     * @param conn not null connection
      * @param call
      * @param args
      */
     template<typename ResultType, typename ... Args>
     tl::expected<ResultType, int>
-    executeInTransaction(conPtr &conn_, ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
-        trasnactionType txn(*conn_);//todo if conn is null this one will segfault
+    executeInTransaction(conPtr &conn, ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
+        trasnactionType txn(*conn);//todo if conn is null this one will segfault
         ResultType res = call(txn, std::forward<Args>(args)...);
         txn.commit();
         return res;
@@ -254,15 +254,15 @@ namespace db_services {
      * Functional variant of previous call
      * @tparam ResultType
      * @tparam Args
-     * @param conn_  not null connection
+     * @param conn  not null connection
      * @param call
      * @param args
      */
     template<typename ResultType, typename ... Args>
     tl::expected<ResultType, int>
-    executeInTransaction(conPtr &conn_, const std::function<ResultType(trasnactionType &, Args ...)> &call,
+    executeInTransaction(conPtr &conn, const std::function<ResultType(trasnactionType &, Args ...)> &call,
                          Args &&... args) {
-        trasnactionType txn(*conn_);
+        trasnactionType txn(*conn);
         ResultType res = call(txn, std::forward<Args>(args)...);
         txn.commit();
         return res;

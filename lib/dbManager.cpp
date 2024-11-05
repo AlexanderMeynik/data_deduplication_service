@@ -209,7 +209,7 @@ namespace db_services {
             size_t lastBlockSize = fileSize - blockCount * segmentSize;
             std::istream::sync_with_stdio(false);
 
-            unsigned char mmd[hash_function_size[hash]];
+            unsigned char mmd[hashFunctionSize[hash]];
 
             for (int i = 0; i < blockCount; ++i) {
                 in.read(reinterpret_cast<char *>(buffer), segmentSize);
@@ -218,7 +218,7 @@ namespace db_services {
                         << std::make_tuple(
                                 blockIndex++,
                                 pqxx::binarystring(buffer, segmentSize),
-                                pqxx::binarystring(mmd, hash_function_size[hash]));
+                                pqxx::binarystring(mmd, hashFunctionSize[hash]));
 
             }
             if (lastBlockSize != 0) {
@@ -230,7 +230,7 @@ namespace db_services {
                         << std::make_tuple(
                                 blockIndex,
                                 pqxx::binary_cast(bff),
-                                pqxx::binarystring(mmd, hash_function_size[hash]));
+                                pqxx::binarystring(mmd, hashFunctionSize[hash]));
             }
             copyStream.complete();
             txn.commit();
@@ -559,12 +559,12 @@ namespace db_services {
 
             pqxx::stream_to copyStream = pqxx::stream_to::raw_table(txn, "hash_functions");
 
-            for (size_t i = 0; i < hash_function_name.size(); i++) {
+            for (size_t i = 0; i < hashFunctionName.size(); i++) {
                 copyStream
                         << std::make_tuple(
                                 i,
-                                hash_function_name[i],
-                                hash_function_size[i]);
+                                hashFunctionName[i],
+                                hashFunctionSize[i]);
             }
             copyStream.complete();
 

@@ -30,7 +30,7 @@
 #include "FileService.h"
 #include "FileLineEdit.h"
 #include "SettingsWindow.h"
-#include "MyPqxxModel.h"
+#include "myPqxxModel.h"
 
 /// windows namespace
 namespace windows {
@@ -78,7 +78,7 @@ namespace windows {
 
         void updateModel();
 
-        void updateLEDS(QModelIndex &idx);
+        void updateLeds(QModelIndex &idx);
 
         void resetLeds(int i);
 
@@ -87,7 +87,7 @@ namespace windows {
 
     private:
 
-        void writeLog(const QString &qss, LogLevel lg = INFO) {
+        void writeLog(const QString &qss, logLevel lg = INFO) {
             common::writeLog(logTextField, qss, lg);
         }
 
@@ -109,7 +109,7 @@ namespace windows {
         QPushButton *connectPB;
         QPushButton *dropPB;
 
-        DeselectableTableView *dataTableView;
+        deselectableTableView *dataTableView;
 
         QTextEdit *logTextField;
 
@@ -162,9 +162,9 @@ namespace windows {
 
         SettingsWindow *settingsWindow;
 
-        DeduplicationCharacteristicsModel *myViewModel;
-        MySortFilterProxyModel *proxyModel;
-        NotNullFilterProxyModel *nNullProxyModel;
+        deduplicationCharacteristicsModel *myViewModel;
+        mySortFilterProxyModel *proxyModel;
+        notNullFilterProxyModel *nNullProxyModel;
 
 
         QRegularExpression re;
@@ -174,11 +174,11 @@ namespace windows {
 
         file_services::FileService fileService;
         bool dbConnection;
-        db_services::myConnString c_str;
+        db_services::myConnString cStr;
 
-        void setupUI();
+        void setupUi();
 
-        QString toShortPath(const QString &qString);
+        static QString toShortPath(const QString &qString);
 
         void updateStylesheet();
 
