@@ -340,7 +340,6 @@ namespace db_services {
                                futureFileId,
                                filePath.data(),
                                fileSize);
-            //todo refactor message
             auto hashStr = getHashStr(filePath);
             std::string tableName = vformat("temp_file_%s", hashStr.c_str());
             std::string q1 = vformat(

@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     google::SetVLOGLevel("*", 3);
 
 
-    constexpr auto entries2 = cartesian_product_arr(indx, multipliers);
+    constexpr auto entries2 = cartesianProductArr(indx, multipliers);
 
     for (auto& elem:entries2) {
         auto hashNum=elem[0];

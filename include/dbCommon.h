@@ -244,6 +244,11 @@ namespace db_services {
     template<typename ResultType, typename ... Args>
     tl::expected<ResultType, int>
     executeInTransaction(conPtr &conn, ResultType (*call)(trasnactionType &, Args ...), Args &&... args) {
+        if(!checkConnection(conn))
+        {
+            VLOG(1)<<"Not working connection during execute in transaction";
+            return tl::unexpected{returnCodes::ErrorOccured};
+        }
         trasnactionType txn(*conn);//todo if conn is null this one will segfault
         ResultType res = call(txn, std::forward<Args>(args)...);
         txn.commit();
@@ -262,6 +267,11 @@ namespace db_services {
     tl::expected<ResultType, int>
     executeInTransaction(conPtr &conn, const std::function<ResultType(trasnactionType &, Args ...)> &call,
                          Args &&... args) {
+        if(!checkConnection(conn))
+        {
+            VLOG(1)<<"Not working connection during execute in transaction";
+            return tl::unexpected{returnCodes::ErrorOccured};
+        }
         trasnactionType txn(*conn);
         ResultType res = call(txn, std::forward<Args>(args)...);
         txn.commit();

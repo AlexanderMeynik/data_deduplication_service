@@ -131,7 +131,7 @@ actions.
 временные сущности, которые возникают в ходе выполнения данных процедур (в
 частности, при загрузке файла).
 <p align="center">
-<img alt="database2.svg" src="images%2Fdatabase2.svg" width="400" 
+<img alt="database2.svg" src="images%2Fdatabase2.svg" width="600" 
      height="auto">
 </p>
 Новые сущности на данной диаграмме:
@@ -164,7 +164,7 @@ width="400"/>
 ниже:
 <p align="center">
 <img alt="processFile.svg" height="auto" src="images%2FprocessFile.svg"
-width="450"/>
+width="600"/>
 </p>
 
 Процедуру по загрузке файла можно разделить следующие этапы:
@@ -213,7 +213,7 @@ width="450"/>
 
 <p align="center">
 <img alt="loadFile.svg" height="auto" src="images%2FloadFile.svg"
-width="450"/>
+width="600"/>
 </p>
 
 Выгрузка файла состоит из 1 этапа. Для его выполнения производиться inner join
@@ -225,7 +225,7 @@ width="450"/>
 ниже:
 <p align="center">
 <img alt="deleteFile.svg" height="auto" src="images%2FdeleteFile.svg"
-width="450"/>
+width="600"/>
 </p>
 
 Для полного удаления информации о файле необходимо выполнить следующие

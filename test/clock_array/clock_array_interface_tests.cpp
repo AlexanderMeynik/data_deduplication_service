@@ -14,7 +14,9 @@ FAKE_VALUE_FUNC(double, double_cast, timepointType, timepointType);
   FAKE(src_to_loc_type)                   \
   FAKE(time_getter)
 
-
+/**
+ * @brief Test how interface calls functions that is supplied to it
+ */
 class ClockArrayInterfaceTest : public ::testing::Test {
 public:
 public:

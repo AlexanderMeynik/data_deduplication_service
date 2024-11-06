@@ -43,7 +43,7 @@
 ### Схема базы данных
 ER диаграмма базы данных представлена ниже:
 <p align="center">
-<img alt="database.svg" src="images%2Fdatabase.svg" width="300" 
+<img alt="database.svg" src="images%2Fdatabase.svg" width="600" 
      height="auto">
 </p>
 Сущности БД:
@@ -63,7 +63,7 @@ ER диаграмма базы данных представлена ниже:
 ### Загрузка файла в систему
 <p align="center">
 <img alt="processFile.svg" height="auto" src="images%2FprocessFile.svg"
-width="450"/>
+width="600"/>
 </p>
 
 [Подробнее ...](implementationDetails.md#загрузка-файла-в-систему)
@@ -71,7 +71,7 @@ width="450"/>
 ### Выгрузка файла
 <p align="center">
 <img alt="loadFile.svg" height="auto" src="images%2FloadFile.svg"
-width="450"/>
+width="600"/>
 </p>
 
 [Подробнее ...](implementationDetails.md#выгрузка-файла)
@@ -79,7 +79,7 @@ width="450"/>
 ### Удаление файла
 <p align="center">
 <img alt="deleteFile.svg" height="auto" src="images%2FdeleteFile.svg"
-width="450"/>
+width="600"/>
 </p>
 
 [Подробнее ...](implementationDetails.md#удаление-файла)

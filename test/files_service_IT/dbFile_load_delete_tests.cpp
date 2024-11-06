@@ -5,7 +5,9 @@
 
 static fs::path fix_dir = "../test_data/fixture/";
 static fs::path res_dir = "../test_data/res/";
-
+/**
+ * @brief this test suite tests various interactions between file loading functions and their results
+ */
 class DbFile_Dir_tests : public ::testing::TestWithParam<fs::path> {
 public:
     static void SetUpTestSuite() {
@@ -35,7 +37,7 @@ protected:
 TEST_F(DbFile_Dir_tests, test_file_eq) {
     fs::path filename = "../test_data/fixture/block_size/32blocks.txt";
 
-    compare_files(filename, filename);
+    compareFiles(filename, filename);
 }
 
 TEST_F(DbFile_Dir_tests, create_delete_file_test) {
@@ -80,7 +82,7 @@ TEST_P(DbFile_Dir_tests, insert_segments) {
     manager_.insertFileFromStream(f_in.c_str(), in, segmentSize, fs::file_size(f_in));
     in.close();
 
-    ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<check_from::temporary_table>, f_in,(size_t)64),
+    ASSERT_EQ(wrapTransFunction(conn_, &getFileFromTempTable<checkFrom::TemporaryTable>, f_in, (size_t)64),
               returnCodes::ReturnSucess);
     manager_.deleteFile(f_in.c_str());
 
@@ -104,7 +106,7 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_retrieve) {
     manager_.finishFileProcessing(f_in.c_str(), file_id);
 
 
-    ASSERT_EQ(wrapTransFunction(conn_, &get_file_from_temp_table<check_from::concolidate_from_saved>, f_in,(size_t)64),
+    ASSERT_EQ(wrapTransFunction(conn_, &getFileFromTempTable<checkFrom::ConsolidateFromSaved>, f_in, (size_t)64),
               returnCodes::ReturnSucess);
 
     manager_.deleteFile(f_in.c_str());
@@ -145,8 +147,8 @@ TEST_P(DbFile_Dir_tests, check_very_long_file_pathes) {
 
 TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
     auto f_path = GetParam();
-    auto f_in =/*get_normal_abs*/(fix_dir / f_path);
-    auto f_out =/*get_normal_abs*/(res_dir / f_path);
+    auto f_in =(fix_dir / f_path);
+    auto f_out =(res_dir / f_path);
 
     auto file_id = manager_.createFile(f_in.c_str(), fs::file_size(f_in), 0);
     std::ifstream in(f_in);
@@ -157,11 +159,11 @@ TEST_P(DbFile_Dir_tests, insert_segments_process_load) {
     manager_.finishFileProcessing(f_in.c_str(), file_id);
 
     std::ofstream out;
-    create_hierarhy_for_file(f_out.c_str(), out);
+    createHierarhyForFile(f_out.c_str(), out);
     manager_.getFileStreamed(f_in.c_str(), out);
     out.close();
 
-    compare_files(f_in, f_out);
+    compareFiles(f_in, f_out);
     manager_.deleteFile(f_in.c_str());
 
     auto result = wrapTransFunction(conn_, &db_services::checkFileExistence, {f_in.string()});

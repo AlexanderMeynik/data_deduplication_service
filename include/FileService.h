@@ -50,10 +50,23 @@ namespace file_services {
         template<dbUsageStrategy dbUsageStrategy = use>
         int dbLoad(db_services::myConnString &cStr);
 
+        /**
+         *
+         * @param dbName
+         */
         int dbDrop(std::string_view dbName) {
             auto res = manager_.dropDatabase(dbName);
             return res;
         };
+
+        /**
+         * Get vector of pairs of file_names and file ids for directory
+         * @param dirPath
+         */
+        std::vector<std::pair<indexType, std::string>> getAllFiles(std::string_view dirPath)
+        {
+            return manager_.getAllFiles(dirPath);
+        }
 
         /**
          * Processes all files in the given directory runs @ref process_file() "processFile()" for each file
@@ -357,6 +370,11 @@ namespace file_services {
         }
 
         auto size = fs::file_size(file);
+        if(!size)
+        {
+            VLOG(1)<<"Application doesnt support empty file insertion!";
+            return AlreadyExists;
+        }
 
         gClk.tik();
         auto fileId = manager_.createFile(file, size, segmentSize, hash);
@@ -440,7 +458,8 @@ namespace file_services {
                 if (results == AlreadyExists) {
                     res=AlreadyExists;
                     continue;
-                } else if (results == ErrorOccured) {
+                }
+                if (results == ErrorOccured) {
                     return results;
                 }
             } else

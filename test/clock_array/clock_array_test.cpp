@@ -2,6 +2,9 @@
 #include <Leopard/ThreadPool.h>
 
 
+/**
+ * @brief Test various measurement situations
+ */
 class ClockArrayTest : public ::testing::Test {
 protected:
     chronoClockTemplate<ratio> clk;

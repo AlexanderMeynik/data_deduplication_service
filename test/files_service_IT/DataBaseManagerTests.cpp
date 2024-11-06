@@ -1,6 +1,9 @@
 #include "testClasses.h"
 
 
+/**
+ * @brief This test suite is dedicated for testing inner workings of databaseManager class
+ */
 class DbMangement_tests : public ::testing::Test {
 public:
 
@@ -68,19 +71,27 @@ TEST_F(DbMangement_tests, test_create_drop_db) {
 
     auto a = wrap_non_trans_function(&checkDatabaseExistence, new_db_name);
     ASSERT_TRUE(a.has_value());
-    ASSERT_EQ(a.value().size(), 0);//no db
+    ASSERT_EQ(a.value().size(), 0);
 
     manager_.createDatabase(new_db_name);
 
     a = wrap_non_trans_function(&checkDatabaseExistence, new_db_name);
     ASSERT_TRUE(a.has_value());
-    ASSERT_EQ(a.value().size(), 1);//new_db
+    ASSERT_EQ(a.value().size(), 1);
 
     manager_.dropDatabase(new_db_name);
 
     a = wrap_non_trans_function(&checkDatabaseExistence, new_db_name);
     ASSERT_TRUE(a.has_value());
-    ASSERT_EQ(a.value().size(), 0);//no db
+    ASSERT_EQ(a.value().size(), 0);
 
     manager_.setCString(DbMangement_tests::c_str);
+}
+int main(int argc, char **argv) {
+    google::InitGoogleLogging(argv[0]);
+    google::SetVLOGLevel("*", 3);
+    ::testing::InitGoogleTest(&argc, argv);
+    ::testing::InitGoogleMock(&argc, argv);
+
+    return RUN_ALL_TESTS();
 }
