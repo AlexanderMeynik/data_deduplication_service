@@ -1,12 +1,12 @@
 var classmodels_1_1myPxxxModelBase =
 [
     [ "checkConnection", "classmodels_1_1myPxxxModelBase.html#a4393ab57259f58cd46d4d1ecc3e61f71", null ],
+    [ "convertFromPqxx", "classmodels_1_1myPxxxModelBase.html#a15bbbaa4e137dda771f2d0e4e9bf4b70", null ],
     [ "executeInTransaction", "classmodels_1_1myPxxxModelBase.html#ac8ba30dcc62ded3906a13a4ea91d4055", null ],
     [ "executeInTransaction", "classmodels_1_1myPxxxModelBase.html#a5b97d9e7d29d20f4ab1919a1c283810d", null ],
     [ "executeInTransaction", "classmodels_1_1myPxxxModelBase.html#a37f19930af60d6d883a7c4b8ab596434", null ],
     [ "executeInTransaction", "classmodels_1_1myPxxxModelBase.html#a6b672ae3ec0f8217562a0ee75df48d05", null ],
     [ "getData", "classmodels_1_1myPxxxModelBase.html#a8ca7ba679e1f064fd52f91ceb446cb54", null ],
-    [ "getData", "classmodels_1_1myPxxxModelBase.html#a5fa517b176ef3fae3dbbb87c4a5bc72d", null ],
     [ "isEmpty", "classmodels_1_1myPxxxModelBase.html#a098879a45571a95c89b5847af60d87f2", null ],
     [ "performConnection", "classmodels_1_1myPxxxModelBase.html#af268ae6776076f884f6c98b3b7b47864", null ],
     [ "reset", "classmodels_1_1myPxxxModelBase.html#ace0b8d630a0ee774faf57d15e7c4f1fb", null ],

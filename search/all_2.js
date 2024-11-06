@@ -3,7 +3,7 @@ var searchData=
   ['c_5fstr_2',['c_str',['../structdb__services_1_1myConnString.html#aa9a8d3113b64963e504906844fe436b9',1,'db_services::myConnString']]],
   ['cbegin_3',['cbegin',['../classtiming_1_1clockArray.html#a00bd670d36cbae3fbdc917502f17d744',1,'timing::clockArray']]],
   ['cend_4',['cend',['../classtiming_1_1clockArray.html#a49739196f3f0ef01e94be65225474069',1,'timing::clockArray']]],
-  ['checkconnection_5',['checkConnection',['../classfile__services_1_1FileService.html#ae381521c19b070ba56398342504f5711',1,'file_services::FileService::checkConnection()'],['../classdb__services_1_1dbManager.html#af99ea249fa97f1cbcb9a9a9747e20ba9',1,'db_services::dbManager::checkConnection()'],['../namespacedb__services.html#a9fe7980487caefbd3bc7f182937c7e7a',1,'db_services::checkConnection()'],['../classmodels_1_1myPxxxModelBase.html#a4393ab57259f58cd46d4d1ecc3e61f71',1,'models::myPxxxModelBase::checkConnection()']]],
+  ['checkconnection_5',['checkConnection',['../classfile__services_1_1FileService.html#ae381521c19b070ba56398342504f5711',1,'file_services::FileService::checkConnection()'],['../classdb__services_1_1dbManager.html#af99ea249fa97f1cbcb9a9a9747e20ba9',1,'db_services::dbManager::checkConnection()'],['../classmodels_1_1myPxxxModelBase.html#a4393ab57259f58cd46d4d1ecc3e61f71',1,'models::myPxxxModelBase::checkConnection()'],['../namespacedb__services.html#a9fe7980487caefbd3bc7f182937c7e7a',1,'db_services::checkConnection(const conPtr &amp;conn)']]],
   ['checkconnstring_6',['checkConnString',['../namespacedb__services.html#aebac248c11405f94f676688b6eead4de',1,'db_services']]],
   ['checkdatabaseexistence_7',['checkDatabaseExistence',['../namespacedb__services.html#a5db5ac0588576cef9bd899c715f670e3',1,'db_services']]],
   ['checkdirectoryexistence_8',['checkDirectoryExistence',['../namespacefile__services.html#a82f7ec94730b214da1e223d73722293e',1,'file_services']]],
@@ -37,10 +37,11 @@ var searchData=
   ['conptr_36',['conPtr',['../namespacedb__services.html#adf155525fda8c3a3d13125f19621e940',1,'db_services']]],
   ['contains_37',['contains',['../classtiming_1_1clockArray.html#aa222a1d6182295c89798c85152f74e8b',1,'timing::clockArray']]],
   ['contentchanged_38',['contentChanged',['../classwindows_1_1FileLineEdit.html#a857ad89b1b711fdb869fe57da5560967',1,'windows::FileLineEdit']]],
-  ['count_39',['count',['../structtiming_1_1clockArray_1_1timeStore.html#a7fe69105be417b93c5ea443fb0b082fd',1,'timing::clockArray::timeStore']]],
-  ['create_40',['create',['../namespacefile__services.html#aa077d26ba24fcf1f7553f297e73060c7a2c54cee0e86668a8d47d69c2b194520b',1,'file_services']]],
-  ['createdatabase_41',['createDatabase',['../classdb__services_1_1dbManager.html#af73f01d560d4684d49f540fc547a27f0',1,'db_services::dbManager']]],
-  ['createdirectory_42',['createDirectory',['../classdb__services_1_1dbManager.html#a52075fc594c97be2352e0db382f52e0b',1,'db_services::dbManager']]],
-  ['createfile_43',['createFile',['../classdb__services_1_1dbManager.html#a6c8a95bbba3597bf50921f8d3a6d4ded',1,'db_services::dbManager']]],
-  ['createmain_44',['CreateMain',['../namespacefile__services.html#a0e12ae63bfb9dbeaa81fecbef02d1236ae1934d28a2673a7196c074e69f5caae0',1,'file_services']]]
+  ['convertfrompqxx_39',['convertFromPqxx',['../classmodels_1_1myPxxxModelBase.html#a15bbbaa4e137dda771f2d0e4e9bf4b70',1,'models::myPxxxModelBase']]],
+  ['count_40',['count',['../structtiming_1_1clockArray_1_1timeStore.html#a7fe69105be417b93c5ea443fb0b082fd',1,'timing::clockArray::timeStore']]],
+  ['create_41',['create',['../namespacefile__services.html#aa077d26ba24fcf1f7553f297e73060c7a2c54cee0e86668a8d47d69c2b194520b',1,'file_services']]],
+  ['createdatabase_42',['createDatabase',['../classdb__services_1_1dbManager.html#af73f01d560d4684d49f540fc547a27f0',1,'db_services::dbManager']]],
+  ['createdirectory_43',['createDirectory',['../classdb__services_1_1dbManager.html#a52075fc594c97be2352e0db382f52e0b',1,'db_services::dbManager']]],
+  ['createfile_44',['createFile',['../classdb__services_1_1dbManager.html#a6c8a95bbba3597bf50921f8d3a6d4ded',1,'db_services::dbManager']]],
+  ['createmain_45',['CreateMain',['../namespacefile__services.html#a0e12ae63bfb9dbeaa81fecbef02d1236ae1934d28a2673a7196c074e69f5caae0',1,'file_services']]]
 ];

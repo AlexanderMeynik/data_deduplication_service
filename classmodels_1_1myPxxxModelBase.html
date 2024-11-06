@@ -128,9 +128,9 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a5fa517b176ef3fae3dbbb87c4a5bc72d"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmodels_1_1myPxxxModelBase.html#a5fa517b176ef3fae3dbbb87c4a5bc72d">getData</a> (const QModelIndex &amp;index, int role) const</td></tr>
-<tr class="memdesc:a5fa517b176ef3fae3dbbb87c4a5bc72d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be wrapped in QVariant.  <a href="classmodels_1_1myPxxxModelBase.html#a5fa517b176ef3fae3dbbb87c4a5bc72d">More...</a><br /></td></tr>
-<tr class="separator:a5fa517b176ef3fae3dbbb87c4a5bc72d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15bbbaa4e137dda771f2d0e4e9bf4b70"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmodels_1_1myPxxxModelBase.html#a15bbbaa4e137dda771f2d0e4e9bf4b70">convertFromPqxx</a> (const QModelIndex &amp;index, int role) const</td></tr>
+<tr class="memdesc:a15bbbaa4e137dda771f2d0e4e9bf4b70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be wrapped in QVariant.  <a href="classmodels_1_1myPxxxModelBase.html#a15bbbaa4e137dda771f2d0e4e9bf4b70">More...</a><br /></td></tr>
+<tr class="separator:a15bbbaa4e137dda771f2d0e4e9bf4b70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37f19930af60d6d883a7c4b8ab596434"><td class="memTemplParams" colspan="2">template&lt;typename ResType1 , typename ... Args&gt; </td></tr>
 <tr class="memitem:a37f19930af60d6d883a7c4b8ab596434"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmodels_1_1myPxxxModelBase.html#a37f19930af60d6d883a7c4b8ab596434">executeInTransaction</a> (ResType1(*call)(<a class="el" href="namespacedb__services.html#a0dc7e039cea5fbc9841f48c898c71cf0">db_services::trasnactionType</a> &amp;, Args ...), Args &amp;&amp;... args)</td></tr>
 <tr class="separator:a37f19930af60d6d883a7c4b8ab596434"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,6 +195,74 @@ Protected Attributes</h2></td></tr>
 <map name="aclassmodels_1_1myPxxxModelBase_a4393ab57259f58cd46d4d1ecc3e61f71_icgraph" id="aclassmodels_1_1myPxxxModelBase_a4393ab57259f58cd46d4d1ecc3e61f71_icgraph">
 <area shape="rect" title=" " alt="" coords="256,5,459,47"/>
 <area shape="rect" href="classmodels_1_1myPxxxModelBase.html#af268ae6776076f884f6c98b3b7b47864" title=" " alt="" coords="5,5,208,47"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a15bbbaa4e137dda771f2d0e4e9bf4b70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15bbbaa4e137dda771f2d0e4e9bf4b70">&#9670;&nbsp;</a></span>convertFromPqxx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariant models::myPxxxModelBase::convertFromPqxx </td>
+          <td>(</td>
+          <td class="paramtype">const QModelIndex &amp;&#160;</td>
+          <td class="paramname"><em>index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>role</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be wrapped in QVariant. </p>
+<p>This function is used in order for elements in inheriting models</p>
+<p>to be able to get native data type for better sorting etc. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">index</td><td></td></tr>
+    <tr><td class="paramname">role</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<div id="dynsection-3" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-3-content" class="dyncontent" style="display:none;">
+<div class="center"><img src="classmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_cgraph.png" border="0" usemap="#aclassmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_cgraph" alt=""/></div>
+<map name="aclassmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_cgraph" id="aclassmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_cgraph">
+<area shape="rect" title="Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be w..." alt="" coords="5,5,208,47"/>
+<area shape="rect" href="namespacemodels.html#a969afa29a81e50267c1480dd05ab0a1c" title=" " alt="" coords="256,13,408,39"/>
+</map>
+</div>
+<div id="dynsection-4" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-4-content" class="dyncontent" style="display:none;">
+<div class="center"><img src="classmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_icgraph.png" border="0" usemap="#aclassmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_icgraph" alt=""/></div>
+<map name="aclassmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_icgraph" id="aclassmodels_1_1myPxxxModelBase_a15bbbaa4e137dda771f2d0e4e9bf4b70_icgraph">
+<area shape="rect" title="Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be w..." alt="" coords="224,5,427,47"/>
+<area shape="rect" href="classmodels_1_1myPqxxModel.html#ad8a0f0fd91459f0c0fe579653f926f52" title=" " alt="" coords="5,5,176,47"/>
 </map>
 </div>
 
@@ -279,11 +347,11 @@ template&lt;typename ResType1 , typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div id="dynsection-3" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-5" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-3-content" class="dyncontent" style="display:none;">
+<div id="dynsection-5-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classmodels_1_1myPxxxModelBase_a5b97d9e7d29d20f4ab1919a1c283810d_cgraph.png" border="0" usemap="#aclassmodels_1_1myPxxxModelBase_a5b97d9e7d29d20f4ab1919a1c283810d_cgraph" alt=""/></div>
 <map name="aclassmodels_1_1myPxxxModelBase_a5b97d9e7d29d20f4ab1919a1c283810d_cgraph" id="aclassmodels_1_1myPxxxModelBase_a5b97d9e7d29d20f4ab1919a1c283810d_cgraph">
 <area shape="rect" title=" " alt="" coords="5,23,208,65"/>
@@ -373,11 +441,11 @@ template&lt;typename ResType1 , typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div id="dynsection-4" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-6" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-6-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-4-content" class="dyncontent" style="display:none;">
+<div id="dynsection-6-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classmodels_1_1myPxxxModelBase_a6b672ae3ec0f8217562a0ee75df48d05_cgraph.png" border="0" usemap="#aclassmodels_1_1myPxxxModelBase_a6b672ae3ec0f8217562a0ee75df48d05_cgraph" alt=""/></div>
 <map name="aclassmodels_1_1myPxxxModelBase_a6b672ae3ec0f8217562a0ee75df48d05_cgraph" id="aclassmodels_1_1myPxxxModelBase_a6b672ae3ec0f8217562a0ee75df48d05_cgraph">
 <area shape="rect" title=" " alt="" coords="5,23,208,65"/>
@@ -389,7 +457,7 @@ template&lt;typename ResType1 , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a8ca7ba679e1f064fd52f91ceb446cb54"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8ca7ba679e1f064fd52f91ceb446cb54">&#9670;&nbsp;</a></span>getData() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ca7ba679e1f064fd52f91ceb446cb54">&#9670;&nbsp;</a></span>getData()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -412,75 +480,6 @@ template&lt;typename ResType1 , typename... Args&gt; </div>
 </div><div class="memdoc">
 
 <p>Implemented in <a class="el" href="classmodels_1_1deduplicationCharacteristicsModel.html#a2844373e8a45ef13e66bb1be16f6f41a">models::deduplicationCharacteristicsModel</a>.</p>
-<div id="dynsection-5" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-5-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classmodels_1_1myPxxxModelBase_a8ca7ba679e1f064fd52f91ceb446cb54_icgraph.png" border="0" usemap="#aclassmodels_1_1myPxxxModelBase_a8ca7ba679e1f064fd52f91ceb446cb54_icgraph" alt=""/></div>
-<map name="aclassmodels_1_1myPxxxModelBase_a8ca7ba679e1f064fd52f91ceb446cb54_icgraph" id="aclassmodels_1_1myPxxxModelBase_a8ca7ba679e1f064fd52f91ceb446cb54_icgraph">
-<area shape="rect" title=" " alt="" coords="224,5,427,47"/>
-<area shape="rect" href="classmodels_1_1myPqxxModel.html#ad8a0f0fd91459f0c0fe579653f926f52" title=" " alt="" coords="5,5,176,47"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a5fa517b176ef3fae3dbbb87c4a5bc72d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5fa517b176ef3fae3dbbb87c4a5bc72d">&#9670;&nbsp;</a></span>getData() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">QVariant models::myPxxxModelBase::getData </td>
-          <td>(</td>
-          <td class="paramtype">const QModelIndex &amp;&#160;</td>
-          <td class="paramname"><em>index</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>role</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be wrapped in QVariant. </p>
-<p>This function is used in order for elements in inheriting models</p>
-<p>to be able to get native data type for better sorting etc. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">index</td><td></td></tr>
-    <tr><td class="paramname">role</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
-<div id="dynsection-6" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-6-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-6-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classmodels_1_1myPxxxModelBase_a5fa517b176ef3fae3dbbb87c4a5bc72d_cgraph.png" border="0" usemap="#aclassmodels_1_1myPxxxModelBase_a5fa517b176ef3fae3dbbb87c4a5bc72d_cgraph" alt=""/></div>
-<map name="aclassmodels_1_1myPxxxModelBase_a5fa517b176ef3fae3dbbb87c4a5bc72d_cgraph" id="aclassmodels_1_1myPxxxModelBase_a5fa517b176ef3fae3dbbb87c4a5bc72d_cgraph">
-<area shape="rect" title="Returns properly casted data Uses postgres column OID to perform cast to suitable type that will be w..." alt="" coords="5,5,208,47"/>
-<area shape="rect" href="namespacemodels.html#a969afa29a81e50267c1480dd05ab0a1c" title=" " alt="" coords="256,13,408,39"/>
-</map>
-</div>
 
 </div>
 </div>
