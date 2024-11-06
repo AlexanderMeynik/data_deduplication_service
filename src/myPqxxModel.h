@@ -116,9 +116,8 @@ namespace models {
          * @details to be able to get native data type for better sorting etc.
          * @param index
          * @param role
-         * @return
          */
-        QVariant getData(const QModelIndex &index, int role) const;
+        QVariant convertFromPqxx(const QModelIndex &index, int role) const;
 
         /**
          * @ref db_services::executeInTransaction() "executeInTransaction()"

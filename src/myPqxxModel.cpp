@@ -19,7 +19,7 @@ namespace models {
 
     QVariant myPqxxModel::data(const QModelIndex &index, int role) const {
         if (role == Qt::DisplayRole) {
-            return getData(index, role);
+            return convertFromPqxx(index, role);
         }
         return {};
     }
@@ -46,7 +46,7 @@ namespace models {
         return good;
     }
 
-    QVariant myPxxxModelBase::getData(const QModelIndex &index, int role) const {
+    QVariant myPxxxModelBase::convertFromPqxx(const QModelIndex &index, int role) const {
         if (columnTypes.contains(index.column())) {
             if (res[index.row()][index.column()].is_null()) {
                 return {};

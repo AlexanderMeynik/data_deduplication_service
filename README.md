@@ -4,9 +4,45 @@
 данных за счет использования подхода дедупликации данных и проведении
 тестирования для измерения производительности созданного прототипа.
 
-[Основная страница с документацией](doc%2FREADME.md)
-## Задачи
+## Описание проекта
 
+Данный проект выполнялся в рамках курсовой работы по дисциплине "Системы анализа больших данных".
+Основные работы над данной частью проекта производились с сентября по ноябрь 2024 года.
+Целью всего проекта является сбор и анализ метаданных статей с платформы 
+
+[Основная страница с документацией](doc%2FREADME.md)
+
+[Документация doxygen](https://alexandermeynik.github.io/data_deduplication_service/index.html)
+
+## Стек технологий
+1. C++ 20
+2. PostgreSQL 15 [сайт](https://www.postgresql.org/about/news/postgresql-15-released-2526/)
+3. libpqxx 7.9 [GitHub](https://github.com/jtv/libpqxx)
+4. libglog [GitHub](https://github.com/google/glog)
+5. gtest/gmock 1.15.2 [GitHub](https://github.com/google/googletest)
+6. FFF(Fake Function Framework) [GitHub](https://github.com/meekrosoft/fff)
+7. libssl [сайт](https://packages.debian.org/ru/sid/libssl-dev)
+8. Асинхронный пул потоков из библиотеки Leopard [GitHub](https://github.com/hosseinmoein/Leopard)
+9. Qt6 Widgets [сайт](https://www.qt.io/product/qt6)
+10. Docker 27.1 [сайт](https://www.docker.com/)
+11. Doxygen [сайт](https://www.doxygen.nl/)
+
+## Описание провдимых мероприятий
+
+1. Реализован механизм runtime преобразования PostgreSQL типов по значению OID(см. [models.h](https://alexandermeynik.github.io/data_deduplication_service/classmodels_1_1myPxxxModelBase.html));
+2. Применён Model/View подход для [визуализации данных](doc%2FimplementationDetails.md#особенности-представления-данных);
+3. Реализован набор [workflow](doc%2Fworkflows.md) для сборки проекта, тестирования, временных измерений и равёртывания документации;
+4. Были изучены особенности написания документации на базе Doxygen.
+5. Применены подходы блочной вставки и [потоковых запросов](doc%2FimplementationDetails.md#загрузка-файла-в-систему)
+для ускорения вставки файла в БД.
+6. Создан docker образ и [workflow](https://github.com/AlexanderMeynik/data_deduplication_service/actions/workflows/docker_build.yml)
+для сборки данного образа и отправки его в HUB.
+7. Разработан потокобезпоасный [шаблонный класс](https://alexandermeynik.github.io/data_deduplication_service/classtiming_1_1clockArray.html)
+массива таймеров для сбора временных метрик.
+8. Произведено smoke [тестирование](doc%2Ftesting.md) полученной реализации таймера и сервисов работы с файлами;
+
+
+## Задачи
 - [x] решить проблему с подключением к бд
 - [x] создать простую схему для дедупликации
 - [x] Доработать данную схему базы данных
@@ -44,18 +80,4 @@
 - [x] Исправить основные issue в репозитории
 - [x] ввести набор критериев и метрик, зависимости между которыми будут подлежать исследованию
 - [ ] Создать релиз для приложения
-- [ ] Описать процедуру установки и работы с приложение
-## Стек технологий
-
-1. C++ 20
-2. libpqxx 7.9
-3. libglog
-4. gtest/gmock 1.15.2
-5. FFF(Fake Function Framework)
-6. libssl 3.3.2
-7. Асинхронный пул потоков из библиотеки Leopard 
-8. Qt6 Widgets
-
-## Wsl firewall set-up
-
-[source](https://stackoverflow.com/questions/56824788/how-to-connect-to-windows-postgres-database-from-wsl)
+- [ ] Задокументировать тестовые сценарии
